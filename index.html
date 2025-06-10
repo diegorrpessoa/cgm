@@ -43,37 +43,27 @@
 </body>
 </html>
 -->
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <title>Filtro por Ano e Mês</title>
+  <title>Tabela de Despesas - Filtro por Mês</title>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <style>
-    body { font-family: Arial; padding: 2rem; }
+    body { font-family: Arial, sans-serif; margin: 2rem; }
     #filtros { margin-bottom: 1rem; }
-    label { margin-right: 1rem; }
+    label { font-weight: bold; margin-right: 1rem; }
   </style>
 </head>
 <body>
-  <h1>Tabela de Despesas 2025</h1>
+
+  <h1>Despesas Mensais</h1>
 
   <div id="filtros">
-    <label>
-      Ano:
-      <select id="filtroAno">
-        <option value="">Todos</option>
-      </select>
-    </label>
-    <label>
-      Mês:
-      <select id="filtroMes">
-        <option value="">Todos</option>
-        
-        <option value="janeiro">janeiro</option>
-      </select>
-    </label>
+    <label for="filtroMes">Filtrar por mês:</label>
+    <select id="filtroMes">
+      <option value="">Todos os meses</option>
+    </select>
   </div>
 
   <table id="tabela" class="display" width="100%"></table>
@@ -90,43 +80,31 @@
       complete: function(results) {
         const data = results.data.filter(row => Object.values(row).some(val => val !== ""));
         const colunas = Object.keys(data[0]).map(col => ({ title: col, data: col }));
+
         const tabela = $('#tabela').DataTable({
           data: data,
           columns: colunas,
           language: {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
-          },
-          initComplete: function () {
-            preencherFiltros(tabela, data);
           }
         });
 
-        // Filtros reativos
-        $('#filtroAno, #filtroMes').on('change', function () {
-          const ano = $('#filtroAno').val();
-          const mes = $('#filtroMes').val();
-          tabela.rows().every(function () {
-            const row = this.data();
-            const condAno = !ano || row["Ano"] === ano;
-            const condMes = !mes || row["Mes"] === mes;
-            this.visible(condAno && condMes);
-          });
+        // Extrair e preencher filtro de meses
+        const meses = [...new Set(data.map(d => d.mes).filter(Boolean))].sort((a, b) => a - b);
+        for (const m of meses) {
+          $('#filtroMes').append(`<option value="${m}">${m}</option>`);
+        }
+
+        // Aplicar filtro
+        $('#filtroMes').on('change', function () {
+          const mesSelecionado = this.value;
+          const idxMes = colunas.findIndex(c => c.title === "mes");
+          tabela.column(idxMes).search(mesSelecionado, true, false).draw();
         });
       }
     });
-
-    function preencherFiltros(tabela, data) {
-      const anos = [...new Set(data.map(d => d.Ano).filter(Boolean))].sort();
-      const meses = [...new Set(data.map(d => d.Mes).filter(Boolean))].sort();
-
-      for (const a of anos) {
-        $('#filtroAno').append(`<option value="${a}">${a}</option>`);
-      }
-      for (const m of meses) {
-        $('#filtroMes').append(`<option value="${m}">${m}</option>`);
-      }
-    }
   </script>
 </body>
 </html>
+
 
