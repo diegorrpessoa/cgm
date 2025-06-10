@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
@@ -42,3 +42,91 @@
 
 </body>
 </html>
+-->
+
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Filtro por Ano e Mês</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+  <style>
+    body { font-family: Arial; padding: 2rem; }
+    #filtros { margin-bottom: 1rem; }
+    label { margin-right: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Tabela de Despesas</h1>
+
+  <div id="filtros">
+    <label>
+      Ano:
+      <select id="filtroAno">
+        <option value="">Todos</option>
+      </select>
+    </label>
+    <label>
+      Mês:
+      <select id="filtroMes">
+        <option value="">Todos</option>
+      </select>
+    </label>
+  </div>
+
+  <table id="tabela" class="display" width="100%"></table>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+
+  <script>
+    const urlCSV = 'https://www.pjf.mg.gov.br/transparencia/dados_abertos/arquivos/despesas_25.csv'; // ⬅️ Substitua aqui
+
+    Papa.parse(urlCSV, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        const data = results.data.filter(row => Object.values(row).some(val => val !== ""));
+        const colunas = Object.keys(data[0]).map(col => ({ title: col, data: col }));
+        const tabela = $('#tabela').DataTable({
+          data: data,
+          columns: colunas,
+          language: {
+            url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+          },
+          initComplete: function () {
+            preencherFiltros(tabela, data);
+          }
+        });
+
+        // Filtros reativos
+        $('#filtroAno, #filtroMes').on('change', function () {
+          const ano = $('#filtroAno').val();
+          const mes = $('#filtroMes').val();
+          tabela.rows().every(function () {
+            const row = this.data();
+            const condAno = !ano || row["Ano"] === ano;
+            const condMes = !mes || row["Mes"] === mes;
+            this.visible(condAno && condMes);
+          });
+        });
+      }
+    });
+
+    function preencherFiltros(tabela, data) {
+      const anos = [...new Set(data.map(d => d.Ano).filter(Boolean))].sort();
+      const meses = [...new Set(data.map(d => d.Mes).filter(Boolean))].sort();
+
+      for (const a of anos) {
+        $('#filtroAno').append(`<option value="${a}">${a}</option>`);
+      }
+      for (const m of meses) {
+        $('#filtroMes').append(`<option value="${m}">${m}</option>`);
+      }
+    }
+  </script>
+</body>
+</html>
+
