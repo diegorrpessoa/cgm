@@ -83,7 +83,98 @@
         url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
       }
     });
+  </script><script>
+    $.datepicker.setDefaults($.datepicker.regional['pt-BR'] = {
+      closeText: 'Fechar', prevText: '<Anterior', nextText: 'Próximo>',
+      currentText: 'Hoje', monthNames: ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'],
+      monthNamesShort: ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'],
+      dayNames: ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'],
+      dayNamesShort: ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'],
+      dayNamesMin: ['D','S','T','Q','Q','S','S'],
+      dateFormat: 'yy-mm-dd'
+    });
+    $(function () {
+      $("#dataInicio, #dataFim").datepicker();
+    });
+
+    Papa.parse('despesas_25.csv', {
+      download: true,
+      header: true,
+      complete: function (results) {
+        let data = results.data.filter(row => Object.values(row).some(val => val !== ""));
+        const colunas = Object.keys(data[0]).map(col => ({ title: col, data: col }));
+        const tabela = $('#tabela').DataTable({
+          data: data,
+          columns: colunas,
+          language: { url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json' },
+          initComplete: function () {
+            atualizarFiltros();
+          }
+        });
+
+        function atualizarFiltros() {
+          atualizarDropdown('filtroAno', 'ano');
+          atualizarDropdown('filtroMes', 'mes');
+          atualizarDropdown('filtroUO', 'unidade orcamentaria');
+        }
+
+        function atualizarDropdown(id, campo) {
+          const valEmpenho = $('#filtroEmpenho').val().toLowerCase();
+          const valCNPJ = $('#filtroCNPJ').val().toLowerCase();
+          const inicio = $('#dataInicio').val();
+          const fim = $('#dataFim').val();
+
+          let filtrado = data.filter(d => {
+            let match = true;
+            if (valEmpenho && !d['empenho'].toLowerCase().includes(valEmpenho)) match = false;
+            if (valCNPJ && !d['cpf-cnpj'].toLowerCase().includes(valCNPJ)) match = false;
+            const dataEmp = new Date(d['data do empenho']);
+            if (inicio && new Date(inicio) > dataEmp) match = false;
+            if (fim && new Date(fim) < dataEmp) match = false;
+            return match;
+          });
+
+          if ($('#filtroAno').val()) filtrado = filtrado.filter(r => r['ano'] === $('#filtroAno').val());
+          if ($('#filtroMes').val()) filtrado = filtrado.filter(r => r['mes'] === $('#filtroMes').val());
+          if ($('#filtroUO').val()) filtrado = filtrado.filter(r => r['unidade orcamentaria'] === $('#filtroUO').val());
+
+          const unicos = [...new Set(filtrado.map(d => d[campo]).filter(Boolean))].sort();
+          const select = $('#' + id);
+          const selecionado = select.val();
+          select.empty().append('<option value="">Todos</option>');
+          unicos.forEach(v => select.append(`<option value="${v}">${v}</option>`));
+          if (unicos.includes(selecionado)) select.val(selecionado);
+        }
+
+        $('#filtroAno, #filtroMes, #filtroUO, #filtroEmpenho, #filtroCNPJ, #dataInicio, #dataFim').on('change keyup', function () {
+          const filtros = {
+            ano: $('#filtroAno').val(),
+            mes: $('#filtroMes').val(),
+            uo: $('#filtroUO').val(),
+            empenho: $('#filtroEmpenho').val().toLowerCase(),
+            cnpj: $('#filtroCNPJ').val().toLowerCase(),
+            inicio: $('#dataInicio').val(),
+            fim: $('#dataFim').val()
+          };
+          tabela.clear().rows.add(data.filter(d => {
+            return (!filtros.ano || d['ano'] === filtros.ano)
+              && (!filtros.mes || d['mes'] === filtros.mes)
+              && (!filtros.uo || d['unidade orcamentaria'] === filtros.uo)
+              && (!filtros.empenho || d['empenho'].toLowerCase().includes(filtros.empenho))
+              && (!filtros.cnpj || d['cpf-cnpj'].toLowerCase().includes(filtros.cnpj))
+              && (!filtros.inicio || new Date(d['data do empenho']) >= new Date(filtros.inicio))
+              && (!filtros.fim || new Date(d['data do empenho']) <= new Date(filtros.fim));
+          })).draw();
+          atualizarFiltros();
+        });
+
+        $('#limparFiltros').on('click', function () {
+          $('#filtros select, #filtros input').val('');
+          tabela.clear().rows.add(data).draw();
+          atualizarFiltros();
+        });
+      }
+    });
   </script>
 </body>
-
 </html>
