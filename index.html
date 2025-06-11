@@ -7,204 +7,164 @@
   <title>Consulta de Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css">
   <style>
-    .datepicker-dropdown {
-      z-index: 9999 !important;
-    }
-    .form-select, .form-control {
-      font-size: 0.875rem;
-      padding: 0.25rem 0.5rem;
-    }
-    label {
-      font-weight: 500;
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 
 <body class="bg-light">
   <div class="container my-4">
-    <h4 class="mb-4 text-center">Consulta de Despesas - 06h55</h4>
+    <h2 class="mb-4 text-center">Consulta de Despesas - 07h00</h2>
 
-    <div class="row g-2 mb-3">
+    <div class="row g-3 mb-3">
       <div class="col-md-2">
-        <label for="anoFiltro" class="form-label">Ano (obrigatório)</label>
+        <label for="anoFiltro" class="form-label">Ano <span class="text-danger">*</span></label>
         <select id="anoFiltro" class="form-select" required></select>
       </div>
       <div class="col-md-2">
         <label for="mesFiltro" class="form-label">Mês</label>
-        <select id="mesFiltro" class="form-select" disabled></select>
+        <select id="mesFiltro" class="form-select"></select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <label for="unidadeFiltro" class="form-label">Unidade Orçamentária</label>
-        <select id="unidadeFiltro" class="form-select" disabled></select>
+        <select id="unidadeFiltro" class="form-select"></select>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <label for="cpfFiltro" class="form-label">CNPJ / CPF</label>
-        <input type="text" id="cpfFiltro" class="form-control" placeholder="Digite para filtrar" disabled>
+        <input type="text" id="cpfFiltro" class="form-control" placeholder="Digite o CPF ou CNPJ">
       </div>
     </div>
 
-    <div class="row g-2 mb-3">
-      <div class="col-md-2">
-        <label for="dataInicio" class="form-label">Data De</label>
-        <input type="text" id="dataInicio" class="form-control datepicker" placeholder="dd-mm-aaaa" disabled>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
+      <div class="mb-2 mb-md-0">
+        <button class="btn btn-outline-primary" id="btnLimpar">Limpar Filtros</button>
       </div>
-      <div class="col-md-2">
-        <label for="dataFim" class="form-label">Data Até</label>
-        <input type="text" id="dataFim" class="form-control datepicker" placeholder="dd-mm-aaaa" disabled>
-      </div>
-      <div class="col-md-4 d-flex align-items-end">
-        <button class="btn btn-outline-primary me-2 w-100" id="btnFiltrar">Aplicar Filtros</button>
-        <button class="btn btn-outline-secondary w-100" id="btnLimpar">Limpar</button>
-      </div>
-      <div class="col-md-4 d-flex align-items-end justify-content-end">
-        <div class="btn-group w-100">
-          <button class="btn btn-outline-dark" id="exportCsv">CSV</button>
-          <button class="btn btn-outline-dark" id="exportXls">XLS</button>
-          <button class="btn btn-outline-dark" id="exportJson">JSON</button>
-          <button class="btn btn-outline-dark" id="exportTxt">TXT</button>
-          <button class="btn btn-outline-dark" id="exportPdf">PDF</button>
-        </div>
+      <div class="input-group w-100 w-md-auto">
+        <span class="input-group-text">Pesquisar</span>
+        <input type="text" id="searchBox" class="form-control" placeholder="Buscar nas colunas">
       </div>
     </div>
 
-    <table id="tabela" class="table table-sm table-bordered table-striped" style="width:100%; display:none;"></table>
+    <div class="table-responsive">
+      <table id="tabela" class="table table-striped table-bordered hidden" style="width:100%"></table>
+    </div>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/locales/bootstrap-datepicker.pt-BR.min.js"></script>
-
   <script>
+    let dataOriginal = [];
     let tabela;
-    let dadosOriginais = [];
 
-    function preencherFiltros(data, chave, seletor) {
-      const valoresUnicos = [...new Set(data.map(item => item[chave]).filter(Boolean))].sort();
-      $(seletor).empty().append(`<option value="">Todos</option>`);
-      valoresUnicos.forEach(valor => {
-        $(seletor).append(`<option value="${valor}">${valor}</option>`);
-      });
-    }
-
-    function filtrarDados() {
+    function atualizarFiltros() {
       const ano = $('#anoFiltro').val();
       const mes = $('#mesFiltro').val();
       const unidade = $('#unidadeFiltro').val();
-      const cpf = $('#cpfFiltro').val().trim();
-      const dataIni = $('#dataInicio').val();
-      const dataFim = $('#dataFim').val();
+      const cpf = $('#cpfFiltro').val().trim().toLowerCase();
 
-      let filtrado = dadosOriginais.filter(item => item['ano'] === ano);
+      const filtrado = dataOriginal.filter(linha => {
+        return (!ano || linha.ano === ano) &&
+               (!mes || linha.mes === mes) &&
+               (!unidade || linha['unidade orcamentaria'] === unidade) &&
+               (!cpf || linha.cnpjcpf.toLowerCase().includes(cpf));
+      });
 
-      if (mes) filtrado = filtrado.filter(item => item['mes'] === mes);
-      if (unidade) filtrado = filtrado.filter(item => item['unidade orcamentaria'] === unidade);
-      if (cpf) filtrado = filtrado.filter(item => item['cpf-cnpj'].includes(cpf));
-      if (dataIni) filtrado = filtrado.filter(item => item['data'] >= dataIni);
-      if (dataFim) filtrado = filtrado.filter(item => item['data'] <= dataFim);
-
-      return filtrado;
+      atualizarTabela(filtrado);
+      atualizarCombos(filtrado);
     }
 
-    function renderTabela(data) {
-      if (tabela) {
+    function atualizarCombos(data) {
+      const getUnique = (arr, campo) => [...new Set(arr.map(item => item[campo]))].sort();
+
+      const anoSel = $('#anoFiltro').val();
+      const mesSel = $('#mesFiltro').val();
+      const unidadeSel = $('#unidadeFiltro').val();
+
+      const anos = getUnique(dataOriginal, 'ano');
+      const meses = getUnique(data, 'mes');
+      const unidades = getUnique(data, 'unidade orcamentaria');
+
+      $('#anoFiltro').empty().append('<option value="">Selecione</option>');
+      anos.forEach(ano => $('#anoFiltro').append(`<option value="${ano}">${ano}</option>`));
+      $('#anoFiltro').val(anoSel);
+
+      $('#mesFiltro').empty().append('<option value="">Todos</option>');
+      meses.forEach(mes => $('#mesFiltro').append(`<option value="${mes}">${mes}</option>`));
+      $('#mesFiltro').val(mesSel);
+
+      $('#unidadeFiltro').empty().append('<option value="">Todas</option>');
+      unidades.forEach(und => $('#unidadeFiltro').append(`<option value="${und}">${und}</option>`));
+      $('#unidadeFiltro').val(unidadeSel);
+    }
+
+    function atualizarTabela(data) {
+      if ($.fn.DataTable.isDataTable('#tabela')) {
         tabela.clear().rows.add(data).draw();
-        return;
+      } else {
+        const colunas = Object.keys(data[0] || {}).map(c => ({ title: c.toUpperCase(), data: c }));
+        tabela = $('#tabela').DataTable({
+          data: data,
+          columns: colunas,
+          language: {
+            url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+          },
+          pageLength: 10,
+          lengthMenu: [10, 25, 50, 100],
+          responsive: true
+        });
       }
-
-      const colunas = Object.keys(data[0] || {}).map(c => ({ title: c, data: c }));
-      tabela = $('#tabela').DataTable({
-        data,
-        columns: colunas,
-        dom: 'Bfrtip',
-        buttons: [
-          { extend: 'csvHtml5', className: 'd-none', exportOptions: { columns: ':visible' } },
-          { extend: 'excelHtml5', className: 'd-none', exportOptions: { columns: ':visible' } },
-          { extend: 'copyHtml5', className: 'd-none', exportOptions: { columns: ':visible' } },
-          { extend: 'pdfHtml5', className: 'd-none', orientation: 'landscape', pageSize: 'A4', exportOptions: { columns: ':visible' } }
-        ],
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-        },
-        pageLength: 10,
-        lengthMenu: [5, 10, 25, 50, 100]
-      });
-      $('#tabela').show();
+      $('#tabela').removeClass('hidden');
     }
 
-    $(function () {
-      $('.datepicker').datepicker({
-        format: 'dd-mm-yyyy',
-        language: 'pt-BR',
-        autoclose: true
-      });
+    function limparFiltros() {
+      $('#mesFiltro').val('');
+      $('#unidadeFiltro').val('');
+      $('#cpfFiltro').val('');
+      $('#searchBox').val('');
+      atualizarFiltros();
+    }
 
-      $.get('despesas_25.csv', function (csv) {
-        const linhas = csv.split("\n").filter(l => l.trim());
-        const colunas = linhas.shift().split(',');
-        dadosOriginais = linhas.map(linha => {
-          const valores = linha.split(',');
-          const obj = {};
-          colunas.forEach((col, idx) => obj[col.trim().toLowerCase()] = valores[idx]?.trim());
-          return obj;
-        });
+    $(document).ready(function () {
+      $.ajax({
+        url: 'despesas_25.csv',
+        dataType: 'text',
+        success: function (csvData) {
+          const linhas = csvData.split('\n');
+          const cabecalho = linhas[0].split(',');
 
-        preencherFiltros(dadosOriginais, 'ano', '#anoFiltro');
+          dataOriginal = linhas.slice(1).filter(l => l.trim() !== '').map(linha => {
+            const valores = linha.split(',');
+            const obj = {};
+            cabecalho.forEach((chave, idx) => {
+              obj[chave.trim().toLowerCase()] = valores[idx] ? valores[idx].trim() : '';
+            });
+            return obj;
+          });
 
-        $('#anoFiltro').on('change', function () {
-          const ano = $(this).val();
-          if (!ano) {
-            $('#mesFiltro, #unidadeFiltro, #cpfFiltro, #dataInicio, #dataFim').prop('disabled', true);
-            $('#tabela').hide();
-            return;
-          }
-          const filtrado = dadosOriginais.filter(d => d['ano'] === ano);
-          preencherFiltros(filtrado, 'mes', '#mesFiltro');
-          preencherFiltros(filtrado, 'unidade orcamentaria', '#unidadeFiltro');
-          $('#mesFiltro, #unidadeFiltro, #cpfFiltro, #dataInicio, #dataFim').prop('disabled', false);
-          renderTabela(filtrado);
-        });
+          atualizarCombos(dataOriginal);
 
-        $('#btnFiltrar').on('click', function () {
-          const filtrado = filtrarDados();
-          renderTabela(filtrado);
-        });
+          $('#anoFiltro').on('change', function () {
+            if (this.value) {
+              atualizarFiltros();
+            } else {
+              $('#tabela').addClass('hidden');
+              if ($.fn.DataTable.isDataTable('#tabela')) {
+                tabela.clear().draw();
+              }
+            }
+          });
 
-        $('#btnLimpar').on('click', function () {
-          $('#anoFiltro').val('');
-          $('#mesFiltro, #unidadeFiltro').empty().prop('disabled', true);
-          $('#cpfFiltro, #dataInicio, #dataFim').val('').prop('disabled', true);
-          if (tabela) {
-            tabela.clear().draw();
-            $('#tabela').hide();
-          }
-        });
+          $('#mesFiltro, #unidadeFiltro, #cpfFiltro').on('input change', atualizarFiltros);
+          $('#searchBox').on('input', function () {
+            if (tabela) tabela.search(this.value).draw();
+          });
 
-        $('#exportCsv').click(() => $('.buttons-csv').click());
-        $('#exportXls').click(() => $('.buttons-excel').click());
-        $('#exportTxt').click(() => $('.buttons-copy').click());
-        $('#exportPdf').click(() => $('.buttons-pdf').click());
-        $('#exportJson').click(() => {
-          const data = tabela?.rows({ search: 'applied' }).data().toArray();
-          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = 'dados.json';
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        });
+          $('#btnLimpar').on('click', limparFiltros);
+        }
       });
     });
   </script>
