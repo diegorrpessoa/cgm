@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +8,9 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css">
   <style>
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      padding: 0.2em 0.8em;
+    }
     .form-label {
       font-size: 0.85rem;
     }
@@ -17,14 +19,13 @@
     }
   </style>
 </head>
-
 <body class="bg-light">
   <div class="container my-4">
-    <h4 class="mb-4 text-center">Consulta de Despesas 15-57</h4>
+    <h4 class="mb-4 text-center">Consulta de Despesas 15h</h4>
 
     <div class="row g-2 mb-3">
       <div class="col-sm-2">
-        <label for="anoFiltro" class="form-label">Ano</label>
+        <label for="anoFiltro" class="form-label">Ano *</label>
         <select id="anoFiltro" class="form-select form-select-sm" required></select>
       </div>
       <div class="col-sm-2">
@@ -36,24 +37,24 @@
         <select id="unidadeFiltro" class="form-select form-select-sm" disabled></select>
       </div>
       <div class="col-sm-3">
-        <label for="naturezaFiltro" class="form-label">Natureza da Despesa</label>
+        <label for="naturezaFiltro" class="form-label">Natureza de Despesa</label>
         <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
       </div>
       <div class="col-sm-2">
         <label for="classificacaoFiltro" class="form-label">Classificação Orçamentária</label>
         <select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select>
       </div>
-      <div class="col-sm-2">
+      <div class="col-sm-3">
         <label for="empenhoFiltro" class="form-label">Empenho</label>
-        <input type="text" id="empenhoFiltro" class="form-control form-control-sm" placeholder="Digite o Empenho" disabled>
+        <input type="text" id="empenhoFiltro" class="form-control form-control-sm" disabled>
       </div>
-      <div class="col-sm-2">
+      <div class="col-sm-3">
         <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
-        <input type="text" id="cpfFiltro" class="form-control form-control-sm" placeholder="Digite o CPF ou CNPJ" disabled>
+        <input type="text" id="cpfFiltro" class="form-control form-control-sm" disabled>
       </div>
       <div class="col-sm-3">
         <label for="credorFiltro" class="form-label">Credor</label>
-        <input type="text" id="credorFiltro" class="form-control form-control-sm" placeholder="Digite o nome do credor" disabled>
+        <input type="text" id="credorFiltro" class="form-control form-control-sm" disabled>
       </div>
     </div>
 
@@ -78,133 +79,144 @@
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
     let tabela;
-    let dadosPlanilha = [];
-    const ordemMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    let dataCompleta = [];
 
     $(document).ready(function () {
-      const url = 'https://docs.google.com/spreadsheets/d/1cRVI46WbZrE1qApq2leCEuTkIGLkItGGD3xapbOUn3M/gviz/tq?tqx=out:csv';
-
-      fetch(url)
-        .then(resp => resp.text())
-        .then(csvText => {
-          const lines = csvText.split('\n');
-          const headers = lines[0].split(',');
-          dadosPlanilha = lines.slice(1).map(l => Object.fromEntries(l.split(',').map((v,i) => [headers[i], v])));
-
-          popularFiltro('anoFiltro', 'Ano', dadosPlanilha);
+      $.ajax({
+        url: 'https://docs.google.com/spreadsheets/d/1cRVI46WbZrE1qApq2leCEuTkIGLkItGGD3xapbOUn3M/gviz/tq?tqx=out:csv',
+        dataType: 'text',
+        success: function (csvData) {
+          const parsed = Papa.parse(csvData, { header: true, skipEmptyLines: true });
+          dataCompleta = parsed.data;
+          popularFiltro('anoFiltro', 'Ano', dataCompleta);
 
           $('#anoFiltro').on('change', function () {
             const ano = $(this).val();
-            if (!ano) return;
-            const filtradoAno = dadosPlanilha.filter(d => d['Ano'] === ano);
-            popularFiltro('mesFiltro', 'Mês', filtradoAno, true);
-            $('#mesFiltro').prop('disabled', false);
-            limparFiltrosAbaixo('mesFiltro');
-            inicializarTabela(filtradoAno);
+            if (!ano) {
+              $('#tabela').hide();
+              $('select, input').not('#anoFiltro').prop('disabled', true).val('');
+              if (tabela) tabela.clear().draw();
+              return;
+            }
+
+            const filtrado = dataCompleta.filter(d => d['Ano'] === ano);
+            popularFiltroOrdenado('mesFiltro', 'Mês', filtrado, true);
+            popularFiltro('unidadeFiltro', 'Unidade Orçamentária', filtrado);
+            popularFiltro('naturezaFiltro', 'Natureza de Despesa', filtrado);
+            popularFiltro('classificacaoFiltro', 'Classificação Orçamentária', filtrado);
+
+            $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+              .prop('disabled', false);
+
+            inicializarTabela(filtrado);
           });
 
-          $('#mesFiltro').on('change', function () {
-            const ano = $('#anoFiltro').val();
-            const mes = $(this).val();
-            const dados = dadosPlanilha.filter(d => d['Ano'] === ano && d['Mês'] === mes);
-            popularFiltro('unidadeFiltro', 'Unidade Orçamentária', dados);
-            $('#unidadeFiltro').prop('disabled', false);
-            limparFiltrosAbaixo('unidadeFiltro');
-            inicializarTabela(dados);
+          $('#btnLimpar').click(() => {
+            $('select, input').val('').prop('disabled', true);
+            $('#anoFiltro').prop('disabled', false);
+            $('#tabela').hide();
+            if (tabela) tabela.clear().draw();
           });
-
-          $('#unidadeFiltro').on('change', function () {
-            const dados = filtrarPorSelecao();
-            popularFiltro('naturezaFiltro', 'Natureza de Despesa', dados);
-            $('#naturezaFiltro').prop('disabled', true);
-            if (dados.length) $('#naturezaFiltro').prop('disabled', false);
-          });
-
-          $('#naturezaFiltro').on('change', function () {
-            const dados = filtrarPorSelecao();
-            popularFiltro('classificacaoFiltro', 'Classificação Orçamentária', dados);
-            $('#classificacaoFiltro').prop('disabled', true);
-            if (dados.length) $('#classificacaoFiltro').prop('disabled', false);
-          });
-
-          $('#btnLimpar').click(() => location.reload());
 
           $('#exportCsv').click(() => $('.buttons-csv').click());
           $('#exportXls').click(() => $('.buttons-excel').click());
           $('#exportJson').click(() => {
-            const json = tabela.rows({ search: 'applied' }).data().toArray();
-            const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
-            baixarArquivo(blob, 'dados.json');
+            const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
+            const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'dados.json';
+            a.click();
           });
 
           $('#exportTxt').click(() => {
             const dados = tabela.rows({ search: 'applied' }).data().toArray();
-            const linhas = dados.map(obj => Object.values(obj).join(';'));
-            const blob = new Blob([linhas.join('\n')], { type: 'text/plain' });
-            baixarArquivo(blob, 'dados.txt');
+            if (!dados.length) return;
+            const colunas = Object.keys(dados[0]);
+            let txt = colunas.join(';') + '\n';
+            dados.forEach(linha => {
+              txt += colunas.map(c => linha[c]).join(';') + '\n';
+            });
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'dados.txt';
+            a.click();
           });
-        });
 
-      function popularFiltro(id, campo, dados, ordenarMeses = false) {
-        const seletor = $('#' + id);
-        const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
-        if (ordenarMeses) valores.sort((a,b) => ordemMeses.indexOf(a) - ordemMeses.indexOf(b));
-        else valores.sort();
-        seletor.empty().append('<option value="">Todos</option>');
-        valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
-      }
-
-      function limparFiltrosAbaixo(id) {
-        const ordem = ['anoFiltro','mesFiltro','unidadeFiltro','naturezaFiltro','classificacaoFiltro'];
-        const pos = ordem.indexOf(id);
-        for (let i = pos + 1; i < ordem.length; i++) {
-          $('#' + ordem[i]).empty().prop('disabled', true);
+          $('select, input').on('change keyup', aplicarFiltros);
         }
-      }
-
-      function filtrarPorSelecao() {
-        return dadosPlanilha.filter(d => {
-          return (!$('#anoFiltro').val() || d['Ano'] === $('#anoFiltro').val()) &&
-                 (!$('#mesFiltro').val() || d['Mês'] === $('#mesFiltro').val()) &&
-                 (!$('#unidadeFiltro').val() || d['Unidade Orçamentária'] === $('#unidadeFiltro').val()) &&
-                 (!$('#naturezaFiltro').val() || d['Natureza de Despesa'] === $('#naturezaFiltro').val()) &&
-                 (!$('#classificacaoFiltro').val() || d['Classificação Orçamentária'] === $('#classificacaoFiltro').val());
-        });
-      }
-
-      function inicializarTabela(dados) {
-        $('#tabela').show();
-        if ($.fn.DataTable.isDataTable('#tabela')) {
-          tabela.clear().rows.add(dados).draw();
-        } else {
-          tabela = $('#tabela').DataTable({
-            data: dados,
-            columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
-            language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
-            dom: 'Bfrtip',
-            buttons: [
-              { extend: 'csvHtml5', className: 'd-none' },
-              { extend: 'excelHtml5', className: 'd-none' },
-              { extend: 'copyHtml5', className: 'd-none' }
-            ]
-          });
-        }
-      }
-
-      function baixarArquivo(blob, nome) {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = nome;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }
+      });
     });
+
+    function popularFiltro(id, campo, dados) {
+      const seletor = $('#' + id);
+      const valoresUnicos = [...new Set(dados.map(d => d[campo]).filter(Boolean))].sort();
+      seletor.empty().append('<option value="">Todos</option>');
+      valoresUnicos.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
+    }
+
+    function popularFiltroOrdenado(id, campo, dados, ordenarMes = false) {
+      const seletor = $('#' + id);
+      let valoresUnicos = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+      if (ordenarMes) {
+        const ordemMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        valoresUnicos.sort((a, b) => ordemMeses.indexOf(a) - ordemMeses.indexOf(b));
+      } else {
+        valoresUnicos.sort();
+      }
+      seletor.empty().append('<option value="">Todos</option>');
+      valoresUnicos.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
+    }
+
+    function inicializarTabela(dados) {
+      $('#tabela').show();
+      if ($.fn.DataTable.isDataTable('#tabela')) {
+        tabela.clear().rows.add(dados).draw();
+      } else {
+        tabela = $('#tabela').DataTable({
+          data: dados,
+          columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
+          language: {
+            url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+          },
+          dom: 'Bfrtip',
+          buttons: [
+            { extend: 'csvHtml5', className: 'd-none' },
+            { extend: 'excelHtml5', className: 'd-none' }
+          ]
+        });
+      }
+    }
+
+    function aplicarFiltros() {
+      const ano = $('#anoFiltro').val();
+      const mes = $('#mesFiltro').val();
+      const unidade = $('#unidadeFiltro').val();
+      const natureza = $('#naturezaFiltro').val();
+      const classificacao = $('#classificacaoFiltro').val();
+      const empenho = $('#empenhoFiltro').val().toLowerCase();
+      const cpf = $('#cpfFiltro').val().toLowerCase();
+      const credor = $('#credorFiltro').val().toLowerCase();
+
+      const filtrado = dataCompleta.filter(r => {
+        return (!ano || r['Ano'] === ano)
+          && (!mes || r['Mês'] === mes)
+          && (!unidade || r['Unidade Orçamentária'] === unidade)
+          && (!natureza || r['Natureza de Despesa'] === natureza)
+          && (!classificacao || r['Classificação Orçamentária'] === classificacao)
+          && (!empenho || r['Empenho']?.toLowerCase().includes(empenho))
+          && (!cpf || r['CPF/CNPJ']?.toLowerCase().includes(cpf))
+          && (!credor || r['Credor']?.toLowerCase().includes(credor));
+      });
+
+      if (tabela) {
+        tabela.clear().rows.add(filtrado).draw();
+      }
+    }
   </script>
 </body>
-
 </html>
