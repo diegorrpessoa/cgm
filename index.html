@@ -1,147 +1,69 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Consulta de Despesas</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet"/>
-  <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css" rel="stylesheet"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta de Despesas Públicas</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css"/>
 </head>
 <body class="bg-light">
   <div class="container py-4">
-    <h4 class="text-center mb-4">Consulta de Despesas - Planilha 14-40</h4>
+    <h2 class="mb-4 text-center">Consulta de Despesas Públicas 14:43 </h2>
 
     <div class="row g-2 mb-3">
-      <div class="col-md-2">
-        <label>Ano <span class="text-danger">*</span></label>
-        <select id="anoFiltro" class="form-select" required></select>
-      </div>
-      <div class="col-md-2">
-        <label>Mês</label>
-        <select id="mesFiltro" class="form-select" disabled></select>
-      </div>
-      <div class="col-md-3">
-        <label>Unidade Orçamentária</label>
-        <select id="unidadeFiltro" class="form-select" disabled></select>
-      </div>
-      <div class="col-md-3">
-        <label>Natureza de Despesa</label>
-        <select id="naturezaFiltro" class="form-select" disabled></select>
-      </div>
-      <div class="col-md-2">
-        <label>Classificação Orçamentária</label>
-        <select id="classificacaoFiltro" class="form-select" disabled></select>
-      </div>
+      <div class="col"><select id="anoFiltro" class="form-select"><option value="">Ano</option></select></div>
+      <div class="col"><select id="mesFiltro" class="form-select" disabled><option value="">Mês</option></select></div>
+      <div class="col"><select id="unidadeFiltro" class="form-select" disabled><option value="">Unidade Orçamentária</option></select></div>
+      <div class="col"><select id="classificacaoFiltro" class="form-select" disabled><option value="">Classificação Orçamentária</option></select></div>
+      <div class="col"><select id="naturezaFiltro" class="form-select" disabled><option value="">Natureza de Despesa</option></select></div>
+      <div class="col"><select id="empenhoFiltro" class="form-select" disabled><option value="">Empenho</option></select></div>
+      <div class="col"><select id="cpfFiltro" class="form-select" disabled><option value="">CPF/CNPJ</option></select></div>
+      <div class="col"><select id="credorFiltro" class="form-select" disabled><option value="">Credor</option></select></div>
     </div>
 
-    <div class="row g-2 mb-3">
-      <div class="col-md-3">
-        <label>Empenho</label>
-        <select id="empenhoFiltro" class="form-select" disabled></select>
-      </div>
-      <div class="col-md-3">
-        <label>CPF / CNPJ</label>
-        <select id="cpfFiltro" class="form-select" disabled></select>
-      </div>
-      <div class="col-md-3">
-        <label>Credor</label>
-        <select id="credorFiltro" class="form-select" disabled></select>
-      </div>
-    </div>
-
-    <div class="d-flex justify-content-between mb-3">
-      <button id="btnLimpar" class="btn btn-outline-secondary">Limpar Filtros</button>
-      <div class="btn-group">
-        <button id="exportCsv" class="btn btn-outline-secondary">CSV</button>
-        <button id="exportXls" class="btn btn-outline-secondary">XLS</button>
-        <button id="exportJson" class="btn btn-outline-secondary">JSON</button>
-        <button id="exportTxt" class="btn btn-outline-secondary">TXT</button>
-        <button id="exportPdf" class="btn btn-outline-secondary">PDF</button>
-      </div>
+    <div class="d-flex mb-3 gap-2">
+      <button id="exportCsv" class="btn btn-sm btn-primary">Exportar CSV</button>
+      <button id="exportXls" class="btn btn-sm btn-success">Exportar Excel</button>
+      <button id="exportTxt" class="btn btn-sm btn-secondary">Exportar TXT</button>
+      <button id="exportPdf" class="btn btn-sm btn-danger">Exportar PDF</button>
+      <button id="exportJson" class="btn btn-sm btn-warning text-dark">Exportar JSON</button>
+      <button id="btnLimpar" class="btn btn-sm btn-outline-dark ms-auto">Limpar Filtros</button>
     </div>
 
     <div class="table-responsive">
-      <table id="tabela" class="table table-striped table-bordered" style="width:100%"></table>
+      <table id="tabela" class="table table-striped table-bordered w-100"></table>
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <script>
-    const sheetUrl = 'https://docs.google.com/spreadsheets/d/1cRVI46WbZrE1qApq2leCEuTkIGLkItGGD3xapbOUn3M/export?format=csv';
-
-    let dataCompleta = [];
-    let tabela;
-
     const filtros = [
-      'anoFiltro', 'mesFiltro', 'unidadeFiltro', 'naturezaFiltro',
-      'classificacaoFiltro', 'empenhoFiltro', 'cpfFiltro', 'credorFiltro'
+      'anoFiltro', 'mesFiltro', 'unidadeFiltro',
+      'classificacaoFiltro', 'naturezaFiltro',
+      'empenhoFiltro', 'cpfFiltro', 'credorFiltro'
     ];
 
-    function popularFiltro(id, dados, campo) {
-      const sel = $('#' + id).empty().append('<option value="">Todos</option>');
-      [...new Set(dados.map(s => s[campo]).filter(Boolean))]
-        .sort()
-        .forEach(v => sel.append(`<option>${v}</option>`));
-    }
+    let tabela, dataCompleta = [];
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQoD-vED4BNUbRVnFo3pQn-JKRPR3Ouhx9VDtdgSLXkgk0U_6c8s3Sm2PReIggRCNoDN9reJ8YJ4gP-/pub?output=csv';
 
-    function atualizarFiltros() {
-      let filtrado = dataCompleta;
-
-      const valores = filtros.reduce((acc, id) => {
-        const val = $('#' + id).val();
-        acc[id] = val;
-        if(val) {
-          const campo = id.replace('Filtro','').toLowerCase().replace('naturezadespesa','natureza de despesa').replace('classificacaoorcamentaria','classificação orçamentária');
-          filtrado = filtrado.filter(r => r[campo] === val);
-        }
-        return acc;
-      }, {});
-
-      tabela.clear().rows.add(filtrado).draw();
-
-      // Atualiza opções dinâmicas apenas nos filtros posteriores
-      filtros.forEach((id, idx) => {
-        const subsequentes = filtros.slice(idx+1);
-        let subDados = filtrado;
-        subsequentes.forEach(sub => {
-          popularFiltro(sub, subDados, sub.replace('Filtro','').toLowerCase().replace(/([A-Z])/g,' $1').trim());
-        });
-      });
-    }
-
-   // substitua o bloco completo do Papa.parse(...) dentro do $(document).ready com este novo:
-Papa.parse(sheetUrl, {
-  download: true,
-  header: true,
-  skipEmptyLines: true,
-  complete: function (r) {
-    // Normaliza os nomes dos campos removendo espaços extras
     const normalize = s => s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-    const colunas = r.meta.fields.map(f => normalize(f));
-    dataCompleta = r.data.map(linha => {
-      const obj = {};
-      Object.keys(linha).forEach((k, i) => {
-        obj[colunas[i]] = linha[k].trim();
-      });
-      return obj;
-    });
-
-    const getCampo = id => {
-      return normalize(id
-        .replace('Filtro', '')
+    const getCampo = id => normalize(
+      id.replace('Filtro', '')
         .replace('cpf', 'cpf/cnpj')
         .replace('classificacao', 'classificação orçamentária')
         .replace('natureza', 'natureza de despesa')
@@ -149,79 +71,98 @@ Papa.parse(sheetUrl, {
         .replace('empenho', 'empenho')
         .replace('credor', 'credor')
         .replace('ano', 'ano')
-        .replace('mes', 'mês'));
+        .replace('mes', 'mês')
+    );
+
+    const popularFiltro = (id, dados, campo) => {
+      const select = $('#' + id);
+      select.find('option:not(:first)').remove();
+      [...new Set(dados.map(r => r[campo]).filter(Boolean))].sort().forEach(v =>
+        select.append(`<option value="${v}">${v}</option>`)
+      );
     };
 
-    popularFiltro('anoFiltro', dataCompleta, getCampo('anoFiltro'));
+    $(document).ready(function () {
+      Papa.parse(sheetUrl, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function (r) {
+          const colunas = r.meta.fields.map(f => normalize(f));
+          dataCompleta = r.data.map(linha => {
+            const obj = {};
+            Object.keys(linha).forEach((k, i) => {
+              obj[colunas[i]] = linha[k].trim();
+            });
+            return obj;
+          });
 
-    tabela = $('#tabela').DataTable({
-      data: [],
-      columns: colunas.map(c => ({
-        title: c.charAt(0).toUpperCase() + c.slice(1),
-        data: c
-      })),
-      language: { url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
-      dom: 'Bfrtip',
-      buttons: [
-        { extend: 'csvHtml5', className: 'd-none' },
-        { extend: 'excelHtml5', className: 'd-none' },
-        { extend: 'copyHtml5', className: 'd-none' },
-        { extend: 'pdfHtml5', className: 'd-none', orientation: 'landscape', pageSize: 'A4' }
-      ],
-      pageLength: 10,
-      responsive: true
-    });
+          popularFiltro('anoFiltro', dataCompleta, getCampo('anoFiltro'));
 
-    filtros.forEach(id => {
-      $('#' + id).on('change', function () {
-        const valoresSelecionados = filtros.reduce((acc, id) => {
-          const val = $('#' + id).val();
-          if (val) {
-            acc[getCampo(id)] = val;
-          }
-          return acc;
-        }, {});
+          tabela = $('#tabela').DataTable({
+            data: [],
+            columns: colunas.map(c => ({
+              title: c.charAt(0).toUpperCase() + c.slice(1),
+              data: c
+            })),
+            language: { url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
+            dom: 'Bfrtip',
+            buttons: [
+              { extend: 'csvHtml5', className: 'd-none' },
+              { extend: 'excelHtml5', className: 'd-none' },
+              { extend: 'copyHtml5', className: 'd-none' },
+              { extend: 'pdfHtml5', className: 'd-none', orientation: 'landscape', pageSize: 'A4' }
+            ],
+            pageLength: 10,
+            responsive: true
+          });
 
-        let filtrado = dataCompleta.filter(registro =>
-          Object.entries(valoresSelecionados).every(([campo, valor]) => registro[campo] === valor)
-        );
+          filtros.forEach(id => {
+            $('#' + id).on('change', function () {
+              const valoresSelecionados = filtros.reduce((acc, id) => {
+                const val = $('#' + id).val();
+                if (val) acc[getCampo(id)] = val;
+                return acc;
+              }, {});
 
-        tabela.clear().rows.add(filtrado).draw();
+              let filtrado = dataCompleta.filter(registro =>
+                Object.entries(valoresSelecionados).every(([campo, valor]) => registro[campo] === valor)
+              );
 
-        // Ativar filtros seguintes
-        const idxAtual = filtros.indexOf(id);
-        filtros.slice(idxAtual + 1).forEach(f => {
-          $('#' + f).prop('disabled', false);
-          popularFiltro(f, filtrado, getCampo(f));
-        });
+              tabela.clear().rows.add(filtrado).draw();
+
+              const idxAtual = filtros.indexOf(id);
+              filtros.slice(idxAtual + 1).forEach(f => {
+                $('#' + f).prop('disabled', false);
+                popularFiltro(f, filtrado, getCampo(f));
+              });
+            });
+          });
+
+          $('#btnLimpar').click(() => {
+            filtros.forEach(id => {
+              $('#' + id).val('');
+              if (id !== 'anoFiltro') $('#' + id).prop('disabled', true);
+            });
+            tabela.clear().draw();
+          });
+
+          $('#exportCsv').click(() => tabela.button('.buttons-csv').trigger());
+          $('#exportXls').click(() => tabela.button('.buttons-excel').trigger());
+          $('#exportTxt').click(() => tabela.button('.buttons-copy').trigger());
+          $('#exportPdf').click(() => tabela.button('.buttons-pdf').trigger());
+          $('#exportJson').click(() => {
+            const dados = tabela.rows({ search: 'applied' }).data().toArray();
+            const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dados.json';
+            a.click();
+            URL.revokeObjectURL(url);
+          });
+        }
       });
-    });
-
-    $('#btnLimpar').click(() => {
-      filtros.forEach(id => {
-        $('#' + id).val('');
-        if (id !== 'anoFiltro') $('#' + id).prop('disabled', true);
-      });
-      tabela.clear().draw();
-    });
-
-    $('#exportCsv').click(() => tabela.button('.buttons-csv').trigger());
-    $('#exportXls').click(() => tabela.button('.buttons-excel').trigger());
-    $('#exportTxt').click(() => tabela.button('.buttons-copy').trigger());
-    $('#exportPdf').click(() => tabela.button('.buttons-pdf').trigger());
-    $('#exportJson').click(() => {
-      const dados = tabela.rows({ search: 'applied' }).data().toArray();
-      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'dados.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    });
-  }
-});
-
     });
   </script>
 </body>
