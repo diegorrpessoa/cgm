@@ -11,7 +11,7 @@
 </head>
 <body class="bg-light">
   <div class="container py-4">
-    <h4 class="text-center mb-4">Consulta de Despesas - Planilha 14-33</h4>
+    <h4 class="text-center mb-4">Consulta de Despesas - Planilha 14-40</h4>
 
     <div class="row g-2 mb-3">
       <div class="col-md-2">
@@ -121,63 +121,107 @@
       });
     }
 
-    $(document).ready(() => {
-      Papa.parse(sheetUrl, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function(r) {
-          dataCompleta = r.data;
-          popularFiltro('anoFiltro', dataCompleta, 'Ano');
+   // substitua o bloco completo do Papa.parse(...) dentro do $(document).ready com este novo:
+Papa.parse(sheetUrl, {
+  download: true,
+  header: true,
+  skipEmptyLines: true,
+  complete: function (r) {
+    // Normaliza os nomes dos campos removendo espaços extras
+    const normalize = s => s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-          tabela = $('#tabela').DataTable({
-            data: [],
-            columns: Object.keys(dataCompleta[0]).map(c => ({ title: c, data: c })),
-            language: { url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
-            dom: 'Bfrtip',
-            buttons: [
-              { extend: 'csvHtml5', className: 'd-none' },
-              { extend: 'excelHtml5', className: 'd-none' },
-              { extend: 'copyHtml5', className: 'd-none' },
-              { extend: 'pdfHtml5', className: 'd-none', orientation:'landscape', pageSize:'A4' }
-            ],
-            pageLength: 10,
-            responsive: true
-          });
-
-          filtros.forEach(id => {
-            $('#' + id).on('change', function() {
-              // Habilita filtros progressivamente
-              const selIndex = filtros.indexOf(id);
-              if(this.value) {
-                filtros.slice(0, selIndex+1).forEach(f=> $('#' + f).prop('disabled', false));
-                filtros.slice(selIndex+1).forEach(f=> $('#' + f).prop('disabled', false));
-              }
-              atualizarFiltros();
-            });
-          });
-
-          $('#btnLimpar').click(() => {
-            filtros.forEach(id => {
-              $('#' + id).val('');
-              if(id !== 'anoFiltro') $('#' + id).prop('disabled', true);
-            });
-            tabela.clear().draw();
-          });
-
-          $('#exportCsv').click(() => tabela.button('.buttons-csv').trigger());
-          $('#exportXls').click(() => tabela.button('.buttons-excel').trigger());
-          $('#exportTxt').click(() => tabela.button('.buttons-copy').trigger());
-          $('#exportPdf').click(() => tabela.button('.buttons-pdf').trigger());
-          $('#exportJson').click(() => {
-            const jb = tabela.rows({ search: 'applied' }).data().toArray();
-            const b = new Blob([JSON.stringify(jb,null,2)],{type:'application/json'});
-            const u = URL.createObjectURL(b);
-            const a = document.createElement('a');
-            a.href = u; a.download='dados.json'; a.click(); URL.revokeObjectURL(u);
-          });
-        }
+    const colunas = r.meta.fields.map(f => normalize(f));
+    dataCompleta = r.data.map(linha => {
+      const obj = {};
+      Object.keys(linha).forEach((k, i) => {
+        obj[colunas[i]] = linha[k].trim();
       });
+      return obj;
+    });
+
+    const getCampo = id => {
+      return normalize(id
+        .replace('Filtro', '')
+        .replace('cpf', 'cpf/cnpj')
+        .replace('classificacao', 'classificação orçamentária')
+        .replace('natureza', 'natureza de despesa')
+        .replace('unidade', 'unidade orçamentária')
+        .replace('empenho', 'empenho')
+        .replace('credor', 'credor')
+        .replace('ano', 'ano')
+        .replace('mes', 'mês'));
+    };
+
+    popularFiltro('anoFiltro', dataCompleta, getCampo('anoFiltro'));
+
+    tabela = $('#tabela').DataTable({
+      data: [],
+      columns: colunas.map(c => ({
+        title: c.charAt(0).toUpperCase() + c.slice(1),
+        data: c
+      })),
+      language: { url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
+      dom: 'Bfrtip',
+      buttons: [
+        { extend: 'csvHtml5', className: 'd-none' },
+        { extend: 'excelHtml5', className: 'd-none' },
+        { extend: 'copyHtml5', className: 'd-none' },
+        { extend: 'pdfHtml5', className: 'd-none', orientation: 'landscape', pageSize: 'A4' }
+      ],
+      pageLength: 10,
+      responsive: true
+    });
+
+    filtros.forEach(id => {
+      $('#' + id).on('change', function () {
+        const valoresSelecionados = filtros.reduce((acc, id) => {
+          const val = $('#' + id).val();
+          if (val) {
+            acc[getCampo(id)] = val;
+          }
+          return acc;
+        }, {});
+
+        let filtrado = dataCompleta.filter(registro =>
+          Object.entries(valoresSelecionados).every(([campo, valor]) => registro[campo] === valor)
+        );
+
+        tabela.clear().rows.add(filtrado).draw();
+
+        // Ativar filtros seguintes
+        const idxAtual = filtros.indexOf(id);
+        filtros.slice(idxAtual + 1).forEach(f => {
+          $('#' + f).prop('disabled', false);
+          popularFiltro(f, filtrado, getCampo(f));
+        });
+      });
+    });
+
+    $('#btnLimpar').click(() => {
+      filtros.forEach(id => {
+        $('#' + id).val('');
+        if (id !== 'anoFiltro') $('#' + id).prop('disabled', true);
+      });
+      tabela.clear().draw();
+    });
+
+    $('#exportCsv').click(() => tabela.button('.buttons-csv').trigger());
+    $('#exportXls').click(() => tabela.button('.buttons-excel').trigger());
+    $('#exportTxt').click(() => tabela.button('.buttons-copy').trigger());
+    $('#exportPdf').click(() => tabela.button('.buttons-pdf').trigger());
+    $('#exportJson').click(() => {
+      const dados = tabela.rows({ search: 'applied' }).data().toArray();
+      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'dados.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  }
+});
+
     });
   </script>
 </body>
