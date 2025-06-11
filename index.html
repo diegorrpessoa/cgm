@@ -7,47 +7,49 @@
   <title>Consulta de Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/css/bootstrap-datepicker.min.css">
   <style>
     .datepicker-dropdown {
       z-index: 9999 !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      padding: 0.2em 0.8em;
     }
   </style>
 </head>
 
 <body class="bg-light">
   <div class="container my-4">
-    <h2 class="mb-4 text-center">Consulta de Despesas</h2>
+    <h4 class="mb-4 text-center">Consulta de Despesas</h4>
 
     <div class="row g-2 mb-3">
-      <div class="col-md-2">
-        <label for="mesFiltro" class="form-label">Mês</label>
+      <div class="col-sm-2">
+        <label for="mesFiltro" class="form-label small">Mês</label>
         <select id="mesFiltro" class="form-select form-select-sm"></select>
       </div>
-      <div class="col-md-2">
-        <label for="anoFiltro" class="form-label">Ano</label>
+      <div class="col-sm-2">
+        <label for="anoFiltro" class="form-label small">Ano</label>
         <select id="anoFiltro" class="form-select form-select-sm"></select>
       </div>
-      <div class="col-md-3">
-        <label for="unidadeFiltro" class="form-label">Unidade Orçamentária</label>
+      <div class="col-sm-3">
+        <label for="unidadeFiltro" class="form-label small">Unidade Orçamentária</label>
         <select id="unidadeFiltro" class="form-select form-select-sm"></select>
       </div>
-      <div class="col-md-3">
-        <label for="cpfFiltro" class="form-label">CNPJ / CPF</label>
+      <div class="col-sm-3">
+        <label for="cpfFiltro" class="form-label small">CNPJ / CPF</label>
         <input type="text" id="cpfFiltro" class="form-control form-control-sm" placeholder="Digite o CPF ou CNPJ">
       </div>
-      <div class="col-md-1">
-        <label for="dataDe" class="form-label">Data de</label>
-        <input type="text" id="dataDe" class="form-control form-control-sm datepicker" placeholder="dd-mm-aaaa">
-      </div>
-      <div class="col-md-1">
-        <label for="dataAte" class="form-label">Até</label>
-        <input type="text" id="dataAte" class="form-control form-control-sm datepicker" placeholder="dd-mm-aaaa">
+      <div class="col-sm-2">
+        <label for="dataFiltro" class="form-label small">Data Até</label>
+        <input type="text" id="dataFiltro" class="form-control form-control-sm datepicker" placeholder="dd-mm-aaaa">
       </div>
     </div>
 
-    <div class="d-flex justify-content-between mb-3">
-      <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
+    <div class="d-flex justify-content-between mb-2">
+      <div>
+        <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
+      </div>
       <div class="btn-group">
         <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
         <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
@@ -57,7 +59,7 @@
       </div>
     </div>
 
-    <table id="tabela" class="table table-striped table-bordered table-sm" style="width:100%"></table>
+    <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%"></table>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -65,13 +67,13 @@
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/js/bootstrap-datepicker.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.9.0/dist/locales/bootstrap-datepicker.pt-BR.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script>
     $(document).ready(function () {
       $('.datepicker').datepicker({
@@ -80,34 +82,68 @@
         autoclose: true
       });
 
-      Papa.parse('despesas_25.csv', {
-        download: true,
-        header: true,
-        complete: function (results) {
-          const data = results.data;
+      $.ajax({
+        url: 'despesas_25.csv',
+        dataType: 'text',
+        success: function (csvData) {
+          const parsed = Papa.parse(csvData, { header: true, skipEmptyLines: true });
+          const data = parsed.data;
           const colunas = Object.keys(data[0]);
 
-          const table = $('#tabela').DataTable({
+          const tabela = $('#tabela').DataTable({
             data: data,
             columns: colunas.map(c => ({ title: c, data: c })),
-            dom: 'Bfrtip',
-            buttons: [
-              { extend: 'csvHtml5', className: 'd-none' },
-              { extend: 'excelHtml5', className: 'd-none' },
-              { extend: 'copyHtml5', className: 'd-none' },
-              {
-                extend: 'pdfHtml5',
-                title: 'Despesas',
-                orientation: 'landscape',
-                pageSize: 'A4',
-                className: 'd-none'
-              }
-            ],
             language: {
               url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
             },
-            pageLength: 10,
-            lengthMenu: [5, 10, 25, 50, 100]
+            dom: 'Bfrtip',
+            buttons: [
+              {
+                extend: 'csvHtml5', className: 'd-none', exportOptions: { columns: ':visible' }
+              },
+              {
+                extend: 'excelHtml5', className: 'd-none', exportOptions: { columns: ':visible' }
+              },
+              {
+                extend: 'copyHtml5', className: 'd-none', exportOptions: { columns: ':visible' }
+              },
+              {
+                extend: 'pdfHtml5', className: 'd-none', orientation: 'landscape', pageSize: 'A4', exportOptions: { columns: ':visible' }
+              }
+            ]
+          });
+
+          function aplicarFiltros() {
+            const mes = $('#mesFiltro').val();
+            const ano = $('#anoFiltro').val();
+            const unidade = $('#unidadeFiltro').val();
+            const cpf = $('#cpfFiltro').val().toLowerCase();
+            const dataLimite = $('#dataFiltro').val();
+
+            tabela.clear().rows.add(data.filter(row => {
+              return (!mes || row.mes === mes)
+                && (!ano || row.ano === ano)
+                && (!unidade || row["unidade orcamentaria"] === unidade)
+                && (!cpf || row["cpf-cnpj"]?.toLowerCase().includes(cpf))
+                && (!dataLimite || compararDatas(row.data, dataLimite));
+            })).draw();
+          }
+
+          function compararDatas(dataStr, dataFiltroStr) {
+            const [d1, m1, a1] = dataStr.split('-');
+            const [d2, m2, a2] = dataFiltroStr.split('-');
+            const data1 = new Date(`${a1}-${m1}-${d1}`);
+            const data2 = new Date(`${a2}-${m2}-${d2}`);
+            return data1 <= data2;
+          }
+
+          ['mesFiltro', 'anoFiltro', 'unidadeFiltro', 'cpfFiltro', 'dataFiltro'].forEach(id => {
+            $('#' + id).on('change keyup', aplicarFiltros);
+          });
+
+          $('#btnLimpar').click(() => {
+            $('select, input').val('');
+            aplicarFiltros();
           });
 
           $('#exportCsv').click(() => $('.buttons-csv').click());
@@ -116,8 +152,9 @@
           $('#exportPdf').click(() => $('.buttons-pdf').click());
 
           $('#exportJson').click(() => {
-            const jsonData = table.rows({ search: 'applied' }).data().toArray();
-            const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+            const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
+            const jsonString = JSON.stringify(jsonData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -128,19 +165,21 @@
             URL.revokeObjectURL(url);
           });
 
-          $('#btnLimpar').click(() => {
-            $('#mesFiltro').val('');
-            $('#anoFiltro').val('');
-            $('#unidadeFiltro').val('');
-            $('#cpfFiltro').val('');
-            $('#dataDe').val('');
-            $('#dataAte').val('');
-            table.search('').columns().search('').draw();
-          });
+          function popularFiltro(id, campo) {
+            const valoresUnicos = [...new Set(data.map(d => d[campo]).filter(Boolean))].sort();
+            const seletor = $('#' + id);
+            seletor.empty().append(`<option value="">Todos</option>`);
+            valoresUnicos.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
+          }
+
+          popularFiltro('mesFiltro', 'mes');
+          popularFiltro('anoFiltro', 'ano');
+          popularFiltro('unidadeFiltro', 'unidade orcamentaria');
         }
       });
     });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 </body>
 
 </html>
