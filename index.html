@@ -141,7 +141,7 @@
     function popularFiltro(id, campo, dados) {
       const sel = $('#' + id);
       const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))].sort();
-      sel.empty().append('<option value=""></option>');
+      sel.empty().append('<option value="">Todos</option>');
       valores.forEach(v => sel.append(`<option value="${v}">${v}</option>`));
     }
 
