@@ -38,7 +38,7 @@
         <label for="anoFiltro" class="form-label">Ano <span class="text-danger">*</span></label>
         <div class="d-flex align-items-center">
           <select id="anoFiltro" class="form-select form-select-sm me-2" required disabled>
-            <option>Carregando...</option>
+            <option disabled selected>Carregando...</option>
           </select>
           <div id="spinnerAno" class="spinner-border text-primary d-none" role="status">
             <span class="visually-hidden">Carregando...</span>
@@ -155,10 +155,13 @@
           const parsed = Papa.parse(csvData, { header: true, skipEmptyLines: true });
           dataCompleta = parsed.data;
 
-          popularFiltro('#anoFiltro', dataCompleta, 'Ano');
-          $('#anoFiltro').prop('disabled', false);
-          $('#spinnerAno').addClass('d-none');
-          aplicarEncadeamento();
+          // Simulação de tempo de carregamento (opcional)
+          setTimeout(() => {
+            popularFiltro('#anoFiltro', dataCompleta, 'Ano');
+            $('#anoFiltro').prop('disabled', false);
+            $('#spinnerAno').addClass('d-none');
+            aplicarEncadeamento();
+          }, 500); // 500ms para visualização do carregamento
         },
         error: function () {
           alert("Erro ao carregar dados da planilha.");
