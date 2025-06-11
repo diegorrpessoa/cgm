@@ -31,7 +31,7 @@
 
 <body class="bg-light">
   <div class="container my-4">
-    <h4 class="mb-4 text-center">Consulta de Despesas 2</h4>
+    <h4 class="mb-4 text-center">Consulta de Despesas3</h4>
 
     <div class="row g-2 mb-3">
       <div class="col-sm-2">
@@ -117,6 +117,8 @@
     }
 
     function aplicarEncadeamento() {
+      $('select, input').on('change keyup', aplicarFiltros);
+
       $('#anoFiltro').on('change', function () {
         const ano = $(this).val();
         popularFiltro('#mesFiltro', dataCompleta, 'Mês', 'Ano', ano);
@@ -145,6 +147,46 @@
       });
     }
 
+    function aplicarFiltros() {
+      const ano = $('#anoFiltro').val();
+      const mes = $('#mesFiltro').val();
+      const unidade = $('#unidadeFiltro').val();
+      const natureza = $('#naturezaFiltro').val();
+      const classificacao = $('#classificacaoFiltro').val();
+      const empenho = $('#empenhoFiltro').val().toLowerCase();
+      const cpf = $('#cpfFiltro').val().toLowerCase();
+      const credor = $('#credorFiltro').val().toLowerCase();
+
+      const dadosFiltrados = dataCompleta.filter(item => {
+        return (!ano || item["Ano"] === ano)
+          && (!mes || item["Mês"] === mes)
+          && (!unidade || item["Unidade Orçamentária"] === unidade)
+          && (!natureza || item["Natureza de Despesa"] === natureza)
+          && (!classificacao || item["Classificação Orçamentária"] === classificacao)
+          && (!empenho || (item["Empenho"] || '').toLowerCase().includes(empenho))
+          && (!cpf || (item["CPF/CNPJ"] || '').toLowerCase().includes(cpf))
+          && (!credor || (item["Credor"] || '').toLowerCase().includes(credor));
+      });
+
+      atualizarTabela(dadosFiltrados);
+    }
+
+    function atualizarTabela(dados) {
+      const tabela = $('#tabela');
+      tabela.empty();
+      if (dados.length === 0) {
+        tabela.hide();
+        return;
+      }
+
+      const colunas = Object.keys(dados[0]);
+      const thead = $('<thead><tr>' + colunas.map(col => `<th>${col}</th>`).join('') + '</tr></thead>');
+      const tbody = $('<tbody>' + dados.map(row => '<tr>' + colunas.map(col => `<td>${row[col]}</td>`).join('') + '</tr>').join('') + '</tbody>');
+
+      tabela.append(thead).append(tbody).show();
+      tabela.DataTable();
+    }
+
     $(document).ready(function () {
       $('#spinnerAno').removeClass('d-none');
 
@@ -155,18 +197,24 @@
           const parsed = Papa.parse(csvData, { header: true, skipEmptyLines: true });
           dataCompleta = parsed.data;
 
-          // Simulação de tempo de carregamento (opcional)
           setTimeout(() => {
             popularFiltro('#anoFiltro', dataCompleta, 'Ano');
             $('#anoFiltro').prop('disabled', false);
             $('#spinnerAno').addClass('d-none');
             aplicarEncadeamento();
-          }, 500); // 500ms para visualização do carregamento
+            aplicarFiltros();
+          }, 500);
         },
         error: function () {
           alert("Erro ao carregar dados da planilha.");
           $('#spinnerAno').addClass('d-none');
         }
+      });
+
+      $('#btnLimpar').on('click', function () {
+        $('select').val('');
+        $('input').val('');
+        aplicarFiltros();
       });
     });
   </script>
