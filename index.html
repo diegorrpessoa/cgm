@@ -15,7 +15,7 @@
 </head>
 <body class="bg-light">
   <div class="container my-4">
-    <h4 class="mb-4 text-center">Consulta de Despesas - PJF (via Planilha Google) 12:01</h4>
+    <h4 class="mb-4 text-center">Consulta de Despesas - PJF (via Planilha Google) 13:42</h4>
 
     <div class="row g-2 mb-3">
       <div class="col-sm-2">
@@ -57,8 +57,8 @@
       <div class="btn-group">
         <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
         <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-        <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
         <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+        <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
       </div>
     </div>
     <table id="tabela" class="table table-bordered table-striped table-sm" style="width:100%; display:none;"></table>
@@ -141,7 +141,7 @@
     function popularFiltro(id, campo, dados) {
       const sel = $('#' + id);
       const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))].sort();
-      sel.empty().append('<option value="">Todos</option>');
+      sel.empty().append('<option value=""></option>');
       valores.forEach(v => sel.append(`<option value="${v}">${v}</option>`));
     }
 
