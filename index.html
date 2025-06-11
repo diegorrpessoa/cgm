@@ -17,7 +17,7 @@
 </head>
 <body class="bg-light">
   <div class="container my-4">
-    <h4 class="mb-4 text-center">Consulta de Despesas - 10h35</h4>
+    <h4 class="mb-4 text-center">Consulta de Despesas - PJF</h4>
 
     <div class="row g-2 mb-3">
       <div class="col-sm-2">
@@ -40,6 +40,18 @@
         <label for="programaFiltro" class="form-label">Programa de Trabalho</label>
         <select id="programaFiltro" class="form-select form-select-sm" disabled></select>
       </div>
+      <div class="col-sm-2">
+        <label for="empenhoFiltro" class="form-label">Empenho</label>
+        <input type="text" id="empenhoFiltro" class="form-control form-control-sm">
+      </div>
+      <div class="col-sm-2">
+        <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
+        <input type="text" id="cpfFiltro" class="form-control form-control-sm">
+      </div>
+      <div class="col-sm-3">
+        <label for="favorecidoFiltro" class="form-label">Favorecido</label>
+        <input type="text" id="favorecidoFiltro" class="form-control form-control-sm">
+      </div>
     </div>
 
     <div class="d-flex justify-content-between mb-2">
@@ -49,7 +61,6 @@
         <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
         <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
         <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
-        <button class="btn btn-outline-secondary btn-sm" id="exportPdf">PDF</button>
       </div>
     </div>
 
@@ -64,15 +75,13 @@
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
     let tabela, dataCompleta = [];
     const meses = [
-      '01‑Janeiro','02‑Fevereiro','03‑Março','04‑Abril','05‑Maio','06‑Junho',
-      '07‑Julho','08‑Agosto','09‑Setembro','10‑Outubro','11‑Novembro','12‑Dezembro'
+      '01​‑Janeiro','02​‑Fevereiro','03​‑Março','04​‑Abril','05​‑Maio','06​‑Junho',
+      '07​‑Julho','08​‑Agosto','09​‑Setembro','10​‑Outubro','11​‑Novembro','12​‑Dezembro'
     ];
 
     $(document).ready(() => {
@@ -87,10 +96,11 @@
           ['mesFiltro','unidadeFiltro','naturezaFiltro','programaFiltro'].forEach(id => {
             $('#' + id).on('change', aplicarFiltros);
           });
+          $('#empenhoFiltro,#cpfFiltro,#favorecidoFiltro').on('input', aplicarFiltros);
 
           $('#btnLimpar').click(() => {
-            $('select').val('').prop('disabled', true);
-            $('#anoFiltro').prop('disabled', false);
+            $('select, input').val('').prop('disabled', false);
+            $('#mesFiltro,#unidadeFiltro,#naturezaFiltro,#programaFiltro').prop('disabled', true);
             $('#tabela').hide();
             if (tabela) tabela.clear().draw();
           });
@@ -98,8 +108,6 @@
           $('#exportCsv').click(() => $('.buttons-csv').click());
           $('#exportXls').click(() => $('.buttons-excel').click());
           $('#exportTxt').click(() => $('.buttons-copy').click());
-          $('#exportPdf').click(() => $('.buttons-pdf').click());
-
           $('#exportJson').click(() => {
             const jsonData = tabela.rows({search:'applied'}).data().toArray();
             const blob = new Blob([JSON.stringify(jsonData, null,2)], {type:'application/json'});
@@ -159,8 +167,7 @@
           buttons: [
             { extend: 'csvHtml5', className: 'd-none' },
             { extend: 'excelHtml5', className: 'd-none' },
-            { extend: 'copyHtml5', className: 'd-none' },
-            { extend: 'pdfHtml5', className: 'd-none', orientation:'landscape',pageSize:'A4' }
+            { extend: 'copyHtml5', className: 'd-none' }
           ]
         });
       }
@@ -172,12 +179,18 @@
       const unidade = $('#unidadeFiltro').val();
       const natureza = $('#naturezaFiltro').val();
       const programa = $('#programaFiltro').val();
+      const empenho = $('#empenhoFiltro').val().toLowerCase();
+      const cpf = $('#cpfFiltro').val().toLowerCase();
+      const favorecido = $('#favorecidoFiltro').val().toLowerCase();
 
       let filtrado = dataCompleta.filter(r => r.ano === ano);
       if (mes) filtrado = filtrado.filter(r=>r.mes===mes);
       if (unidade) filtrado = filtrado.filter(r=>r['unidade orcamentaria']===unidade);
       if (natureza) filtrado = filtrado.filter(r=>r['natureza de despesa']===natureza);
       if (programa) filtrado = filtrado.filter(r=>r['programa de trabalho']===programa);
+      if (empenho) filtrado = filtrado.filter(r=>r['empenho']?.toLowerCase().includes(empenho));
+      if (cpf) filtrado = filtrado.filter(r=>r['cpf/cnpj']?.toLowerCase().includes(cpf));
+      if (favorecido) filtrado = filtrado.filter(r=>r['favorecido']?.toLowerCase().includes(favorecido));
 
       if (tabela) tabela.clear().rows.add(filtrado).draw();
     }
