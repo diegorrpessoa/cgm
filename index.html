@@ -31,7 +31,7 @@
 
 <body class="bg-light">
   <div class="container my-4">
-    <h4 class="mb-4 text-center">Consulta de Despesas</h4>
+    <h4 class="mb-4 text-center">Consulta de Despesas- noite</h4>
 
     <div class="row g-2 mb-3">
       <div class="col-sm-2">
@@ -124,7 +124,120 @@
           anoFiltro.prop('disabled', false);
           $('#spinnerAno').addClass('d-none');
 
-          // Aqui continuam os demais eventos e filtros... (omitido neste trecho por brevidade)
+          $('#mesFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
+        inicializarTabela(dados);
+      });
+
+      $('#unidadeFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
+        inicializarTabela(dados);
+      });
+
+      $('#naturezaFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+        inicializarTabela(dados);
+      });
+
+      ['classificacaoFiltro', 'empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
+        $('#' + id).on('change keyup', () => inicializarTabela(aplicarFiltroEncadeado()))
+      );
+
+      $('#btnLimpar').click(() => {
+        $('select, input').val('').prop('disabled', true);
+        $('#anoFiltro').prop('disabled', false);
+        $('#tabela').hide();
+        if (tabela) tabela.clear().draw();
+      });
+
+      $('#exportCsv').click(() => $('.buttons-csv').click());
+      $('#exportXls').click(() => $('.buttons-excel').click());
+      $('#exportJson').click(() => {
+        const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
+        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+        baixarArquivo(blob, "dados.json");
+      });
+      $('#exportTxt').click(() => {
+        const dados = tabela.rows({ search: 'applied' }).data().toArray();
+        const colunas = Object.keys(dados[0]);
+        let conteudo = colunas.join(";") + "\n";
+        dados.forEach(linha => {
+          conteudo += colunas.map(c => linha[c]).join(";") + "\n";
+        });
+        const blob = new Blob([conteudo], { type: 'text/plain' });
+        baixarArquivo(blob, "dados.txt");
+      });
+    }
+  });
+});
+
+function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
+  const seletor = $('#' + id);
+  const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+  else valores.sort();
+  seletor.empty().append('<option value="">Todos</option>');
+  valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
+  seletor.prop('disabled', false);
+}
+
+function toggleFiltros(status) {
+  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+    .prop('disabled', !status);
+}
+
+function filtrarDados(dados, campo, valor) {
+  if (!valor) return dados;
+  return dados.filter(d => d[campo] === valor);
+}
+
+function aplicarFiltroEncadeado() {
+  return dadosOriginais.filter(r =>
+    (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
+    (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
+    (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
+    (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
+    (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
+    (!$('#empenhoFiltro').val() || r[campos.empenho]?.toLowerCase().includes($('#empenhoFiltro').val().toLowerCase())) &&
+    (!$('#cpfFiltro').val() || r[campos.cpf]?.toLowerCase().includes($('#cpfFiltro').val().toLowerCase())) &&
+    (!$('#credorFiltro').val() || r[campos.credor]?.toLowerCase().includes($('#credorFiltro').val().toLowerCase()))
+  );
+}
+
+function inicializarTabela(dados) {
+  $('#tabela').show();
+  if ($.fn.DataTable.isDataTable('#tabela')) {
+    tabela.clear().rows.add(dados).draw();
+  } else {
+    tabela = $('#tabela').DataTable({
+      data: dados,
+      columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
+      dom: 'Bfrtip',
+      buttons: [
+        { extend: 'csvHtml5', className: 'd-none' },
+        { extend: 'excelHtml5', className: 'd-none' },
+      ]
+    });
+  }
+}
+
+function baixarArquivo(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
         },
         error: function () {
           alert("Erro ao carregar dados da planilha.");
