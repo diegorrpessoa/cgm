@@ -86,7 +86,7 @@
 
     $(document).ready(() => {
       $.ajax({
-        url: 'https://www.pjf.mg.gov.br/transparencia/dados_abertos/arquivos/despesas_25.csv',
+        url: 'https://docs.google.com/spreadsheets/d/1rPAC_wxNI13d-VeDX8UK1lFZJiQbLQbDgdc14g6S68A',
         dataType: 'text',
         success: csvData => {
           const parsed = Papa.parse(csvData, { header: true, skipEmptyLines: true });
