@@ -1,228 +1,133 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Despesas</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
-  <style>
-    body { background: #f8f9fa; }
-    .dataTables_filter { display: none; }
-    .form-label, .form-select-sm, .form-control-sm, .table th, .table td { font-size:0.65rem!important; }
-    .xsmall { font-size:0.6rem!important; }
-    .spinner-overlay, .spinner-overlay-ano {
-      position:fixed;top:0;left:0;width:100%;height:100vh;
-      display:flex;flex-direction:column;align-items:center;
-      justify-content:flex-start;padding-top:60px;z-index:9999;
-    }
-    .spinner-overlay { background:rgba(255,255,255,0.9); }
-    .spinner-overlay-ano { background:rgba(255,255,255,0.5);z-index:9998; }
-    .spinner-border { width:2rem;height:2rem; }
-    .spinner-text { font-size:0.9rem;margin-top:5px; }
-    table.dataTable td, table.dataTable th { white-space:nowrap; }
-    .dt-buttons .btn { padding:0.25rem .5rem;font-size:0.7rem; }
-    .table-wrapper { overflow-x:auto; }
-    .totalizadores { font-size:0.7rem;background:#fff;padding:5px 10px;border:1px solid #dee2e6;border-radius:4px;margin-bottom:0.5rem; }
-    .totalizadores span { margin-right:15px;font-weight:500; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Consulta de Despesas Públicas</title>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .container {
+            margin-top: 50px;
+        }
+        .dataTables_wrapper .dataTables_filter input {
+            width: 400px;
+        }
+        tfoot th {
+            font-weight: bold;
+        }
+    </style>
 </head>
+
 <body>
-
-<div id="spinnerCsv" class="spinner-overlay">
-  <div class="spinner-border text-primary" role="status"></div>
-  <div class="spinner-text">Atualizando dados iniciais...</div>
-</div>
-<div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
-  <div class="spinner-border text-secondary" role="status"></div>
-  <div class="spinner-text">Carregando filtros...</div>
-</div>
-
-<div class="container-fluid mt-4">
-  <div class="row gx-2 gy-2 mb-3">
-    <div class="col-sm-2"><label class="form-label">Ano *</label><select id="anoFiltro" class="form-select form-select-sm"></select></div>
-    <div class="col-sm-2"><label class="form-label">Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Unidade</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Natureza</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Classificação</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
-  </div>
-
-  <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
-    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
-    <span id="totalPago">Pago: R$ 0,00</span>
-  </div>
-
-  <div class="d-flex justify-content-between mb-2">
-    <button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar Filtros</button>
-    <div class="btn-group">
-      <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-      <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-      <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-      <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+    <div class="container">
+        <h1 class="mb-4">Consulta de Despesas Públicas</h1>
+        <table id="tabela-despesas" class="display table table-striped" style="width:100%">
+            <thead>
+                <tr>
+                    <th>Unidade Gestora</th>
+                    <th>Favorecido</th>
+                    <th>CPF/CNPJ</th>
+                    <th>Empenho</th>
+                    <th>Empenhado</th>
+                    <th>Liquidado</th>
+                    <th>Pago</th>
+                    <th>Histórico</th>
+                    <th>Função</th>
+                    <th>Subfunção</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Totais:</th>
+                    <th id="total-empenhado">R$ 0,00</th>
+                    <th id="total-liquidado">R$ 0,00</th>
+                    <th id="total-pago">R$ 0,00</th>
+                    <th colspan="3"></th>
+                </tr>
+            </tfoot>
+        </table>
     </div>
-  </div>
 
-  <div class="text-end xsmall text-muted mb-2" id="dataAtualizacao">Atualizado em: --/--/---- --:--</div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            function formatarValor(valor) {
+                return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            }
 
-  <div class="table-wrapper">
-    <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
-  </div>
-</div>
+            function atualizarTotalizadoresTabela(dt) {
+                let totalEmpenhado = 0, totalLiquidado = 0, totalPago = 0;
 
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+                dt.rows({ search: 'applied' }).every(function () {
+                    const data = this.data();
+                    const vEmp = parseFloat((data.Empenhado || '0').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+                    const vLiq = parseFloat((data.Liquidado || '0').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+                    const vPag = parseFloat((data.Pago || '0').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
+                    totalEmpenhado += vEmp;
+                    totalLiquidado += vLiq;
+                    totalPago += vPag;
+                });
 
-<script>
-let tabela, dadosOriginais = [];
-const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const campos = { ano:"Ano", mes:"Mês", unidade:"Unidade Orçamentária", natureza:"Natureza de Despesa", classificacao:"Classificação Orçamentária", fonte:"Fonte", empenho:"Empenho", cpf:"CPF/CNPJ", credor:"Credor" };
+                $('#total-empenhado').text(formatarValor(totalEmpenhado));
+                $('#total-liquidado').text(formatarValor(totalLiquidado));
+                $('#total-pago').text(formatarValor(totalPago));
+            }
 
-function toNum(v){ return parseFloat(String(v).replace(/\./g,'').replace(/,/g,'.').replace(/[^\d\.\-]/g,''))||0; }
+            const tabela = $('#tabela-despesas').DataTable({
+                ajax: function (data, callback) {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = '.csv';
+                    input.onchange = function (event) {
+                        const file = event.target.files[0];
+                        if (!file) return;
 
-function popularFiltroEncadeado(id, campo, dados, ordenarMes=false){
-  const sel = $('#' + id);
-  const vals = [...new Set(dados.map(d=>d[campo]).filter(Boolean))];
-  if(ordenarMes) vals.sort((a,b)=>mesesOrdem.indexOf(a)-mesesOrdem.indexOf(b));
-  else vals.sort();
-  const atual = sel.val();
-  sel.empty().append('<option value="">Todos</option>');
-  vals.forEach(v=>sel.append(`<option>${v}</option>`));
-  sel.val(atual || '').prop('disabled', false);
-}
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const linhas = e.target.result.split('\n').filter(l => l.trim() !== '');
+                            const cabecalho = linhas[0].split(';');
+                            const dados = linhas.slice(1).map(linha => {
+                                const valores = linha.split(';');
+                                return Object.fromEntries(cabecalho.map((coluna, i) => [coluna.trim(), valores[i]?.trim() || '']));
+                            });
+                            callback({ data: dados });
 
-function aplicarFiltros(){
-  let f = {};
-  for(let id in campos){
-    f[id] = $('#' + id + 'Filtro').val();
-  }
-  return dadosOriginais.filter(r =>
-    (!f.ano || r[campos.ano] === f.ano) &&
-    (!f.mes || r[campos.mes] === f.mes) &&
-    (!f.unidade || r[campos.unidade] === f.unidade) &&
-    (!f.natureza || r[campos.natureza] === f.natureza) &&
-    (!f.classificacao || r[campos.classificacao] === f.classificacao) &&
-    (!f.fonte || r[campos.fonte] === f.fonte) &&
-    (!f.empenho || r[campos.empenho] === f.empenho) &&
-    (!f.cpf || r[campos.cpf] === f.cpf) &&
-    (!f.credor || r[campos.credor] === f.credor)
-  );
-}
+                            setTimeout(() => {
+                                atualizarTotalizadoresTabela(tabela);
+                            }, 100);
+                        };
+                        reader.readAsText(file, 'UTF-8');
+                    };
+                    input.click();
+                },
+                columns: [
+                    { data: 'Unidade Gestora' },
+                    { data: 'Favorecido' },
+                    { data: 'CPF/CNPJ' },
+                    { data: 'Empenho' },
+                    { data: 'Empenhado' },
+                    { data: 'Liquidado' },
+                    { data: 'Pago' },
+                    { data: 'Histórico' },
+                    { data: 'Função' },
+                    { data: 'Subfunção' }
+                ],
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json'
+                },
+                initComplete: function () {
+                    $('.dataTables_filter input').attr('placeholder', 'Buscar por qualquer campo...');
+                }
+            });
 
-function atualizarTodosFiltros(){
-  const dados = aplicarFiltros();
-  ['mes','unidade','natureza','classificacao','fonte','empenho','cpf','credor'].forEach((id,i)=>{
-    popularFiltroEncadeado(id + 'Filtro', campos[id], dados, id==='mes');
-  });
-}
-
-function atualizarTotalizadores(dados){
-  const tot = { e:0,l:0,p:0 };
-  dados.forEach(r=>{
-    tot.e += toNum(r["Valor Empenhado"]);
-    tot.l += toNum(r["Valor Liquidado"]);
-    tot.p += toNum(r["Valor Pago"]);
-  });
-  $('#totalEmpenhado').text(`Empenhado: ${tot.e.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}`);
-  $('#totalLiquidado').text(`Liquidado: ${tot.l.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}`);
-  $('#totalPago').text(`Pago: ${tot.p.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}`);
-}
-
-function initTabela(dados){
-  $('#tabela').show();
-  $('#resumoValores').show();
-  atualizarTotalizadores(dados);
-  if($.fn.DataTable.isDataTable('#tabela')){
-    tabela.clear().rows.add(dados).draw();
-  } else {
-    tabela = $('#tabela').DataTable({
-      data: dados,
-      columns: Object.keys(dados[0]||{}).map(c=>({title:c,data:c})),
-      language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"},
-      dom:'Bfrtip', scrollX:true,
-      buttons:[
-        {extend:'csvHtml5', className:'d-none'},
-        {extend:'excelHtml5', className:'d-none'}
-      ]
-    });
-  }
-}
-
-function baixar(blob,nome){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=nome;
-  document.body.appendChild(a);
-  a.click(); a.remove();
-}
-
-$(document).ready(()=>{
-  Papa.parse(
-    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv",
-    {download:true, header:true, complete:res=>{
-      dadosOriginais=res.data.filter(r=>r["Ano"]);
-      popularFiltroEncadeado('anoFiltro', campos.ano, dadosOriginais);
-      $('#spinnerCsv').hide();
-
-      Papa.parse(
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv",
-        {download:true, header:true, complete:res2=>{
-          const dt = res2.data[1]?.Y2;
-          if(dt) $('#dataAtualizacao').text('Atualizado em: '+dt);
-        }}
-      );
-
-      $('#anoFiltro').on('change',()=>{
-        $('#spinnerAno').show();
-        setTimeout(()=>{
-          toggle := $('#anoFiltro').val()!=='';
-          $('.form-select-sm').prop('disabled',!toggle);
-          $('#anoFiltro').prop('disabled',false);
-          atualizarTodosFiltros();
-          initTabela(aplicarFiltros());
-          $('#spinnerAno').hide();
-        },100);
-      });
-
-      $('.form-select-sm').on('change',()=>{
-        atualizarTodosFiltros();
-        initTabela(aplicarFiltros());
-      });
-
-      $('#btnLimpar').click(()=>{
-        $('#anoFiltro').val('').prop('disabled',false);
-        $('.form-select-sm').val('').prop('disabled',true);
-        $('#tabela,#resumoValores').hide();
-        if(tabela) tabela.clear().draw();
-      });
-
-      $('#exportCsv').click(()=>$('.buttons-csv').click());
-      $('#exportXls').click(()=>$('.buttons-excel').click());
-      $('#exportJson').click(()=>{
-        const data = tabela.rows({search:'applied'}).data().toArray();
-        baixar(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}), 'dados.json');
-      });
-      $('#exportTxt').click(()=>{
-        const data = tabela.rows({search:'applied'}).data().toArray();
-        const cols = Object.keys(data[0]||{}).join(';') + '\n';
-        const txt = cols + data.map(r=>Object.values(r).join(';')).join('\n');
-        baixar(new Blob([txt],{type:'text/plain'}), 'dados.txt');
-      });
-
-    }});
-});
-</script>
+            tabela.on('draw', function () {
+                atualizarTotalizadoresTabela(tabela);
+            });
+        });
+    </script>
 </body>
+
 </html>
