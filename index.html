@@ -12,51 +12,27 @@
     .form-label { font-size: 0.85rem; }
     .form-select-sm, .form-control-sm { font-size: 0.85rem; }
 
-    .spinner-overlay, .spinner-overlay-ano {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1050;
-    }
-
-    .spinner-overlay {
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-
+    .spinner-overlay,
     .spinner-overlay-ano {
-      background-color: rgba(255, 255, 255, 0.6);
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
     }
 
-    .spinner-border-lg {
-      width: 4rem;
-      height: 4rem;
-      border-width: 0.4em;
+    .spinner-overlay-ano .spinner-border {
+      width: 2rem;
+      height: 2rem;
     }
 
-    .d-none { display: none !important; }
+    .spinner-overlay .spinner-border {
+      width: 3rem;
+      height: 3rem;
+    }
   </style>
 </head>
 <body class="bg-light">
-
-<!-- Spinners -->
-<!-- Spinners -->
-<div id="spinnerGlobal" class="spinner-overlay">
-  <div class="text-center text-light">
-    <div class="spinner-border text-light spinner-border-lg" role="status"></div>
-    <div class="mt-2 fs-5">Carregando dados iniciais...</div>
-  </div>
-</div>
-
-<div id="spinnerAno" class="spinner-overlay-ano d-none">
-  <div class="text-center text-primary">
-    <div class="spinner-border text-primary" role="status"></div>
-    <div class="mt-2 fs-6">Carregando filtros...</div>
-  </div>
-</div>
-
-
 <div class="container my-4">
   <!-- Filtros -->
   <div class="row g-2 mb-3">
@@ -109,7 +85,23 @@
     </div>
   </div>
 
+  <!-- Tabela -->
   <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%; display: none;"></table>
+</div>
+
+<!-- Spinners -->
+<div id="spinnerGlobal" class="spinner-overlay">
+  <div class="text-center text-light">
+    <div class="spinner-border text-light" role="status"></div>
+    <div class="mt-2 fs-5">Carregando dados iniciais...</div>
+  </div>
+</div>
+
+<div id="spinnerAno" class="spinner-overlay-ano d-none">
+  <div class="text-center text-primary">
+    <div class="spinner-border text-primary" role="status"></div>
+    <div class="mt-2 fs-6">Carregando filtros...</div>
+  </div>
 </div>
 
 <!-- Scripts -->
@@ -128,15 +120,9 @@ let tabela;
 let dadosOriginais = [];
 const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const campos = {
-  ano: "Ano",
-  mes: "Mês",
-  unidade: "Unidade Orçamentária",
-  natureza: "Natureza de Despesa",
-  classificacao: "Classificação Orçamentária",
-  fonte: "Fonte",
-  empenho: "Empenho",
-  cpf: "CPF/CNPJ",
-  credor: "Credor"
+  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária", natureza: "Natureza de Despesa",
+  classificacao: "Classificação Orçamentária", fonte: "Fonte", empenho: "Empenho",
+  cpf: "CPF/CNPJ", credor: "Credor"
 };
 
 $(document).ready(function () {
@@ -145,69 +131,87 @@ $(document).ready(function () {
     header: true,
     complete: function (results) {
       dadosOriginais = results.data.filter(r => r["Ano"]);
-      popularFiltro("anoFiltro", campos.ano, dadosOriginais);
       $('#spinnerGlobal').hide();
-
-      $('#anoFiltro').on('change', function () {
-        $('#spinnerAno').removeClass('d-none');
-        setTimeout(() => {
-          const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
-          ['mesFiltro','unidadeFiltro','naturezaFiltro','classificacaoFiltro','fonteFiltro','empenhoFiltro','cpfFiltro','credorFiltro']
-            .forEach(id => popularFiltro(id, campos[id.replace('Filtro','')], dadosAno));
-          inicializarTabela(dadosAno);
-          $('#spinnerAno').addClass('d-none');
-        }, 400);
-      });
-
-      $('select').not('#anoFiltro').on('change', () => inicializarTabela(aplicarFiltro()));
-
-      $('#btnLimpar').click(() => {
-        $('select').val('').prop('disabled', true);
-        $('#anoFiltro').prop('disabled', false);
-        $('#tabela').hide();
-        if (tabela) tabela.clear().draw();
-      });
-
-      $('#exportCsv').click(() => $('.buttons-csv').click());
-      $('#exportXls').click(() => $('.buttons-excel').click());
-      $('#exportJson').click(() => {
-        const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
-        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-        baixarArquivo(blob, "dados.json");
-      });
-      $('#exportTxt').click(() => {
-        const dados = tabela.rows({ search: 'applied' }).data().toArray();
-        const colunas = Object.keys(dados[0]);
-        let conteudo = colunas.join(";") + "\n";
-        dados.forEach(linha => {
-          conteudo += colunas.map(c => linha[c]).join(";") + "\n";
-        });
-        const blob = new Blob([conteudo], { type: 'text/plain' });
-        baixarArquivo(blob, "dados.txt");
-      });
+      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
     }
+  });
+
+  $('#anoFiltro').on('change', function () {
+    $('#spinnerAno').removeClass('d-none');
+    setTimeout(() => {
+      toggleFiltros(true);
+      inicializarTabela(aplicarFiltroEncadeado());
+      Object.entries(campos).forEach(([id, campo]) => {
+        if (id !== "ano") {
+          popularFiltroEncadeado(id + "Filtro", campo, aplicarFiltroEncadeado(), campo === "Mês");
+        }
+      });
+      $('#spinnerAno').addClass('d-none');
+    }, 500);
+  });
+
+  $('select').on('change', function () {
+    if (this.id !== "anoFiltro") {
+      inicializarTabela(aplicarFiltroEncadeado());
+    }
+  });
+
+  $('#btnLimpar').click(() => {
+    $('select').val('').prop('disabled', true);
+    $('#anoFiltro').prop('disabled', false);
+    $('#tabela').hide();
+    if (tabela) tabela.clear().draw();
+  });
+
+  $('#exportCsv').click(() => $('.buttons-csv').click());
+  $('#exportXls').click(() => $('.buttons-excel').click());
+  $('#exportJson').click(() => {
+    const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
+    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+    baixarArquivo(blob, "dados.json");
+  });
+
+  $('#exportTxt').click(() => {
+    const dados = tabela.rows({ search: 'applied' }).data().toArray();
+    const colunas = Object.keys(dados[0]);
+    let conteudo = colunas.join(";") + "\n";
+    dados.forEach(linha => {
+      conteudo += colunas.map(c => linha[c]).join(";") + "\n";
+    });
+    const blob = new Blob([conteudo], { type: 'text/plain' });
+    baixarArquivo(blob, "dados.txt");
   });
 });
 
-function popularFiltro(id, campo, dados) {
+function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
-  const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))].sort();
-  if (campo === "Mês") valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+  const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+  else valores.sort();
   seletor.empty().append('<option value="">Todos</option>');
   valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
   seletor.prop('disabled', false);
 }
 
-function filtrarDados(dados, campo, valor) {
-  return !valor ? dados : dados.filter(d => d[campo] === valor);
+function toggleFiltros(status) {
+  Object.keys(campos).forEach(c => {
+    if (c !== "ano") {
+      $('#' + c + 'Filtro').prop('disabled', !status);
+    }
+  });
 }
 
-function aplicarFiltro() {
+function aplicarFiltroEncadeado() {
   return dadosOriginais.filter(r =>
-    Object.keys(campos).every(id => {
-      const val = $('#' + id + 'Filtro').val();
-      return !val || r[campos[id]] === val;
-    })
+    (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
+    (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
+    (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
+    (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
+    (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
+    (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
+    (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
+    (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
+    (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
   );
 }
 
