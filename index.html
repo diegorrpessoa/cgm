@@ -143,6 +143,9 @@ const campos = {
   fonte: "Fonte", empenho: "Empenho", cpf: "CPF/CNPJ", credor: "Credor"
 };
 
+// Sequência dos filtros para encadeamento
+const ordemFiltros = ["ano", "mes", "unidade", "natureza", "classificacao", "fonte", "empenho", "cpf", "credor"];
+
 $(document).ready(function () {
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
     download: true, header: true,
@@ -151,158 +154,207 @@ $(document).ready(function () {
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
       $('#spinnerCsv').hide();
 
+      // Evento do filtro Ano
       $('#anoFiltro').on('change', function () {
+        resetFiltrosApos('ano');
         $('#spinnerAno').show();
         setTimeout(() => {
-          toggleFiltros(true);
-          atualizarTodosFiltros();
-          inicializarTabela(aplicarFiltroEncadeado());
+          atualizarFiltrosEncadeados('ano');
+          const dadosFiltrados = aplicarFiltroEncadeado();
+          inicializarTabela(dadosFiltrados);
           $('#spinnerAno').hide();
         }, 100);
       });
 
-      $('select').not('#anoFiltro').on('change', () => inicializarTabela(aplicarFiltroEncadeado()));
+      // Eventos dos demais filtros na ordem encadeada
+      ordemFiltros.slice(1).forEach(filtro => {
+        $('#' + filtro + 'Filtro').on('change', function () {
+          resetFiltrosApos(filtro);
+          $('#spinnerAno').show();
+          setTimeout(() => {
+            atualizarFiltrosEncadeados(filtro);
+            const dadosFiltrados = aplicarFiltroEncadeado();
+            inicializarTabela(dadosFiltrados);
+            $('#spinnerAno').hide();
+          }, 100);
+        });
+      });
 
       $('#btnLimpar').click(() => {
-        $('select').val('').prop('disabled', true);
+        ordemFiltros.forEach(filtro => {
+          $('#' + filtro + 'Filtro').val('');
+        });
         $('#anoFiltro').prop('disabled', false);
-        $('#tabela').hide();
+        ordemFiltros.slice(1).forEach(filtro => {
+          $('#' + filtro + 'Filtro').prop('disabled', true);
+        });
         $('#resumoValores').hide();
+        $('#tabela').hide();
         if (tabela) tabela.clear().draw();
       });
 
-      $('#exportCsv').click(() => $('.buttons-csv').click());
-      $('#exportXls').click(() => $('.buttons-excel').click());
-      $('#exportJson').click(() => {
-        const dados = tabela.rows({ search: 'applied' }).data().toArray();
-        const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-        baixarArquivo(blob, "dados.json");
-      });
-      $('#exportTxt').click(() => {
-        const dados = tabela.rows({ search: 'applied' }).data().toArray();
-        if(dados.length === 0) return;
-        const colunas = Object.keys(dados[0]);
-        let conteudo = colunas.join(";") + "\n";
-        dados.forEach(linha => conteudo += colunas.map(c => linha[c]).join(";") + "\n");
-        baixarArquivo(new Blob([conteudo], { type: 'text/plain' }), "dados.txt");
-      });
     }
   });
 });
 
-function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
-  const seletor = $('#' + id);
-  let valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
-  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
-  else valores.sort();
-  seletor.empty().append('<option value="">---</option>');
-  valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
-  seletor.prop('disabled', false);
+function popularFiltroEncadeado(idFiltro, campo, dados) {
+  let filtro = $('#' + idFiltro);
+  filtro.empty();
+  filtro.append($('<option>', { value: "", text: "Todos" }));
+  const valores = [...new Set(dados.map(item => item[campo]).filter(v => v && v.trim() !== ""))];
+  if (campo === "Mês") {
+    // Ordenar meses pela ordem natural
+    valores.sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+  } else {
+    valores.sort();
+  }
+  valores.forEach(v => filtro.append($('<option>', { value: v, text: v })));
+  filtro.prop('disabled', false);
+}
+
+function resetFiltrosApos(filtroAtual) {
+  const indice = ordemFiltros.indexOf(filtroAtual);
+  if (indice < 0) return;
+  for (let i = indice + 1; i < ordemFiltros.length; i++) {
+    const id = ordemFiltros[i] + 'Filtro';
+    $('#' + id).val('');
+    $('#' + id).prop('disabled', true);
+  }
+}
+
+function atualizarFiltrosEncadeados(filtroAtual) {
+  // Para cada filtro após o filtroAtual, popular com valores filtrados
+  const indice = ordemFiltros.indexOf(filtroAtual);
+  if (indice < 0) return;
+
+  const dadosFiltradosAteAqui = aplicarFiltroAteOrdem(indice);
+
+  for (let i = indice + 1; i < ordemFiltros.length; i++) {
+    const idFiltro = ordemFiltros[i] + 'Filtro';
+    const campo = campos[ordemFiltros[i]];
+    const dadosParaFiltro = dadosFiltradosAteAqui;
+    popularFiltroEncadeado(idFiltro, campo, dadosParaFiltro);
+  }
+}
+
+function aplicarFiltroAteOrdem(ordemMax) {
+  // Aplica os filtros até a posição ordemMax da lista ordemFiltros
+  let dados = dadosOriginais;
+  for (let i = 0; i <= ordemMax; i++) {
+    const filtro = ordemFiltros[i];
+    const valorSelecionado = $('#' + filtro + 'Filtro').val();
+    if (valorSelecionado) {
+      dados = dados.filter(item => item[campos[filtro]] === valorSelecionado);
+    }
+  }
+  return dados;
 }
 
 function aplicarFiltroEncadeado() {
-  const filtros = {
-    ano: $('#anoFiltro').val(),
-    mes: $('#mesFiltro').val(),
-    unidade: $('#unidadeFiltro').val(),
-    natureza: $('#naturezaFiltro').val(),
-    classificacao: $('#classificacaoFiltro').val(),
-    fonte: $('#fonteFiltro').val(),
-    empenho: $('#empenhoFiltro').val(),
-    cpf: $('#cpfFiltro').val(),
-    credor: $('#credorFiltro').val()
-  };
-  return dadosOriginais.filter(item => {
-    for (let f in filtros) {
-      if (filtros[f] && item[campos[f]] !== filtros[f]) return false;
+  let dados = dadosOriginais;
+  ordemFiltros.forEach(filtro => {
+    const valorSelecionado = $('#' + filtro + 'Filtro').val();
+    if (valorSelecionado) {
+      dados = dados.filter(item => item[campos[filtro]] === valorSelecionado);
     }
-    return true;
   });
+  return dados;
 }
 
-function atualizarTodosFiltros() {
-  const dadosFiltradosAno = dadosOriginais.filter(d => d[campos.ano] === $('#anoFiltro').val());
+function inicializarTabela(dadosFiltrados) {
+  $('#tabela').show();
 
-  popularFiltroEncadeado('mesFiltro', campos.mes, dadosFiltradosAno, true);
-  popularFiltroEncadeado('unidadeFiltro', campos.unidade, dadosFiltradosAno);
-  popularFiltroEncadeado('naturezaFiltro', campos.natureza, dadosFiltradosAno);
-  popularFiltroEncadeado('classificacaoFiltro', campos.classificacao, dadosFiltradosAno);
-  popularFiltroEncadeado('fonteFiltro', campos.fonte, dadosFiltradosAno);
-  popularFiltroEncadeado('empenhoFiltro', campos.empenho, dadosFiltradosAno);
-  popularFiltroEncadeado('cpfFiltro', campos.cpf, dadosFiltradosAno);
-  popularFiltroEncadeado('credorFiltro', campos.credor, dadosFiltradosAno);
+  if (tabela) {
+    tabela.clear().rows.add(dadosFiltrados).draw();
+  } else {
+    tabela = $('#tabela').DataTable({
+      data: dadosFiltrados,
+      destroy: true,
+      paging: true,
+      pageLength: 30,
+      lengthMenu: [15, 30, 50, 100],
+      searching: true,
+      ordering: true,
+      order: [[1, 'asc']],
+      autoWidth: false,
+      scrollX: true,
+      dom: 'Bfrtip',
+      buttons: [
+        {
+          extend: 'csvHtml5',
+          text: 'CSV',
+          title: 'Despesas',
+          exportOptions: { columns: ':visible' }
+        },
+        {
+          extend: 'excelHtml5',
+          text: 'XLS',
+          title: 'Despesas',
+          exportOptions: { columns: ':visible' }
+        },
+        {
+          extend: 'json',
+          text: 'JSON',
+          action: function (e, dt, button, config) {
+            let data = dt.buttons.exportData();
+            let json = JSON.stringify(data.body);
+            let blob = new Blob([json], {type: "application/json"});
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement('a');
+            a.href = url;
+            a.download = 'despesas.json';
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        },
+        {
+          extend: 'copy',
+          text: 'TXT',
+          title: 'Despesas',
+          exportOptions: { columns: ':visible' }
+        }
+      ],
+      columns: [
+        { title: "Ano", data: "Ano" },
+        { title: "Mês", data: "Mês" },
+        { title: "Unidade Orçamentária", data: "Unidade Orçamentária" },
+        { title: "Natureza de Despesa", data: "Natureza de Despesa" },
+        { title: "Classificação Orçamentária", data: "Classificação Orçamentária" },
+        { title: "Fonte", data: "Fonte" },
+        { title: "Empenho", data: "Empenho" },
+        { title: "CPF/CNPJ", data: "CPF/CNPJ" },
+        { title: "Credor", data: "Credor" },
+        { title: "Empenhado", data: "Empenhado", render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ') },
+        { title: "Liquidado", data: "Liquidado", render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ') },
+        { title: "Pago", data: "Pago", render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ') }
+      ],
+      language: {
+        url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+      }
+    });
+  }
+  atualizarResumo(dadosFiltrados);
 }
 
-function toggleFiltros(ativo) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro').prop('disabled', !ativo);
-}
-
-function inicializarTabela(dados) {
-  if (tabela) tabela.destroy();
-  $('#tabela').empty();
-
-  if (dados.length === 0) {
-    $('#tabela').hide();
+function atualizarResumo(dados) {
+  if (!dados.length) {
     $('#resumoValores').hide();
     return;
   }
+  let totalEmpenhado = 0;
+  let totalLiquidado = 0;
+  let totalPago = 0;
 
-  const colunas = Object.keys(dados[0]).map(c => ({ title: c, data: c }));
-
-  tabela = $('#tabela').DataTable({
-    data: dados,
-    columns: colunas,
-    language: {
-      url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-    },
-    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
-    dom: 'Bfrtip',
-    buttons: [
-      'copy', 'csv', 'excel', 'pdf', 'print'
-    ],
-    order: [[0, 'asc']],
-    scrollX: true,
-    pageLength: 25
+  dados.forEach(item => {
+    totalEmpenhado += parseFloat(item.Empenhado.replace(/\./g, '').replace(',', '.')) || 0;
+    totalLiquidado += parseFloat(item.Liquidado.replace(/\./g, '').replace(',', '.')) || 0;
+    totalPago += parseFloat(item.Pago.replace(/\./g, '').replace(',', '.')) || 0;
   });
 
-  $('#tabela').show();
+  $('#totalEmpenhado').text('Empenhado: R$ ' + totalEmpenhado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+  $('#totalLiquidado').text('Liquidado: R$ ' + totalLiquidado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+  $('#totalPago').text('Pago: R$ ' + totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
   $('#resumoValores').show();
-
-  atualizarTotalizadores(dados);
-}
-
-// Função atualizada e validada para somar valores formatados
-function atualizarTotalizadores(dados) {
-  const toFloat = v => {
-    if (!v) return 0;
-    let numStr = String(v).replace(/[^\d,.-]/g, '').trim();
-    if (numStr.indexOf(',') > -1 && numStr.indexOf('.') === -1) {
-      numStr = numStr.replace(',', '.');
-    } else if (numStr.indexOf('.') > -1 && numStr.indexOf(',') > -1) {
-      numStr = numStr.replace(/\./g, '').replace(',', '.');
-    }
-    const n = parseFloat(numStr);
-    return isNaN(n) ? 0 : n;
-  };
-
-  const format = n => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-  const totalEmp = dados.reduce((s, l) => s + toFloat(l["Valor Empenhado"]), 0);
-  const totalLiq = dados.reduce((s, l) => s + toFloat(l["Valor Liquidado"]), 0);
-  const totalPag = dados.reduce((s, l) => s + toFloat(l["Valor Pago"]), 0);
-
-  $("#totalEmpenhado").text(`Empenhado: ${format(totalEmp)}`);
-  $("#totalLiquidado").text(`Liquidado: ${format(totalLiq)}`);
-  $("#totalPago").text(`Pago: ${format(totalPag)}`);
-}
-
-function baixarArquivo(blob, nomeArquivo) {
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = nomeArquivo;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }
 </script>
 
