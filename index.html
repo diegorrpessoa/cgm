@@ -221,3 +221,432 @@
     // Formata valor para Real brasileiro
     function formatarValor(valor) {
       if (!valor) return "R$ 0,00";
+      let n = parseFloat(
+        typeof valor === "string"
+          ? valor.replace(/\./g, "").replace(",", ".")
+          : valor
+      );
+      if (isNaN(n)) return "R$ 0,00";
+      return n.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+        minimumFractionDigits: 2,
+      });
+    }
+
+    // Função para popular opções do select, com array de strings, e opcional valor selecionado
+    function popularSelect($select, itens, placeholder = "Todos", habilitar = true) {
+      const valorAtual = $select.val();
+      $select.empty();
+      $select.append(
+        $("<option>").val("").text(placeholder).prop("selected", !valorAtual)
+      );
+      itens.forEach((item) => {
+        $select.append(
+          $("<option>")
+            .val(item)
+            .text(item)
+            .prop("selected", item === valorAtual)
+        );
+      });
+      $select.prop("disabled", !habilitar);
+    }
+
+    // Retorna array única e ordenada
+    function valoresUnicosOrdenados(dados, campo) {
+      let valores = dados
+        .map((d) => (d[campo] || "").trim())
+        .filter((v) => v !== "");
+      if (campo === campos.mes) {
+        valores = valores.filter((v) => mesesOrdem.includes(v));
+        valores.sort(
+          (a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b)
+        );
+      } else {
+        valores = [...new Set(valores)].sort((a, b) =>
+          a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+        );
+      }
+      return valores;
+    }
+
+    // Filtra dados conforme filtros selecionados
+    function filtrarDados() {
+      const ano = $("#anoFiltro").val();
+      const mes = $("#mesFiltro").val();
+      const unidade = $("#unidadeFiltro").val();
+      const natureza = $("#naturezaFiltro").val();
+      const classificacao = $("#classificacaoFiltro").val();
+      const fonte = $("#fonteFiltro").val();
+      const empenho = $("#empenhoFiltro").val();
+      const cpf = $("#cpfFiltro").val();
+      const credor = $("#credorFiltro").val();
+
+      return dadosOriginais.filter((item) => {
+        return (
+          (ano === "" || item[campos.ano] === ano) &&
+          (mes === "" || item[campos.mes] === mes) &&
+          (unidade === "" || item[campos.unidade] === unidade) &&
+          (natureza === "" || item[campos.natureza] === natureza) &&
+          (classificacao === "" || item[campos.classificacao] === classificacao) &&
+          (fonte === "" || item[campos.fonte] === fonte) &&
+          (empenho === "" || item[campos.empenho] === empenho) &&
+          (cpf === "" || item[campos.cpf] === cpf) &&
+          (credor === "" || item[campos.credor] === credor)
+        );
+      });
+    }
+
+    // Atualiza tabela DataTable com dados filtrados
+    function atualizarTabela() {
+      const dadosFiltrados = filtrarDados();
+
+      if (tabela) {
+        tabela.clear();
+        tabela.rows.add(dadosFiltrados);
+        tabela.draw();
+      } else {
+        // Inicializa DataTable
+        tabela = $("#tabela").DataTable({
+          data: dadosFiltrados,
+          columns: [
+            { title: campos.ano, data: campos.ano },
+            { title: campos.mes, data: campos.mes },
+            { title: campos.unidade, data: campos.unidade },
+            { title: campos.natureza, data: campos.natureza },
+            { title: campos.classificacao, data: campos.classificacao },
+            { title: campos.fonte, data: campos.fonte },
+            { title: campos.empenho, data: campos.empenho },
+            { title: campos.cpf, data: campos.cpf },
+            { title: campos.credor, data: campos.credor },
+            {
+              title: campos.empenhadoVal,
+              data: campos.empenhadoVal,
+              render: (data) => formatarValor(data),
+              className: "text-end",
+            },
+            {
+              title: campos.liquidadoVal,
+              data: campos.liquidadoVal,
+              render: (data) => formatarValor(data),
+              className: "text-end",
+            },
+            {
+              title: campos.pagoVal,
+              data: campos.pagoVal,
+              render: (data) => formatarValor(data),
+              className: "text-end",
+            },
+          ],
+          scrollX: true,
+          responsive: false,
+          lengthChange: false,
+          paging: true,
+          pageLength: 25,
+          ordering: true,
+          order: [[0, "desc"], [1, "asc"]],
+          language: {
+            emptyTable: "Nenhum dado disponível",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
+            infoEmpty: "Mostrando 0 a 0 de 0 registros",
+            infoFiltered: "(filtrado de _MAX_ registros)",
+            paginate: {
+              previous: "Anterior",
+              next: "Próximo",
+            },
+            zeroRecords: "Nenhum registro encontrado",
+          },
+          dom: "Bfrtip",
+          buttons: [],
+          autoWidth: false,
+        });
+
+        $("#tabela").show();
+      }
+      atualizarTotalizadores(dadosFiltrados);
+    }
+
+    // Atualiza totalizadores dinâmicos na tela
+    function atualizarTotalizadores(dados) {
+      const somaEmpenhado = dados.reduce((acc, cur) => {
+        const val = parseFloat(
+          (cur[campos.empenhadoVal] || "0").toString().replace(/\./g, "").replace(",", ".")
+        );
+        return acc + (isNaN(val) ? 0 : val);
+      }, 0);
+      const somaLiquidado = dados.reduce((acc, cur) => {
+        const val = parseFloat(
+          (cur[campos.liquidadoVal] || "0").toString().replace(/\./g, "").replace(",", ".")
+        );
+        return acc + (isNaN(val) ? 0 : val);
+      }, 0);
+      const somaPago = dados.reduce((acc, cur) => {
+        const val = parseFloat(
+          (cur[campos.pagoVal] || "0").toString().replace(/\./g, "").replace(",", ".")
+        );
+        return acc + (isNaN(val) ? 0 : val);
+      }, 0);
+
+      $("#totalEmpenhado").text("Empenhado: " + formatarValor(somaEmpenhado));
+      $("#totalLiquidado").text("Liquidado: " + formatarValor(somaLiquidado));
+      $("#totalPago").text("Pago: " + formatarValor(somaPago));
+    }
+
+    // Atualiza os filtros dependentes conforme filtros aplicados
+    function atualizarFiltros() {
+      const ano = $("#anoFiltro").val();
+      if (!ano) {
+        // Se não selecionou ano, limpa e desabilita todos menos ano
+        $("#mesFiltro").empty().prop("disabled", true);
+        $("#unidadeFiltro").empty().prop("disabled", true);
+        $("#naturezaFiltro").empty().prop("disabled", true);
+        $("#classificacaoFiltro").empty().prop("disabled", true);
+        $("#fonteFiltro").empty().prop("disabled", true);
+        $("#empenhoFiltro").empty().prop("disabled", true);
+        $("#cpfFiltro").empty().prop("disabled", true);
+        $("#credorFiltro").empty().prop("disabled", true);
+        return;
+      }
+
+      // Dados filtrados só pelo ano, para popular os demais filtros
+      const dadosAno = dadosOriginais.filter((d) => d[campos.ano] === ano);
+
+      // Se selecionou Unidade Orçamentária, filtra os dados para os demais filtros com base nessa seleção
+      const unidadeSelecionada = $("#unidadeFiltro").val();
+
+      let dadosBase = dadosAno;
+      if (unidadeSelecionada) {
+        dadosBase = dadosAno.filter((d) => d[campos.unidade] === unidadeSelecionada);
+      }
+
+      popularSelect(
+        $("#mesFiltro"),
+        valoresUnicosOrdenados(dadosAno, campos.mes),
+        "Todos",
+        true
+      );
+
+      popularSelect(
+        $("#unidadeFiltro"),
+        valoresUnicosOrdenados(dadosAno, campos.unidade),
+        "Todos",
+        true
+      );
+
+      popularSelect(
+        $("#naturezaFiltro"),
+        valoresUnicosOrdenados(dadosBase, campos.natureza),
+        "Todos",
+        true
+      );
+
+      popularSelect(
+        $("#classificacaoFiltro"),
+        valoresUnicosOrdenados(dadosBase, campos.classificacao),
+        "Todos",
+        true
+      );
+
+      popularSelect(
+        $("#fonteFiltro"),
+        valoresUnicosOrdenados(dadosBase, campos.fonte),
+        "Todos",
+        true
+      );
+
+      popularSelect(
+        $("#empenhoFiltro"),
+        valoresUnicosOrdenados(dadosBase, campos.empenho),
+        "Todos",
+        true
+      );
+
+      popularSelect(
+        $("#cpfFiltro"),
+        valoresUnicosOrdenados(dadosBase, campos.cpf),
+        "Todos",
+        true
+      );
+
+      popularSelect(
+        $("#credorFiltro"),
+        valoresUnicosOrdenados(dadosBase, campos.credor),
+        "Todos",
+        true
+      );
+    }
+
+    // Limpa todos filtros exceto o ano (que mantém a seleção)
+    function limparFiltros() {
+      $("#mesFiltro").val("");
+      $("#unidadeFiltro").val("");
+      $("#naturezaFiltro").val("");
+      $("#classificacaoFiltro").val("");
+      $("#fonteFiltro").val("");
+      $("#empenhoFiltro").val("");
+      $("#cpfFiltro").val("");
+      $("#credorFiltro").val("");
+    }
+
+    // Exportação básica - CSV
+    function exportarCSV() {
+      const dados = filtrarDados();
+      if (dados.length === 0) {
+        alert("Não há dados para exportar.");
+        return;
+      }
+      const csvData = Papa.unparse(dados);
+      const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dados_exportados.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Exportação XLS simples (gera arquivo CSV com extensão .xls)
+    function exportarXLS() {
+      const dados = filtrarDados();
+      if (dados.length === 0) {
+        alert("Não há dados para exportar.");
+        return;
+      }
+      const csvData = Papa.unparse(dados);
+      const blob = new Blob([csvData], { type: "application/vnd.ms-excel" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dados_exportados.xls";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Exportar JSON
+    function exportarJSON() {
+      const dados = filtrarDados();
+      if (dados.length === 0) {
+        alert("Não há dados para exportar.");
+        return;
+      }
+      const jsonData = JSON.stringify(dados, null, 2);
+      const blob = new Blob([jsonData], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dados_exportados.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Exportar TXT simples (tabulação)
+    function exportarTXT() {
+      const dados = filtrarDados();
+      if (dados.length === 0) {
+        alert("Não há dados para exportar.");
+        return;
+      }
+      const cabecalho = Object.keys(dados[0]).join("\t");
+      const linhas = dados
+        .map((obj) => Object.values(obj).join("\t"))
+        .join("\n");
+      const txtData = cabecalho + "\n" + linhas;
+      const blob = new Blob([txtData], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "dados_exportados.txt";
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Função para carregar CSV e inicializar filtros/tabela
+    async function carregarDados() {
+      $("#spinnerCsv").show();
+      try {
+        const urlCSV =
+          "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv";
+
+        const response = await fetch(urlCSV);
+        const csvText = await response.text();
+
+        const resultados = Papa.parse(csvText, {
+          header: true,
+          skipEmptyLines: true,
+          dynamicTyping: false,
+        });
+
+        dadosOriginais = resultados.data.map((item) => {
+          // Padroniza campos e valores para evitar espaços em branco extras
+          return {
+            [campos.ano]: item[campos.ano]?.trim() || "",
+            [campos.mes]: item[campos.mes]?.trim() || "",
+            [campos.unidade]: item[campos.unidade]?.trim() || "",
+            [campos.natureza]: item[campos.natureza]?.trim() || "",
+            [campos.classificacao]: item[campos.classificacao]?.trim() || "",
+            [campos.fonte]: item[campos.fonte]?.trim() || "",
+            [campos.empenho]: item[campos.empenho]?.trim() || "",
+            [campos.cpf]: item[campos.cpf]?.trim() || "",
+            [campos.credor]: item[campos.credor]?.trim() || "",
+            [campos.empenhadoVal]: item[campos.empenhadoVal]?.trim() || "0",
+            [campos.liquidadoVal]: item[campos.liquidadoVal]?.trim() || "0",
+            [campos.pagoVal]: item[campos.pagoVal]?.trim() || "0",
+          };
+        });
+
+        // Popula filtro Ano
+        const anos = valoresUnicosOrdenados(dadosOriginais, campos.ano);
+        popularSelect($("#anoFiltro"), anos, "Selecione o Ano", true);
+
+        // Inicialmente desabilita outros filtros
+        $("#mesFiltro").prop("disabled", true);
+        $("#unidadeFiltro").prop("disabled", true);
+        $("#naturezaFiltro").prop("disabled", true);
+        $("#classificacaoFiltro").prop("disabled", true);
+        $("#fonteFiltro").prop("disabled", true);
+        $("#empenhoFiltro").prop("disabled", true);
+        $("#cpfFiltro").prop("disabled", true);
+        $("#credorFiltro").prop("disabled", true);
+
+        // Limpa tabela
+        if (tabela) {
+          tabela.clear().draw();
+        } else {
+          $("#tabela").hide();
+        }
+      } catch (err) {
+        alert("Erro ao carregar os dados: " + err.message);
+      } finally {
+        $("#spinnerCsv").hide();
+      }
+    }
+
+    // Eventos dos filtros
+    $("#anoFiltro").on("change", () => {
+      $("#spinnerAno").show();
+      limparFiltros();
+      atualizarFiltros();
+      atualizarTabela();
+      $("#spinnerAno").hide();
+    });
+
+    $("#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro").on(
+      "change",
+      () => {
+        atualizarTabela();
+      }
+    );
+
+    // Eventos botões exportação
+    $("#btnExportarCSV").on("click", exportarCSV);
+    $("#btnExportarXLS").on("click", exportarXLS);
+    $("#btnExportarJSON").on("click", exportarJSON);
+    $("#btnExportarTXT").on("click", exportarTXT);
+
+    // Inicializa ao carregar a página
+    $(document).ready(() => {
+      carregarDados();
+    });
+  </script>
+</body>
+</html>
