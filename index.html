@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Despesas</title>
+  <title>4Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -33,26 +33,38 @@
     .totalizadores span { display: inline-block; margin-right: 15px; font-weight: 500; }
 
     /* Estilo minimalista para paginação */
-.dataTables_wrapper .dataTables_paginate {
-  margin-top: 0.5rem;
-  text-align: center !important;
-}
+    .dataTables_wrapper .dataTables_paginate {
+      margin-top: 0.5rem;
+      text-align: center !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      padding: 0.2rem 0.5rem !important;
+      margin: 0 2px !important;
+      font-size: 0.65rem !important;
+      border-radius: 5px !important;
+      background-color: #e9ecef !important;
+      border: 1px solid #dee2e6 !important;
+      color: #212529 !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background-color: #0d6efd !important;
+      color: #fff !important;
+      font-weight: bold !important;
+    }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-  padding: 0.2rem 0.5rem !important;
-  margin: 0 2px !important;
-  font-size: 0.65rem !important;
-  border-radius: 5px !important;
-  background-color: #e9ecef !important;
-  border: 1px solid #dee2e6 !important;
-  color: #212529 !important;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  background-color: #0d6efd !important;
-  color: #fff !important;
-  font-weight: bold !important;
-}
+    /* Container do seletor de registros abaixo da tabela */
+    #lengthSelectorContainer {
+      margin-top: 10px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #lengthSelector {
+      width: 70px;
+      font-size: 0.75rem;
+      padding: 2px 4px;
+    }
   </style>
 </head>
 <body>
@@ -97,6 +109,17 @@
 
   <div class="table-wrapper">
     <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
+  </div>
+
+  <!-- Novo seletor para número de registros -->
+  <div id="lengthSelectorContainer" class="text-end">
+    <label for="lengthSelector">Registros por página:</label>
+    <select id="lengthSelector" class="form-select form-select-sm d-inline-block" aria-label="Selecionar número de registros">
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
   </div>
    
 </div>
@@ -143,16 +166,31 @@ $(document).ready(function(){
         ordemFiltros.forEach(f=>$('#'+f+'Filtro').val('').prop('disabled',f!=="ano"));
         $('#resumoValores,#tabela').hide();
         tabela?.clear().draw();
-      });     
+      });
+      
       $('#exportCsv').click(()=>$('.buttons-csv').click());
       $('#exportXls').click(()=>$('.buttons-excel').click());
-      $('#exportJson').click(()=>{const d=tabela.rows({search:'applied'}).data().toArray(); baixarArquivo(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),'dados.json');});
+      $('#exportJson').click(()=>{
+        const d=tabela.rows({search:'applied'}).data().toArray();
+        baixarArquivo(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),'dados.json');
+      });
       $('#exportTxt').click(()=>{
         const d=tabela.rows({search:'applied'}).data().toArray();
-        if(!d.length)return;
+        if(!d.length) return;
         const cols = Object.keys(d[0]);
         let s=cols.join(";")+"\n"+d.map(l=>cols.map(c=>l[c]).join(";")).join("\n");
         baixarArquivo(new Blob([s],{type:'text/plain'}),'dados.txt');
+      });
+
+      // Inicializa seletor de registros (default 10)
+      $('#lengthSelector').val('10');
+
+      // Evento para alterar o número de registros exibidos
+      $('#lengthSelector').on('change', function(){
+        const val = parseInt($(this).val());
+        if(tabela){
+          tabela.page.len(val).draw();
+        }
       });
     }
   });
@@ -196,10 +234,14 @@ function aplicarFiltroEncadeado(){
   }, dadosOriginais);
 }
 
-  function inicializarTabela(dados){
+function inicializarTabela(dados){
   $('#tabela').show();
+
+  // Obtém valor atual do seletor de registros (default 10)
+  let pageLength = parseInt($('#lengthSelector').val()) || 10;
+
   if(tabela){
-    tabela.clear().rows.add(dados).draw();
+    tabela.clear().rows.add(dados).page.len(pageLength).draw();
   } else {
     const colunas = Object.keys(dados[0]).map(c => ({
       title: c,
@@ -211,11 +253,12 @@ function aplicarFiltroEncadeado(){
     tabela = $('#tabela').DataTable({
       data: dados,
       destroy: true,
-      pageLength: 15,
+      pageLength: pageLength,
       searching: true,
       ordering: true,
       autoWidth: false,
-      scrollX: true,
+      scrollX: true, // mantém a rolagem horizontal
+      scrollY: false, // remove a rolagem vertical para ajustar altura automaticamente
       dom: 'Bfrtip',
       buttons: [
         { extend: 'csvHtml5', className: 'd-none' },
