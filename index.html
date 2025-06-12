@@ -14,6 +14,13 @@
   </style>
 </head>
 <body class="bg-light">
+
+<!-- Spinner de carregamento -->
+<div id="loadingSpinner" class="text-center my-5">
+  <div class="spinner-border text-primary" role="status"></div>
+  <div class="mt-2">Carregando...</div>
+</div>
+
 <div class="container my-4">
   <div class="row g-2 mb-3">
     <div class="col-sm-2">
@@ -94,6 +101,8 @@ const campos = {
 };
 
 $(document).ready(function () {
+  $('.container .row, .d-flex, #tabela').hide(); // Oculta tudo até carregar
+
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
     download: true,
     header: true,
@@ -101,21 +110,51 @@ $(document).ready(function () {
       dadosOriginais = results.data.filter(r => r["Ano"]);
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
 
+      $('#loadingSpinner').hide();
+      $('.container .row, .d-flex').show();
+
       $('#anoFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
+        const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
+        popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno, true);
         toggleFiltros(true);
+        inicializarTabela(dadosAno);
+        popularFiltroEncadeado("cpfFiltro", campos.cpf, dadosAno);
+        popularFiltroEncadeado("credorFiltro", campos.credor, dadosAno);
+      });
+
+      $('#mesFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
         inicializarTabela(dados);
       });
 
-      $('#mesFiltro').on('change', atualizarFiltrosEncadeados);
-      $('#unidadeFiltro').on('change', atualizarFiltrosEncadeados);
-      $('#naturezaFiltro').on('change', atualizarFiltrosEncadeados);
-      $('#classificacaoFiltro').on('change', atualizarFiltrosEncadeados);
-      $('#fonteFiltro').on('change', atualizarFiltrosEncadeados);
-      $('#empenhoFiltro').on('change', atualizarTabela);
-      $('#cpfFiltro').on('change', atualizarTabela);
-      $('#credorFiltro').on('change', atualizarTabela);
+      $('#unidadeFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
+        inicializarTabela(dados);
+      });
+
+      $('#naturezaFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+        inicializarTabela(dados);
+      });
+
+      $('#classificacaoFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
+        inicializarTabela(dados);
+      });
+
+      $('#fonteFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
+        inicializarTabela(dados);
+      });
+
+      ['empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
+        $('#' + id).on('change', () => inicializarTabela(aplicarFiltroEncadeado()))
+      );
 
       $('#btnLimpar').click(() => {
         $('select').val('').prop('disabled', true);
@@ -145,23 +184,6 @@ $(document).ready(function () {
   });
 });
 
-function atualizarFiltrosEncadeados() {
-  const dados = aplicarFiltroEncadeado();
-  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
-  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
-  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
-  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
-  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
-  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
-  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
-  inicializarTabela(dados);
-}
-
-function atualizarTabela() {
-  const dados = aplicarFiltroEncadeado();
-  inicializarTabela(dados);
-}
-
 function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
   const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
@@ -175,6 +197,11 @@ function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
 function toggleFiltros(status) {
   $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
     .prop('disabled', !status);
+}
+
+function filtrarDados(dados, campo, valor) {
+  if (!valor) return dados;
+  return dados.filter(d => d[campo] === valor);
 }
 
 function aplicarFiltroEncadeado() {
@@ -193,7 +220,6 @@ function aplicarFiltroEncadeado() {
 
 function inicializarTabela(dados) {
   $('#tabela').show();
-  if (!dados.length) return $('#tabela').hide();
   if ($.fn.DataTable.isDataTable('#tabela')) {
     tabela.clear().rows.add(dados).draw();
   } else {
