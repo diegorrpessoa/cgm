@@ -144,7 +144,7 @@ $(document).ready(function () {
         inicializarTabela(dados);
       });
 
-      ['classificacaoFiltro', 'empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
+      ['fonteFiltro', 'classificacaoFiltro', 'empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
         $('#' + id).on('change keyup', () => inicializarTabela(aplicarFiltroEncadeado()))
       );
 
@@ -187,7 +187,7 @@ function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
 }
 
 function toggleFiltros(status) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #fonteFiltro, #classificacaoFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
     .prop('disabled', !status);
 }
 
