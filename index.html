@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Consulta de Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
-    body { font-size: 0.85rem; }
+    body { background-color: #f8f9fa; }
     .dataTables_filter { display: none; }
-    .form-label { font-size: 0.8rem; }
-    .form-select-sm, .form-control-sm { font-size: 0.8rem; }
 
-    .spinner-overlay,
-    .spinner-overlay-ano {
+    .form-label, .form-select-sm, .form-control-sm, .table th, .table td {
+      font-size: 0.7rem !important;
+    }
+
+    .xsmall { font-size: 0.65rem !important; }
+
+    .spinner-overlay, .spinner-overlay-ano {
       position: fixed;
       top: 0;
       left: 0;
@@ -23,15 +26,16 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      padding-top: 150px;
+      justify-content: center;
       z-index: 9999;
     }
+
     .spinner-overlay {
-      background-color: rgba(255, 255, 255, 0.7);
+      background-color: rgba(255, 255, 255, 0.9);
     }
+
     .spinner-overlay-ano {
-      background-color: rgba(255, 255, 255, 0.3);
+      background-color: rgba(255, 255, 255, 0.5);
       z-index: 9998;
     }
 
@@ -39,54 +43,51 @@
       width: 2rem;
       height: 2rem;
     }
+
     .spinner-text {
       font-size: 0.9rem;
       margin-top: 5px;
     }
 
-    table.dataTable tbody tr:hover {
-      background-color: #f1f1f1;
-    }
-
-    table.dataTable th, table.dataTable td {
+    table.dataTable td, table.dataTable th {
       white-space: nowrap;
     }
 
-    .dataTables_wrapper .dataTables_scroll {
-      overflow-x: auto;
+    .dt-buttons .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.7rem;
     }
 
-    .table-responsive {
+    .table-wrapper {
       overflow-x: auto;
     }
   </style>
 </head>
-<body class="bg-light">
+<body>
 
-<!-- Spinner ao carregar CSV -->
+<!-- Spinners -->
 <div id="spinnerCsv" class="spinner-overlay">
   <div class="spinner-border text-primary" role="status"></div>
   <div class="spinner-text">Atualizando dados iniciais...</div>
 </div>
 
-<!-- Spinner ao carregar filtros -->
 <div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
   <div class="spinner-border text-secondary" role="status"></div>
   <div class="spinner-text">Carregando filtros...</div>
 </div>
 
-<div class="container my-4">
+<div class="container-fluid mt-4">
   <!-- Filtros -->
-  <div class="row g-2 mb-3">
-    <div class="col-sm-2"><label for="anoFiltro" class="form-label">Ano *</label><select id="anoFiltro" class="form-select form-select-sm" required></select></div>
-    <div class="col-sm-2"><label for="mesFiltro" class="form-label">Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label for="unidadeFiltro" class="form-label">Unidade Orçamentária</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label for="naturezaFiltro" class="form-label">Natureza de Despesa</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label for="classificacaoFiltro" class="form-label">Classificação Orçamentária</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label for="fonteFiltro" class="form-label">Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-3"><label for="empenhoFiltro" class="form-label">Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-3"><label for="cpfFiltro" class="form-label">CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-3"><label for="credorFiltro" class="form-label">Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
+  <div class="row gx-2 gy-2 mb-3">
+    <div class="col-sm-2"><label class="form-label">Ano *</label><select id="anoFiltro" class="form-select form-select-sm" required></select></div>
+    <div class="col-sm-2"><label class="form-label">Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Unidade Orçamentária</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Natureza de Despesa</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Classificação Orçamentária</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
   </div>
 
   <!-- Botões -->
@@ -101,8 +102,8 @@
   </div>
 
   <!-- Tabela -->
-  <div class="table-responsive">
-    <table id="tabela" class="table table-bordered table-sm table-striped nowrap" style="width:100%; display: none;"></table>
+  <div class="table-wrapper">
+    <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display: none;"></table>
   </div>
 </div>
 
@@ -118,37 +119,33 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
-let tabela;
-let dadosOriginais = [];
+let tabela, dadosOriginais = [];
 const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const campos = {
-  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária", natureza: "Natureza de Despesa",
-  classificacao: "Classificação Orçamentária", fonte: "Fonte", empenho: "Empenho",
-  cpf: "CPF/CNPJ", credor: "Credor"
+  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária",
+  natureza: "Natureza de Despesa", classificacao: "Classificação Orçamentária",
+  fonte: "Fonte", empenho: "Empenho", cpf: "CPF/CNPJ", credor: "Credor"
 };
 
 $(document).ready(function () {
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
-    download: true,
-    header: true,
+    download: true, header: true,
     complete: function (results) {
       dadosOriginais = results.data.filter(r => r["Ano"]);
-      popularFiltro("anoFiltro", campos.ano, dadosOriginais);
+      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
       $('#spinnerCsv').hide();
 
       $('#anoFiltro').on('change', function () {
         $('#spinnerAno').show();
         setTimeout(() => {
-          habilitarFiltros(true);
+          toggleFiltros(true);
           atualizarTodosFiltros();
-          inicializarTabela(aplicarFiltros());
+          inicializarTabela(aplicarFiltroEncadeado());
           $('#spinnerAno').hide();
         }, 100);
       });
 
-      $('select').not('#anoFiltro').on('change', () => {
-        inicializarTabela(aplicarFiltros());
-      });
+      $('select').not('#anoFiltro').on('change', () => inicializarTabela(aplicarFiltroEncadeado()));
 
       $('#btnLimpar').click(() => {
         $('select').val('').prop('disabled', true);
@@ -160,52 +157,48 @@ $(document).ready(function () {
       $('#exportCsv').click(() => $('.buttons-csv').click());
       $('#exportXls').click(() => $('.buttons-excel').click());
       $('#exportJson').click(() => {
-        const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
-        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+        const dados = tabela.rows({ search: 'applied' }).data().toArray();
+        const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
         baixarArquivo(blob, "dados.json");
       });
       $('#exportTxt').click(() => {
         const dados = tabela.rows({ search: 'applied' }).data().toArray();
         const colunas = Object.keys(dados[0]);
         let conteudo = colunas.join(";") + "\n";
-        dados.forEach(linha => {
-          conteudo += colunas.map(c => linha[c]).join(";") + "\n";
-        });
-        const blob = new Blob([conteudo], { type: 'text/plain' });
-        baixarArquivo(blob, "dados.txt");
+        dados.forEach(linha => conteudo += colunas.map(c => linha[c]).join(";") + "\n");
+        baixarArquivo(new Blob([conteudo], { type: 'text/plain' }), "dados.txt");
       });
     }
   });
 });
 
-function popularFiltro(id, campo, dados, ordenarMes = false) {
+function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
-  const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
-  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
-  else valores.sort();
+  let valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b)); else valores.sort();
   seletor.empty().append('<option value="">Todos</option>');
   valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
   seletor.prop('disabled', false);
 }
 
 function atualizarTodosFiltros() {
-  const dados = aplicarFiltros();
-  popularFiltro("mesFiltro", campos.mes, dados, true);
-  popularFiltro("unidadeFiltro", campos.unidade, dados);
-  popularFiltro("naturezaFiltro", campos.natureza, dados);
-  popularFiltro("classificacaoFiltro", campos.classificacao, dados);
-  popularFiltro("fonteFiltro", campos.fonte, dados);
-  popularFiltro("empenhoFiltro", campos.empenho, dados);
-  popularFiltro("cpfFiltro", campos.cpf, dados);
-  popularFiltro("credorFiltro", campos.credor, dados);
+  const dados = aplicarFiltroEncadeado();
+  popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
+  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
+  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
+  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
+  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
+  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
+  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
 }
 
-function habilitarFiltros(status) {
+function toggleFiltros(status) {
   $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
     .prop('disabled', !status);
 }
 
-function aplicarFiltros() {
+function aplicarFiltroEncadeado() {
   return dadosOriginais.filter(r =>
     (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
     (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
@@ -229,14 +222,11 @@ function inicializarTabela(dados) {
       columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
       language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
       dom: 'Bfrtip',
+      scrollX: true,
       buttons: [
         { extend: 'csvHtml5', className: 'd-none' },
-        { extend: 'excelHtml5', className: 'd-none' },
-      ],
-      scrollX: true,
-      scrollCollapse: true,
-      paging: true,
-      responsive: false
+        { extend: 'excelHtml5', className: 'd-none' }
+      ]
     });
   }
 }
