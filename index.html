@@ -3,133 +3,85 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Despesas</title>
+  <title>02Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
     body { background-color: #f8f9fa; }
     .dataTables_filter { display: none; }
-
     .form-label, .form-select-sm, .form-control-sm, .table th, .table td {
       font-size: 0.65rem !important;
     }
-
     .xsmall { font-size: 0.6rem !important; }
-
-    .spinner-overlay,
-    .spinner-overlay-ano {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding-top: 60px;
-      z-index: 9999;
+    .spinner-overlay, .spinner-overlay-ano {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start; padding-top: 60px; z-index: 9999;
     }
-
     .spinner-overlay { background-color: rgba(255, 255, 255, 0.9); }
-    .spinner-overlay-ano {
-      background-color: rgba(255, 255, 255, 0.5);
-      z-index: 9998;
-    }
-
-    .spinner-border {
-      width: 2rem;
-      height: 2rem;
-    }
-
-    .spinner-text {
-      font-size: 0.9rem;
-      margin-top: 5px;
-    }
-
+    .spinner-overlay-ano { background-color: rgba(255, 255, 255, 0.5); z-index: 9998; }
+    .spinner-border { width: 2rem; height: 2rem; }
+    .spinner-text { font-size: 0.9rem; margin-top: 5px; }
     table.dataTable td, table.dataTable th { white-space: nowrap; }
-
-    .dt-buttons .btn {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.7rem;
-    }
-
+    .dt-buttons .btn { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
     .table-wrapper { overflow-x: auto; }
-
     .totalizadores {
-      font-size: 0.7rem;
-      background: #fff;
-      padding: 5px 10px;
-      border: 1px solid #dee2e6;
-      border-radius: 4px;
+      font-size: 0.7rem; background: #fff; padding: 5px 10px;
+      border: 1px solid #dee2e6; border-radius: 4px;
     }
-
-    .totalizadores span {
-      display: inline-block;
-      margin-right: 15px;
-      font-weight: 500;
-    }
+    .totalizadores span { display: inline-block; margin-right: 15px; font-weight: 500; }
   </style>
 </head>
 <body>
 
-<!-- Spinners -->
 <div id="spinnerCsv" class="spinner-overlay">
-  <div class="spinner-border text-primary" role="status"></div>
+  <div class="spinner-border text-primary"></div>
   <div class="spinner-text">Atualizando dados iniciais...</div>
 </div>
-
 <div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
-  <div class="spinner-border text-secondary" role="status"></div>
+  <div class="spinner-border text-secondary"></div>
   <div class="spinner-text">Carregando filtros...</div>
 </div>
 
 <div class="container-fluid mt-4">
-  <!-- Filtros -->
   <div class="row gx-2 gy-2 mb-3">
-    <div class="col-sm-2"><label class="form-label">Ano *</label><select id="anoFiltro" class="form-select form-select-sm" required></select></div>
-    <div class="col-sm-2"><label class="form-label">Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Unidade Orçamentária</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Natureza de Despesa</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Classificação Orçamentária</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label class="form-label">Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Ano *</label><select id="anoFiltro" class="form-select form-select-sm"></select></div>
+    <div class="col-sm-2"><label>Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Unidade</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Natureza</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Classificação</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
   </div>
 
-  <!-- Totalizadores -->
   <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
-    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
-    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
-    <span id="totalPago">Pago: R$ 0,00</span>
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
   </div>
 
-  <!-- Botões -->
   <div class="d-flex justify-content-between mb-2">
-    <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
+    <button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar Filtros</button>
     <div class="btn-group">
-      <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
+      <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
+      <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
+      <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
+      <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
     </div>
   </div>
 
-  <!-- Tabela -->
   <div class="table-wrapper">
-    <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display: none;"></table>
+    <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
   </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -138,225 +90,144 @@
 let tabela, dadosOriginais = [];
 const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const campos = {
-  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária",
-  natureza: "Natureza de Despesa", classificacao: "Classificação Orçamentária",
-  fonte: "Fonte", empenho: "Empenho", cpf: "CPF/CNPJ", credor: "Credor"
+  ano:"Ano",mes:"Mês",unidade:"Unidade Orçamentária",natureza:"Natureza de Despesa",
+  classificacao:"Classificação Orçamentária",fonte:"Fonte",empenho:"Empenho",
+  cpf:"CPF/CNPJ",credor:"Credor"
 };
+const ordemFiltros = ["ano","mes","unidade","natureza","classificacao","fonte","empenho","cpf","credor"];
 
-// Sequência dos filtros para encadeamento
-const ordemFiltros = ["ano", "mes", "unidade", "natureza", "classificacao", "fonte", "empenho", "cpf", "credor"];
-
-$(document).ready(function () {
+$(document).ready(function(){
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
-    download: true, header: true,
-    complete: function (results) {
-      dadosOriginais = results.data.filter(r => r["Ano"]);
+    download:true,header:true,complete:function(res){
+      dadosOriginais = res.data.filter(r=>r["Ano"]);
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
       $('#spinnerCsv').hide();
 
-      // Evento do filtro Ano
-      $('#anoFiltro').on('change', function () {
-        resetFiltrosApos('ano');
-        $('#spinnerAno').show();
-        setTimeout(() => {
-          atualizarFiltrosEncadeados('ano');
-          const dadosFiltrados = aplicarFiltroEncadeado();
-          inicializarTabela(dadosFiltrados);
-          $('#spinnerAno').hide();
-        }, 100);
-      });
-
-      // Eventos dos demais filtros na ordem encadeada
-      ordemFiltros.slice(1).forEach(filtro => {
-        $('#' + filtro + 'Filtro').on('change', function () {
-          resetFiltrosApos(filtro);
+      ordemFiltros.forEach(f=>{
+        $('#' + f + 'Filtro').on('change', () => {
+          resetFiltrosApos(f);
           $('#spinnerAno').show();
-          setTimeout(() => {
-            atualizarFiltrosEncadeados(filtro);
-            const dadosFiltrados = aplicarFiltroEncadeado();
-            inicializarTabela(dadosFiltrados);
+          setTimeout(()=>{
+            atualizarFiltrosEncadeados(f);
+            const df = aplicarFiltroEncadeado();
+            inicializarTabela(df);
             $('#spinnerAno').hide();
-          }, 100);
+          },100);
         });
       });
 
       $('#btnLimpar').click(() => {
-        ordemFiltros.forEach(filtro => {
-          $('#' + filtro + 'Filtro').val('');
-        });
-        $('#anoFiltro').prop('disabled', false);
-        ordemFiltros.slice(1).forEach(filtro => {
-          $('#' + filtro + 'Filtro').prop('disabled', true);
-        });
-        $('#resumoValores').hide();
-        $('#tabela').hide();
-        if (tabela) tabela.clear().draw();
+        ordemFiltros.forEach(f=>$('#'+f+'Filtro').val('').prop('disabled',f!=="ano"));
+        $('#resumoValores,#tabela').hide();
+        tabela?.clear().draw();
       });
-
+      $('#exportCsv').click(()=>$('.buttons-csv').click());
+      $('#exportXls').click(()=>$('.buttons-excel').click());
+      $('#exportJson').click(()=>{const d=tabela.rows({search:'applied'}).data().toArray(); baixarArquivo(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),'dados.json');});
+      $('#exportTxt').click(()=>{
+        const d=tabela.rows({search:'applied'}).data().toArray();
+        if(!d.length)return;
+        const cols = Object.keys(d[0]);
+        let s=cols.join(";")+"\n"+d.map(l=>cols.map(c=>l[c]).join(";")).join("\n");
+        baixarArquivo(new Blob([s],{type:'text/plain'}),'dados.txt');
+      });
     }
   });
 });
 
-function popularFiltroEncadeado(idFiltro, campo, dados) {
-  let filtro = $('#' + idFiltro);
-  filtro.empty();
-  filtro.append($('<option>', { value: "", text: "Todos" }));
-  const valores = [...new Set(dados.map(item => item[campo]).filter(v => v && v.trim() !== ""))];
-  if (campo === "Mês") {
-    // Ordenar meses pela ordem natural
-    valores.sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
-  } else {
-    valores.sort();
-  }
-  valores.forEach(v => filtro.append($('<option>', { value: v, text: v })));
-  filtro.prop('disabled', false);
+function popularFiltroEncadeado(id,campo,dados){
+  const s=$('#'+id);
+  s.empty().append('<option value="">Todos</option>');
+  let vals=[...new Set(dados.map(r=>r[campo]).filter(v=>v))];
+  if(campo==="Mês") vals.sort((a,b)=>mesesOrdem.indexOf(a)-mesesOrdem.indexOf(b));
+  else vals.sort();
+  vals.forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+  s.prop('disabled', false);
 }
 
-function resetFiltrosApos(filtroAtual) {
-  const indice = ordemFiltros.indexOf(filtroAtual);
-  if (indice < 0) return;
-  for (let i = indice + 1; i < ordemFiltros.length; i++) {
-    const id = ordemFiltros[i] + 'Filtro';
-    $('#' + id).val('');
-    $('#' + id).prop('disabled', true);
-  }
-}
-
-function atualizarFiltrosEncadeados(filtroAtual) {
-  // Para cada filtro após o filtroAtual, popular com valores filtrados
-  const indice = ordemFiltros.indexOf(filtroAtual);
-  if (indice < 0) return;
-
-  const dadosFiltradosAteAqui = aplicarFiltroAteOrdem(indice);
-
-  for (let i = indice + 1; i < ordemFiltros.length; i++) {
-    const idFiltro = ordemFiltros[i] + 'Filtro';
-    const campo = campos[ordemFiltros[i]];
-    const dadosParaFiltro = dadosFiltradosAteAqui;
-    popularFiltroEncadeado(idFiltro, campo, dadosParaFiltro);
-  }
-}
-
-function aplicarFiltroAteOrdem(ordemMax) {
-  // Aplica os filtros até a posição ordemMax da lista ordemFiltros
-  let dados = dadosOriginais;
-  for (let i = 0; i <= ordemMax; i++) {
-    const filtro = ordemFiltros[i];
-    const valorSelecionado = $('#' + filtro + 'Filtro').val();
-    if (valorSelecionado) {
-      dados = dados.filter(item => item[campos[filtro]] === valorSelecionado);
-    }
-  }
-  return dados;
-}
-
-function aplicarFiltroEncadeado() {
-  let dados = dadosOriginais;
-  ordemFiltros.forEach(filtro => {
-    const valorSelecionado = $('#' + filtro + 'Filtro').val();
-    if (valorSelecionado) {
-      dados = dados.filter(item => item[campos[filtro]] === valorSelecionado);
-    }
+function resetFiltrosApos(f){
+  ordemFiltros.slice(ordemFiltros.indexOf(f)+1).forEach(n=>{
+    $('#'+n+'Filtro').val('').prop('disabled',true);
   });
-  return dados;
 }
 
-function inicializarTabela(dadosFiltrados) {
-  $('#tabela').show();
+function aplicarFiltroAteOrdem(idx){
+  return ordemFiltros.slice(0,idx+1).reduce((acc, f)=>{
+    const v = $('#'+f+'Filtro').val();
+    return v ? acc.filter(r=>r[campos[f]]===v) : acc;
+  }, dadosOriginais);
+}
 
-  if (tabela) {
-    tabela.clear().rows.add(dadosFiltrados).draw();
+function atualizarFiltrosEncadeados(f){
+  const idx=ordemFiltros.indexOf(f);
+  const base = aplicarFiltroAteOrdem(idx);
+  ordemFiltros.slice(idx+1).forEach(k=>{
+    popularFiltroEncadeado(k+'Filtro', campos[k], base);
+  });
+}
+
+function aplicarFiltroEncadeado(){
+  return ordemFiltros.reduce((acc,f)=>{
+    const v = $('#'+f+'Filtro').val();
+    return v ? acc.filter(r=>r[campos[f]]===v) : acc;
+  }, dadosOriginais);
+}
+
+function inicializarTabela(dados){
+  $('#tabela').show();
+  if(tabela){
+    tabela.clear().rows.add(dados).draw();
   } else {
     tabela = $('#tabela').DataTable({
-      data: dadosFiltrados,
-      destroy: true,
-      paging: true,
-      pageLength: 30,
-      lengthMenu: [15, 30, 50, 100],
-      searching: true,
-      ordering: true,
-      order: [[1, 'asc']],
-      autoWidth: false,
-      scrollX: true,
-      dom: 'Bfrtip',
-      buttons: [
-        {
-          extend: 'csvHtml5',
-          text: 'CSV',
-          title: 'Despesas',
-          exportOptions: { columns: ':visible' }
-        },
-        {
-          extend: 'excelHtml5',
-          text: 'XLS',
-          title: 'Despesas',
-          exportOptions: { columns: ':visible' }
-        },
-        {
-          extend: 'json',
-          text: 'JSON',
-          action: function (e, dt, button, config) {
-            let data = dt.buttons.exportData();
-            let json = JSON.stringify(data.body);
-            let blob = new Blob([json], {type: "application/json"});
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = 'despesas.json';
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        },
-        {
-          extend: 'copy',
-          text: 'TXT',
-          title: 'Despesas',
-          exportOptions: { columns: ':visible' }
-        }
+      data:dados,
+      destroy:true,pageLength:30,searching:true,ordering:true,
+      autoWidth:false,scrollX:true,dom:'Bfrtip',
+      buttons:[
+        {extend:'csvHtml5',className:'d-none'},
+        {extend:'excelHtml5',className:'d-none'}
       ],
-      columns: [
-        { title: "Ano", data: "Ano" },
-        { title: "Mês", data: "Mês" },
-        { title: "Unidade Orçamentária", data: "Unidade Orçamentária" },
-        { title: "Natureza de Despesa", data: "Natureza de Despesa" },
-        { title: "Classificação Orçamentária", data: "Classificação Orçamentária" },
-        { title: "Fonte", data: "Fonte" },
-        { title: "Empenho", data: "Empenho" },
-        { title: "CPF/CNPJ", data: "CPF/CNPJ" },
-        { title: "Credor", data: "Credor" },
-        { title: "Empenhado", data: "Empenhado", render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ') },
-        { title: "Liquidado", data: "Liquidado", render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ') },
-        { title: "Pago", data: "Pago", render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ') }
+      columns:[
+        {title:"Ano",data:"Ano"},
+        {title:"Mês",data:"Mês"},
+        {title:"Unidade",data:"Unidade Orçamentária"},
+        {title:"Natureza",data:"Natureza de Despesa"},
+        {title:"Classificação",data:"Classificação Orçamentária"},
+        {title:"Fonte",data:"Fonte"},
+        {title:"Empenho",data:"Empenho"},
+        {title:"CPF/CNPJ",data:"CPF/CNPJ"},
+        {title:"Credor",data:"Credor"},
+        {title:"Empenhado",data:"Valor Empenhado",render:$.fn.dataTable.render.number('.',',',2,'R$ ')},
+        {title:"Liquidado",data:"Valor Liquidado",render:$.fn.dataTable.render.number('.',',',2,'R$ ')},
+        {title:"Pago",data:"Valor Pago",render:$.fn.dataTable.render.number('.',',',2,'R$ ')}
       ],
-      language: {
-        url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-      }
+      language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
     });
   }
-  atualizarResumo(dadosFiltrados);
+  atualizarResumo(dados);
 }
 
-function atualizarResumo(dados) {
-  if (!dados.length) {
-    $('#resumoValores').hide();
-    return;
-  }
-  let totalEmpenhado = 0;
-  let totalLiquidado = 0;
-  let totalPago = 0;
-
-  dados.forEach(item => {
-    totalEmpenhado += parseFloat(item.Empenhado.replace(/\./g, '').replace(',', '.')) || 0;
-    totalLiquidado += parseFloat(item.Liquidado.replace(/\./g, '').replace(',', '.')) || 0;
-    totalPago += parseFloat(item.Pago.replace(/\./g, '').replace(',', '.')) || 0;
+function atualizarResumo(dados){
+  if(!dados.length){$('#resumoValores').hide();return;}
+  let e=0,l=0,p=0;
+  dados.forEach(r=>{
+    e+=parseFloat((r["Valor Empenhado"]||"0").replace(/\./g,'').replace(',','.'))||0;
+    l+=parseFloat((r["Valor Liquidado"]||"0").replace(/\./g,'').replace(',','.'))||0;
+    p+=parseFloat((r["Valor Pago"]||"0").replace(/\./g,'').replace(',','.'))||0;
   });
-
-  $('#totalEmpenhado').text('Empenhado: R$ ' + totalEmpenhado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-  $('#totalLiquidado').text('Liquidado: R$ ' + totalLiquidado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-  $('#totalPago').text('Pago: R$ ' + totalPago.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
+  $('#totalEmpenhado').text('Empenhado: '+e.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+  $('#totalLiquidado').text('Liquidado: '+l.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
+  $('#totalPago').text('Pago: '+p.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}));
   $('#resumoValores').show();
 }
-</script>
 
+function baixarArquivo(blob, nome){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=nome;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
 </body>
 </html>
