@@ -1,123 +1,310 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Despesas Públicas</title>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body>
-  <div class="container mt-4">
-    <h2 class="mb-4">Teste Despesas Públicas</h2>
-    <table id="tabela" class="display nowrap table table-striped" style="width:100%">
-      <thead>
-        <tr>
-          <th>Órgão</th>
-          <th>Unidade Gestora</th>
-          <th>Função</th>
-          <th>Subfunção</th>
-          <th>Programa</th>
-          <th>Ação</th>
-          <th>Elemento de Despesa</th>
-          <th>Empenhado</th>
-          <th>Liquidado</th>
-          <th>Pago</th>
-        </tr>
-      </thead>
-      <tfoot>
-        <tr>
-          <th colspan="7" style="text-align:right">Totais:</th>
-          <th></th>
-          <th></th>
-          <th></th>
-        </tr>
-      </tfoot>
-      <tbody>
-        <!-- Os dados do CSV serão carregados aqui -->
-      </tbody>
-    </table>
-  </div>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Despesas</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
+  <style>
+    body { background-color: #f8f9fa; }
+    .dataTables_filter { display: none; }
 
-  <!-- Scripts -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-  <script>
-    function formatarValor(valor) {
-      return parseFloat(valor.replace(/[R$\.\s]/g, '').replace(',', '.')) || 0;
+    .form-label, .form-select-sm, .form-control-sm, .table th, .table td {
+      font-size: 0.65rem !important;
     }
 
-    $(document).ready(function() {
-      const tabela = $('#tabela').DataTable({
-        dom: 'Bfrtip',
-        buttons: ['copy', 'csv', 'excel', 'print'],
-        scrollX: true,
-        footerCallback: function (row, data, start, end, display) {
-          const api = this.api();
+    .xsmall { font-size: 0.6rem !important; }
 
-          // Função auxiliar para somar colunas
-          function somarColuna(index) {
-            return api
-              .column(index, { search: 'applied' })
-              .data()
-              .reduce(function (a, b) {
-                return formatarValor(a) + formatarValor(b);
-              }, 0);
-          }
+    .spinner-overlay,
+    .spinner-overlay-ano {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 60px;
+      z-index: 9999;
+    }
 
-          const totalEmpenhado = somarColuna(7);
-          const totalLiquidado = somarColuna(8);
-          const totalPago = somarColuna(9);
+    .spinner-overlay { background-color: rgba(255, 255, 255, 0.9); }
+    .spinner-overlay-ano {
+      background-color: rgba(255, 255, 255, 0.5);
+      z-index: 9998;
+    }
 
-          // Atualiza os totais formatados no rodapé
-          $(api.column(7).footer()).html(totalEmpenhado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
-          $(api.column(8).footer()).html(totalLiquidado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
-          $(api.column(9).footer()).html(totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
-        }
+    .spinner-border {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .spinner-text {
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    table.dataTable td, table.dataTable th { white-space: nowrap; }
+
+    .dt-buttons .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.7rem;
+    }
+
+    .table-wrapper { overflow-x: auto; }
+
+    .totalizadores {
+      font-size: 0.7rem;
+      background: #fff;
+      padding: 5px 10px;
+      border: 1px solid #dee2e6;
+      border-radius: 4px;
+    }
+
+    .totalizadores span {
+      display: inline-block;
+      margin-right: 15px;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Spinners -->
+<div id="spinnerCsv" class="spinner-overlay">
+  <div class="spinner-border text-primary" role="status"></div>
+  <div class="spinner-text">Atualizando dados iniciais...</div>
+</div>
+
+<div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
+  <div class="spinner-border text-secondary" role="status"></div>
+  <div class="spinner-text">Carregando filtros...</div>
+</div>
+
+<div class="container-fluid mt-4">
+  <!-- Filtros -->
+  <div class="row gx-2 gy-2 mb-3">
+    <div class="col-sm-2"><label class="form-label">Ano *</label><select id="anoFiltro" class="form-select form-select-sm" required></select></div>
+    <div class="col-sm-2"><label class="form-label">Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Unidade Orçamentária</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Natureza de Despesa</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Classificação Orçamentária</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
+  </div>
+
+  <!-- Totalizadores -->
+  <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
+  </div>
+
+  <!-- Botões -->
+  <div class="d-flex justify-content-between mb-2">
+    <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
+    <div class="btn-group">
+      <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="table-wrapper">
+    <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display: none;"></table>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script>
+let tabela, dadosOriginais = [];
+const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const campos = {
+  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária",
+  natureza: "Natureza de Despesa", classificacao: "Classificação Orçamentária",
+  fonte: "Fonte", empenho: "Empenho", cpf: "CPF/CNPJ", credor: "Credor"
+};
+
+$(document).ready(function () {
+  Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
+    download: true, header: true,
+    complete: function (results) {
+      dadosOriginais = results.data.filter(r => r["Ano"]);
+      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
+      $('#spinnerCsv').hide();
+
+      $('#anoFiltro').on('change', function () {
+        $('#spinnerAno').show();
+        setTimeout(() => {
+          toggleFiltros(true);
+          atualizarTodosFiltros();
+          inicializarTabela(aplicarFiltroEncadeado());
+          $('#spinnerAno').hide();
+        }, 100);
       });
 
-      // Carregamento do CSV
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.csv';
-      input.style.display = 'block';
-      input.className = 'form-control mt-3';
-      document.querySelector('.container').prepend(input);
+      $('select').not('#anoFiltro').on('change', () => inicializarTabela(aplicarFiltroEncadeado()));
 
-      input.addEventListener('change', function (e) {
-        const file = e.target.files[0];
-        if (file) {
-          Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: function (results) {
-              tabela.clear();
-              results.data.forEach(function (row) {
-                tabela.row.add([
-                  row['Órgão'],
-                  row['Unidade Gestora'],
-                  row['Função'],
-                  row['Subfunção'],
-                  row['Programa'],
-                  row['Ação'],
-                  row['Elemento de Despesa'],
-                  row['Empenhado'],
-                  row['Liquidado'],
-                  row['Pago']
-                ]);
-              });
-              tabela.draw();
-            }
-          });
-        }
+      $('#btnLimpar').click(() => {
+        $('select').val('').prop('disabled', true);
+        $('#anoFiltro').prop('disabled', false);
+        $('#tabela').hide();
+        $('#resumoValores').hide();
+        if (tabela) tabela.clear().draw();
       });
-    });
-  </script>
+
+      $('#exportCsv').click(() => $('.buttons-csv').click());
+      $('#exportXls').click(() => $('.buttons-excel').click());
+      $('#exportJson').click(() => {
+        const dados = tabela.rows({ search: 'applied' }).data().toArray();
+        const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+        baixarArquivo(blob, "dados.json");
+      });
+      $('#exportTxt').click(() => {
+        const dados = tabela.rows({ search: 'applied' }).data().toArray();
+        if(dados.length === 0) return;
+        const colunas = Object.keys(dados[0]);
+        let conteudo = colunas.join(";") + "\n";
+        dados.forEach(linha => conteudo += colunas.map(c => linha[c]).join(";") + "\n");
+        baixarArquivo(new Blob([conteudo], { type: 'text/plain' }), "dados.txt");
+      });
+    }
+  });
+});
+
+function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
+  const seletor = $('#' + id);
+  let valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+  else valores.sort();
+  seletor.empty().append('<option value="">---</option>');
+  valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
+  seletor.prop('disabled', false);
+}
+
+function aplicarFiltroEncadeado() {
+  const filtros = {
+    ano: $('#anoFiltro').val(),
+    mes: $('#mesFiltro').val(),
+    unidade: $('#unidadeFiltro').val(),
+    natureza: $('#naturezaFiltro').val(),
+    classificacao: $('#classificacaoFiltro').val(),
+    fonte: $('#fonteFiltro').val(),
+    empenho: $('#empenhoFiltro').val(),
+    cpf: $('#cpfFiltro').val(),
+    credor: $('#credorFiltro').val()
+  };
+  return dadosOriginais.filter(item => {
+    for (let f in filtros) {
+      if (filtros[f] && item[campos[f]] !== filtros[f]) return false;
+    }
+    return true;
+  });
+}
+
+function atualizarTodosFiltros() {
+  const dadosFiltradosAno = dadosOriginais.filter(d => d[campos.ano] === $('#anoFiltro').val());
+
+  popularFiltroEncadeado('mesFiltro', campos.mes, dadosFiltradosAno, true);
+  popularFiltroEncadeado('unidadeFiltro', campos.unidade, dadosFiltradosAno);
+  popularFiltroEncadeado('naturezaFiltro', campos.natureza, dadosFiltradosAno);
+  popularFiltroEncadeado('classificacaoFiltro', campos.classificacao, dadosFiltradosAno);
+  popularFiltroEncadeado('fonteFiltro', campos.fonte, dadosFiltradosAno);
+  popularFiltroEncadeado('empenhoFiltro', campos.empenho, dadosFiltradosAno);
+  popularFiltroEncadeado('cpfFiltro', campos.cpf, dadosFiltradosAno);
+  popularFiltroEncadeado('credorFiltro', campos.credor, dadosFiltradosAno);
+}
+
+function toggleFiltros(ativo) {
+  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro').prop('disabled', !ativo);
+}
+
+function inicializarTabela(dados) {
+  if (tabela) tabela.destroy();
+  $('#tabela').empty();
+
+  if (dados.length === 0) {
+    $('#tabela').hide();
+    $('#resumoValores').hide();
+    return;
+  }
+
+  const colunas = Object.keys(dados[0]).map(c => ({ title: c, data: c }));
+
+  tabela = $('#tabela').DataTable({
+    data: dados,
+    columns: colunas,
+    language: {
+      url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    },
+    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "Todos"]],
+    dom: 'Bfrtip',
+    buttons: [
+      'copy', 'csv', 'excel', 'pdf', 'print'
+    ],
+    order: [[0, 'asc']],
+    scrollX: true,
+    pageLength: 25
+  });
+
+  $('#tabela').show();
+  $('#resumoValores').show();
+
+  atualizarTotalizadores(dados);
+}
+
+// Função atualizada e validada para somar valores formatados
+function atualizarTotalizadores(dados) {
+  const toFloat = v => {
+    if (!v) return 0;
+    let numStr = String(v).replace(/[^\d,.-]/g, '').trim();
+    if (numStr.indexOf(',') > -1 && numStr.indexOf('.') === -1) {
+      numStr = numStr.replace(',', '.');
+    } else if (numStr.indexOf('.') > -1 && numStr.indexOf(',') > -1) {
+      numStr = numStr.replace(/\./g, '').replace(',', '.');
+    }
+    const n = parseFloat(numStr);
+    return isNaN(n) ? 0 : n;
+  };
+
+  const format = n => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+  const totalEmp = dados.reduce((s, l) => s + toFloat(l["Valor Empenhado"]), 0);
+  const totalLiq = dados.reduce((s, l) => s + toFloat(l["Valor Liquidado"]), 0);
+  const totalPag = dados.reduce((s, l) => s + toFloat(l["Valor Pago"]), 0);
+
+  $("#totalEmpenhado").text(`Empenhado: ${format(totalEmp)}`);
+  $("#totalLiquidado").text(`Liquidado: ${format(totalLiq)}`);
+  $("#totalPago").text(`Pago: ${format(totalPag)}`);
+}
+
+function baixarArquivo(blob, nomeArquivo) {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = nomeArquivo;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+</script>
+
 </body>
 </html>
