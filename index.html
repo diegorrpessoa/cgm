@@ -1,133 +1,123 @@
 <!DOCTYPE html>
-<html lang="pt-br">
-
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Consulta de Despesas Públicas</title>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>
-        .container {
-            margin-top: 50px;
-        }
-        .dataTables_wrapper .dataTables_filter input {
-            width: 400px;
-        }
-        tfoot th {
-            font-weight: bold;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Despesas Públicas</title>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 </head>
-
 <body>
-    <div class="container">
-        <h1 class="mb-4">Consulta de Despesas Públicas</h1>
-        <table id="tabela-despesas" class="display table table-striped" style="width:100%">
-            <thead>
-                <tr>
-                    <th>Unidade Gestora</th>
-                    <th>Favorecido</th>
-                    <th>CPF/CNPJ</th>
-                    <th>Empenho</th>
-                    <th>Empenhado</th>
-                    <th>Liquidado</th>
-                    <th>Pago</th>
-                    <th>Histórico</th>
-                    <th>Função</th>
-                    <th>Subfunção</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-            <tfoot>
-                <tr>
-                    <th colspan="4" class="text-end">Totais:</th>
-                    <th id="total-empenhado">R$ 0,00</th>
-                    <th id="total-liquidado">R$ 0,00</th>
-                    <th id="total-pago">R$ 0,00</th>
-                    <th colspan="3"></th>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
+  <div class="container mt-4">
+    <h2 class="mb-4">Teste Despesas Públicas</h2>
+    <table id="tabela" class="display nowrap table table-striped" style="width:100%">
+      <thead>
+        <tr>
+          <th>Órgão</th>
+          <th>Unidade Gestora</th>
+          <th>Função</th>
+          <th>Subfunção</th>
+          <th>Programa</th>
+          <th>Ação</th>
+          <th>Elemento de Despesa</th>
+          <th>Empenhado</th>
+          <th>Liquidado</th>
+          <th>Pago</th>
+        </tr>
+      </thead>
+      <tfoot>
+        <tr>
+          <th colspan="7" style="text-align:right">Totais:</th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+      </tfoot>
+      <tbody>
+        <!-- Os dados do CSV serão carregados aqui -->
+      </tbody>
+    </table>
+  </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            function formatarValor(valor) {
-                return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.print.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    function formatarValor(valor) {
+      return parseFloat(valor.replace(/[R$\.\s]/g, '').replace(',', '.')) || 0;
+    }
+
+    $(document).ready(function() {
+      const tabela = $('#tabela').DataTable({
+        dom: 'Bfrtip',
+        buttons: ['copy', 'csv', 'excel', 'print'],
+        scrollX: true,
+        footerCallback: function (row, data, start, end, display) {
+          const api = this.api();
+
+          // Função auxiliar para somar colunas
+          function somarColuna(index) {
+            return api
+              .column(index, { search: 'applied' })
+              .data()
+              .reduce(function (a, b) {
+                return formatarValor(a) + formatarValor(b);
+              }, 0);
+          }
+
+          const totalEmpenhado = somarColuna(7);
+          const totalLiquidado = somarColuna(8);
+          const totalPago = somarColuna(9);
+
+          // Atualiza os totais formatados no rodapé
+          $(api.column(7).footer()).html(totalEmpenhado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+          $(api.column(8).footer()).html(totalLiquidado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+          $(api.column(9).footer()).html(totalPago.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }));
+        }
+      });
+
+      // Carregamento do CSV
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.csv';
+      input.style.display = 'block';
+      input.className = 'form-control mt-3';
+      document.querySelector('.container').prepend(input);
+
+      input.addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+          Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function (results) {
+              tabela.clear();
+              results.data.forEach(function (row) {
+                tabela.row.add([
+                  row['Órgão'],
+                  row['Unidade Gestora'],
+                  row['Função'],
+                  row['Subfunção'],
+                  row['Programa'],
+                  row['Ação'],
+                  row['Elemento de Despesa'],
+                  row['Empenhado'],
+                  row['Liquidado'],
+                  row['Pago']
+                ]);
+              });
+              tabela.draw();
             }
-
-            function atualizarTotalizadoresTabela(dt) {
-                let totalEmpenhado = 0, totalLiquidado = 0, totalPago = 0;
-
-                dt.rows({ search: 'applied' }).every(function () {
-                    const data = this.data();
-                    const vEmp = parseFloat((data.Empenhado || '0').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
-                    const vLiq = parseFloat((data.Liquidado || '0').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
-                    const vPag = parseFloat((data.Pago || '0').replace(/[^\d,-]/g, '').replace(',', '.')) || 0;
-                    totalEmpenhado += vEmp;
-                    totalLiquidado += vLiq;
-                    totalPago += vPag;
-                });
-
-                $('#total-empenhado').text(formatarValor(totalEmpenhado));
-                $('#total-liquidado').text(formatarValor(totalLiquidado));
-                $('#total-pago').text(formatarValor(totalPago));
-            }
-
-            const tabela = $('#tabela-despesas').DataTable({
-                ajax: function (data, callback) {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = '.csv';
-                    input.onchange = function (event) {
-                        const file = event.target.files[0];
-                        if (!file) return;
-
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            const linhas = e.target.result.split('\n').filter(l => l.trim() !== '');
-                            const cabecalho = linhas[0].split(';');
-                            const dados = linhas.slice(1).map(linha => {
-                                const valores = linha.split(';');
-                                return Object.fromEntries(cabecalho.map((coluna, i) => [coluna.trim(), valores[i]?.trim() || '']));
-                            });
-                            callback({ data: dados });
-
-                            setTimeout(() => {
-                                atualizarTotalizadoresTabela(tabela);
-                            }, 100);
-                        };
-                        reader.readAsText(file, 'UTF-8');
-                    };
-                    input.click();
-                },
-                columns: [
-                    { data: 'Unidade Gestora' },
-                    { data: 'Favorecido' },
-                    { data: 'CPF/CNPJ' },
-                    { data: 'Empenho' },
-                    { data: 'Empenhado' },
-                    { data: 'Liquidado' },
-                    { data: 'Pago' },
-                    { data: 'Histórico' },
-                    { data: 'Função' },
-                    { data: 'Subfunção' }
-                ],
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json'
-                },
-                initComplete: function () {
-                    $('.dataTables_filter input').attr('placeholder', 'Buscar por qualquer campo...');
-                }
-            });
-
-            tabela.on('draw', function () {
-                atualizarTotalizadoresTabela(tabela);
-            });
-        });
-    </script>
+          });
+        }
+      });
+    });
+  </script>
 </body>
-
 </html>
