@@ -2,312 +2,235 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Consulta de Despesas</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Consulta de Despesas - Apresentação em Cards</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
-    .dataTables_filter { display: none; }
-    .form-label { font-size: 0.85rem; }
-    .form-select-sm, .form-control-sm { font-size: 0.85rem; }
-
-    .spinner-overlay, .spinner-overlay-ano {
+    body {
+      background-color: #f8f9fa;
+    }
+    .spinner-overlay {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100vh;
+      background: rgba(255,255,255,0.6);
       display: flex;
       flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       z-index: 9999;
     }
-
-    .spinner-overlay {
-      background-color: rgba(255, 255, 255, 0.5);
+    .card {
+      margin-bottom: 1rem;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
-
-    .spinner-overlay-ano {
-      background-color: rgba(255, 255, 255, 0.4);
-      z-index: 9998;
+    .card-header {
+      background-color: #0d6efd;
+      color: white;
+      font-weight: 600;
     }
-
-    .spinner-border {
-      width: 2rem;
-      height: 2rem;
+    .field-label {
+      font-weight: 600;
+      color: #212529;
     }
-
-    .spinner-text {
-      font-size: 0.9rem;
-      margin-top: 5px;
-    }
-
-    .table-responsive {
-      overflow-x: auto;
-    }
-
-    table.dataTable th, table.dataTable td {
-      white-space: nowrap;
-      font-size: 0.85rem;
-    }
-
-    @media (max-width: 768px) {
-      .form-select-sm, .form-control-sm {
-        font-size: 0.8rem;
-      }
+    .filters {
+      margin-bottom: 1.5rem;
     }
   </style>
 </head>
-<body class="bg-light">
+<body>
 
-<!-- Spinner ao carregar CSV -->
 <div id="spinnerCsv" class="spinner-overlay">
-  <div class="spinner-border text-primary" role="status"></div>
-  <div class="spinner-text">Atualizando dados iniciais...</div>
-</div>
-
-<!-- Spinner ao carregar filtros -->
-<div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
-  <div class="spinner-border text-secondary" role="status"></div>
-  <div class="spinner-text">Carregando filtros...</div>
+  <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+  <div class="mt-2 fs-5">Carregando dados...</div>
 </div>
 
 <div class="container my-4">
-  <div class="row g-2 mb-3">
-    <div class="col-sm-2">
+  <div class="row g-3 filters">
+    <div class="col-md-3">
       <label for="anoFiltro" class="form-label">Ano *</label>
-      <select id="anoFiltro" class="form-select form-select-sm" required></select>
+      <select id="anoFiltro" class="form-select" required></select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-md-3">
       <label for="mesFiltro" class="form-label">Mês</label>
-      <select id="mesFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="mesFiltro" class="form-select" disabled></select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-md-3">
       <label for="unidadeFiltro" class="form-label">Unidade Orçamentária</label>
-      <select id="unidadeFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="unidadeFiltro" class="form-select" disabled></select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-md-3">
       <label for="naturezaFiltro" class="form-label">Natureza de Despesa</label>
-      <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="naturezaFiltro" class="form-select" disabled></select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-md-3 mt-3">
       <label for="classificacaoFiltro" class="form-label">Classificação Orçamentária</label>
-      <select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="classificacaoFiltro" class="form-select" disabled></select>
     </div>
-    <div class="col-sm-2">
+    <div class="col-md-3 mt-3">
       <label for="fonteFiltro" class="form-label">Fonte</label>
-      <select id="fonteFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="fonteFiltro" class="form-select" disabled></select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-md-3 mt-3">
       <label for="empenhoFiltro" class="form-label">Empenho</label>
-      <select id="empenhoFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="empenhoFiltro" class="form-select" disabled></select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-md-3 mt-3">
       <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
-      <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="cpfFiltro" class="form-select" disabled></select>
     </div>
-    <div class="col-sm-3">
+    <div class="col-md-3 mt-3">
       <label for="credorFiltro" class="form-label">Credor</label>
-      <select id="credorFiltro" class="form-select form-select-sm" disabled></select>
+      <select id="credorFiltro" class="form-select" disabled></select>
     </div>
   </div>
 
-  <div class="d-flex justify-content-between mb-2 flex-wrap gap-2">
-    <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
-    <div class="btn-group">
-      <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
-    </div>
-  </div>
+  <button id="btnLimpar" class="btn btn-secondary mb-4">Limpar Filtros</button>
 
-  <div class="table-responsive">
-    <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%; display: none;"></table>
-  </div>
+  <div id="cardsContainer" class="row"></div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
-let tabela;
-let dadosOriginais = [];
-const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const campos = {
-  ano: "Ano",
-  mes: "Mês",
-  unidade: "Unidade Orçamentária",
-  natureza: "Natureza de Despesa",
-  classificacao: "Classificação Orçamentária",
-  fonte: "Fonte",
-  empenho: "Empenho",
-  cpf: "CPF/CNPJ",
-  credor: "Credor"
-};
-
-$(document).ready(function () {
-  Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
-    download: true,
-    header: true,
-    complete: function (results) {
-      dadosOriginais = results.data.filter(r => r["Ano"]);
-      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
-      $('#spinnerCsv').hide();
-
-      $('#anoFiltro').on('change', function () {
-        $('#spinnerAno').show();
-        setTimeout(() => {
-          toggleFiltros(true);
-          atualizarTodosFiltros();
-          inicializarTabela(aplicarFiltroEncadeado());
-          $('#spinnerAno').hide();
-        }, 100); // Simula carregamento
-      });
-
-      $('select').not('#anoFiltro').on('change', () => {
-        inicializarTabela(aplicarFiltroEncadeado());
-      });
-
-      $('#btnLimpar').click(() => {
-        $('select').val('').prop('disabled', true);
-        $('#anoFiltro').prop('disabled', false);
-        $('#tabela').hide();
-        if (tabela) tabela.clear().draw();
-      });
-
-      $('#exportCsv').click(() => $('.buttons-csv').click());
-      $('#exportXls').click(() => $('.buttons-excel').click());
-      $('#exportJson').click(() => {
-        const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
-        const blob = new Blob([JSON.stringify(jsonData, null, 2)], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'dados_filtrados.json';
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-      $('#exportTxt').click(() => {
-        const data = tabela.rows({ search: 'applied' }).data().toArray();
-        let txt = data.map(r => Object.values(r).join('\t')).join('\n');
-        const blob = new Blob([txt], {type: "text/plain"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'dados_filtrados.txt';
-        a.click();
-        URL.revokeObjectURL(url);
-      });
-    }
-  });
-});
-
-function popularFiltroEncadeado(id, campo, dados) {
-  const filtro = $('#' + id);
-  const valores = [...new Set(dados.map(d => d[campo]).filter(v => v && v.trim() !== ''))].sort((a,b) => {
-    if(campo === campos.mes) {
-      return mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b);
-    }
-    return a.localeCompare(b, 'pt-BR', { sensitivity: 'base' });
-  });
-  filtro.empty();
-  filtro.append('<option value="">Todos</option>');
-  valores.forEach(v => filtro.append(`<option value="${v}">${v}</option>`));
-  filtro.prop('disabled', false);
-}
-
-function aplicarFiltroEncadeado() {
-  let dadosFiltrados = dadosOriginais.slice();
-
-  const filtros = {
-    ano: $('#anoFiltro').val(),
-    mes: $('#mesFiltro').val(),
-    unidade: $('#unidadeFiltro').val(),
-    natureza: $('#naturezaFiltro').val(),
-    classificacao: $('#classificacaoFiltro').val(),
-    fonte: $('#fonteFiltro').val(),
-    empenho: $('#empenhoFiltro').val(),
-    cpf: $('#cpfFiltro').val(),
-    credor: $('#credorFiltro').val(),
+  const campos = {
+    ano: "Ano",
+    mes: "Mês",
+    unidade: "Unidade Orçamentária",
+    natureza: "Natureza de Despesa",
+    classificacao: "Classificação Orçamentária",
+    fonte: "Fonte",
+    empenho: "Empenho",
+    cpf: "CPF/CNPJ",
+    credor: "Credor"
   };
 
-  Object.entries(filtros).forEach(([key, val]) => {
-    if(val) {
-      dadosFiltrados = dadosFiltrados.filter(r => r[campos[key]] === val);
+  const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+  let dadosOriginais = [];
+
+  function popularFiltro(id, campo, dados) {
+    const filtro = $('#' + id);
+    let valores = [...new Set(dados.map(d => d[campo]).filter(v => v && v.trim() !== ''))];
+
+    if(campo === campos.mes) {
+      valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+    } else {
+      valores.sort((a,b) => a.localeCompare(b, 'pt-BR', { sensitivity: 'base' }));
     }
-  });
 
-  return dadosFiltrados;
-}
-
-function atualizarTodosFiltros() {
-  // Atualizar cada filtro com base nos dados filtrados pelo Ano (encadeamento)
-  const anoSelecionado = $('#anoFiltro').val();
-  let dadosAno = dadosOriginais.filter(d => d[campos.ano] === anoSelecionado);
-
-  popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno);
-  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dadosAno);
-  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dadosAno);
-  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dadosAno);
-  popularFiltroEncadeado("fonteFiltro", campos.fonte, dadosAno);
-  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dadosAno);
-  popularFiltroEncadeado("cpfFiltro", campos.cpf, dadosAno);
-  popularFiltroEncadeado("credorFiltro", campos.credor, dadosAno);
-}
-
-function toggleFiltros(habilitar) {
-  $('#mesFiltro').prop('disabled', !habilitar);
-  $('#unidadeFiltro').prop('disabled', !habilitar);
-  $('#naturezaFiltro').prop('disabled', !habilitar);
-  $('#classificacaoFiltro').prop('disabled', !habilitar);
-  $('#fonteFiltro').prop('disabled', !habilitar);
-  $('#empenhoFiltro').prop('disabled', !habilitar);
-  $('#cpfFiltro').prop('disabled', !habilitar);
-  $('#credorFiltro').prop('disabled', !habilitar);
-}
-
-function inicializarTabela(dados) {
-  $('#tabela').show();
-  if ($.fn.dataTable.isDataTable('#tabela')) {
-    tabela.clear().rows.add(dados).draw();
-  } else {
-    tabela = $('#tabela').DataTable({
-      data: dados,
-      columns: [
-        { data: campos.ano, title: "Ano" },
-        { data: campos.mes, title: "Mês" },
-        { data: campos.unidade, title: "Unidade Orçamentária" },
-        { data: campos.natureza, title: "Natureza de Despesa" },
-        { data: campos.classificacao, title: "Classificação Orçamentária" },
-        { data: campos.fonte, title: "Fonte" },
-        { data: campos.empenho, title: "Empenho" },
-        { data: campos.cpf, title: "CPF/CNPJ" },
-        { data: campos.credor, title: "Credor" }
-      ],
-      paging: true,
-      searching: true,
-      info: true,
-      lengthMenu: [10, 25, 50, 100],
-      language: {
-        url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-      },
-      dom: 'Bfrtip',
-      buttons: [
-        'csvHtml5',
-        'excelHtml5'
-      ],
-      order: [[0, 'desc'], [1, 'asc']]
-    });
+    filtro.empty();
+    filtro.append('<option value="">Todos</option>');
+    valores.forEach(v => filtro.append(`<option value="${v}">${v}</option>`));
+    filtro.prop('disabled', false);
   }
-}
+
+  function aplicarFiltros() {
+    let dadosFiltrados = dadosOriginais.slice();
+
+    const filtros = {
+      ano: $('#anoFiltro').val(),
+      mes: $('#mesFiltro').val(),
+      unidade: $('#unidadeFiltro').val(),
+      natureza: $('#naturezaFiltro').val(),
+      classificacao: $('#classificacaoFiltro').val(),
+      fonte: $('#fonteFiltro').val(),
+      empenho: $('#empenhoFiltro').val(),
+      cpf: $('#cpfFiltro').val(),
+      credor: $('#credorFiltro').val(),
+    };
+
+    Object.entries(filtros).forEach(([key, val]) => {
+      if(val) {
+        dadosFiltrados = dadosFiltrados.filter(r => r[campos[key]] === val);
+      }
+    });
+
+    return dadosFiltrados;
+  }
+
+  function atualizarFiltrosEncadeados() {
+    const anoSelecionado = $('#anoFiltro').val();
+    if (!anoSelecionado) {
+      // Desabilitar os filtros
+      Object.keys(campos).forEach(c => {
+        if(c !== 'ano') $('#'+c+'Filtro').prop('disabled', true).val('');
+      });
+      return;
+    }
+    let dadosAno = dadosOriginais.filter(d => d[campos.ano] === anoSelecionado);
+
+    popularFiltro("mesFiltro", campos.mes, dadosAno);
+    popularFiltro("unidadeFiltro", campos.unidade, dadosAno);
+    popularFiltro("naturezaFiltro", campos.natureza, dadosAno);
+    popularFiltro("classificacaoFiltro", campos.classificacao, dadosAno);
+    popularFiltro("fonteFiltro", campos.fonte, dadosAno);
+    popularFiltro("empenhoFiltro", campos.empenho, dadosAno);
+    popularFiltro("cpfFiltro", campos.cpf, dadosAno);
+    popularFiltro("credorFiltro", campos.credor, dadosAno);
+  }
+
+  function criarCard(registro) {
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="card">
+          <div class="card-header">Ano: ${registro[campos.ano]} - Mês: ${registro[campos.mes]}</div>
+          <div class="card-body">
+            <p><span class="field-label">Unidade Orçamentária:</span> ${registro[campos.unidade]}</p>
+            <p><span class="field-label">Natureza de Despesa:</span> ${registro[campos.natureza]}</p>
+            <p><span class="field-label">Classificação Orçamentária:</span> ${registro[campos.classificacao]}</p>
+            <p><span class="field-label">Fonte:</span> ${registro[campos.fonte]}</p>
+            <p><span class="field-label">Empenho:</span> ${registro[campos.empenho]}</p>
+            <p><span class="field-label">CPF/CNPJ:</span> ${registro[campos.cpf]}</p>
+            <p><span class="field-label">Credor:</span> ${registro[campos.credor]}</p>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function mostrarCards(dados) {
+    const container = $('#cardsContainer');
+    container.empty();
+
+    if(dados.length === 0) {
+      container.html('<p class="text-muted">Nenhum dado encontrado para os filtros selecionados.</p>');
+      return;
+    }
+
+    const cards = dados.map(criarCard).join('');
+    container.html(cards);
+  }
+
+  $(document).ready(function () {
+    Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
+      download: true,
+      header: true,
+      complete: function (results) {
+        dadosOriginais = results.data.filter(r => r[campos.ano]);
+
+        popularFiltro("anoFiltro", campos.ano, dadosOriginais);
+
+        $('#spinnerCsv').hide();
+
+        $('#anoFiltro').on('change', () => {
+          atualizarFiltrosEncadeados();
+          mostrarCards(aplicarFiltros());
+        });
+
+        $('select').not('#anoFiltro').on('change', () => {
+          mostrarCards(aplicarFiltros());
+        });
+
+        $('#btnLimpar').click(() => {
+          $('select').val('');
+          $('select').not('#anoFiltro').prop('disabled', true);
+          $('#cardsContainer').empty();
+        });
+      }
+    });
+  });
 </script>
+
 </body>
 </html>
