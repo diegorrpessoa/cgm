@@ -12,34 +12,25 @@
     .form-label { font-size: 0.85rem; }
     .form-select-sm, .form-control-sm { font-size: 0.85rem; }
 
+    .spinner-overlay, .spinner-overlay-ano {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
     .spinner-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh; /* Preenche toda a altura da janela */
-  background-color: rgba(255, 255, 255, 0.5); /* Fundo branco opaco */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: top; /* Centraliza verticalmente */
-  z-index: 9999;
-}
+      background-color: rgba(255, 255, 255, 0.5);
+    }
 
-.spinner-overlay-ano {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh; /* Preenche toda a altura da janela */
-  background-color: rgba(255, 255, 255, 0.5); /* Fundo branco semitransparente */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: top; /* Centraliza verticalmente */
-  z-index: 9998;
-}
-
+    .spinner-overlay-ano {
+      background-color: rgba(255, 255, 255, 0.4);
+      z-index: 9998;
+    }
 
     .spinner-border {
       width: 2rem;
@@ -49,6 +40,21 @@
     .spinner-text {
       font-size: 0.9rem;
       margin-top: 5px;
+    }
+
+    .table-responsive {
+      overflow-x: auto;
+    }
+
+    table.dataTable th, table.dataTable td {
+      white-space: nowrap;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      .form-select-sm, .form-control-sm {
+        font-size: 0.8rem;
+      }
     }
   </style>
 </head>
@@ -106,7 +112,7 @@
     </div>
   </div>
 
-  <div class="d-flex justify-content-between mb-2">
+  <div class="d-flex justify-content-between mb-2 flex-wrap gap-2">
     <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
     <div class="btn-group">
       <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
@@ -116,7 +122,9 @@
     </div>
   </div>
 
-  <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%; display: none;"></table>
+  <div class="table-responsive">
+    <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%; display: none;"></table>
+  </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -179,91 +187,126 @@ $(document).ready(function () {
       $('#exportXls').click(() => $('.buttons-excel').click());
       $('#exportJson').click(() => {
         const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
-        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-        baixarArquivo(blob, "dados.json");
+        const blob = new Blob([JSON.stringify(jsonData, null, 2)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dados_filtrados.json';
+        a.click();
+        URL.revokeObjectURL(url);
       });
       $('#exportTxt').click(() => {
-        const dados = tabela.rows({ search: 'applied' }).data().toArray();
-        const colunas = Object.keys(dados[0]);
-        let conteudo = colunas.join(";") + "\n";
-        dados.forEach(linha => {
-          conteudo += colunas.map(c => linha[c]).join(";") + "\n";
-        });
-        const blob = new Blob([conteudo], { type: 'text/plain' });
-        baixarArquivo(blob, "dados.txt");
+        const data = tabela.rows({ search: 'applied' }).data().toArray();
+        let txt = data.map(r => Object.values(r).join('\t')).join('\n');
+        const blob = new Blob([txt], {type: "text/plain"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'dados_filtrados.txt';
+        a.click();
+        URL.revokeObjectURL(url);
       });
     }
   });
 });
 
-function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
-  const seletor = $('#' + id);
-  const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
-  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
-  else valores.sort();
-  seletor.empty().append('<option value="">Todos</option>');
-  valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
-  seletor.prop('disabled', false);
-}
-
-function atualizarTodosFiltros() {
-  const dados = aplicarFiltroEncadeado();
-  popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
-  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
-  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
-  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
-  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
-  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
-  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
-  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
-}
-
-function toggleFiltros(status) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
-    .prop('disabled', !status);
+function popularFiltroEncadeado(id, campo, dados) {
+  const filtro = $('#' + id);
+  const valores = [...new Set(dados.map(d => d[campo]).filter(v => v && v.trim() !== ''))].sort((a,b) => {
+    if(campo === campos.mes) {
+      return mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b);
+    }
+    return a.localeCompare(b, 'pt-BR', { sensitivity: 'base' });
+  });
+  filtro.empty();
+  filtro.append('<option value="">Todos</option>');
+  valores.forEach(v => filtro.append(`<option value="${v}">${v}</option>`));
+  filtro.prop('disabled', false);
 }
 
 function aplicarFiltroEncadeado() {
-  return dadosOriginais.filter(r =>
-    (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
-    (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
-    (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
-    (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
-    (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
-    (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
-    (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
-    (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
-    (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
-  );
+  let dadosFiltrados = dadosOriginais.slice();
+
+  const filtros = {
+    ano: $('#anoFiltro').val(),
+    mes: $('#mesFiltro').val(),
+    unidade: $('#unidadeFiltro').val(),
+    natureza: $('#naturezaFiltro').val(),
+    classificacao: $('#classificacaoFiltro').val(),
+    fonte: $('#fonteFiltro').val(),
+    empenho: $('#empenhoFiltro').val(),
+    cpf: $('#cpfFiltro').val(),
+    credor: $('#credorFiltro').val(),
+  };
+
+  Object.entries(filtros).forEach(([key, val]) => {
+    if(val) {
+      dadosFiltrados = dadosFiltrados.filter(r => r[campos[key]] === val);
+    }
+  });
+
+  return dadosFiltrados;
+}
+
+function atualizarTodosFiltros() {
+  // Atualizar cada filtro com base nos dados filtrados pelo Ano (encadeamento)
+  const anoSelecionado = $('#anoFiltro').val();
+  let dadosAno = dadosOriginais.filter(d => d[campos.ano] === anoSelecionado);
+
+  popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno);
+  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dadosAno);
+  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dadosAno);
+  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dadosAno);
+  popularFiltroEncadeado("fonteFiltro", campos.fonte, dadosAno);
+  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dadosAno);
+  popularFiltroEncadeado("cpfFiltro", campos.cpf, dadosAno);
+  popularFiltroEncadeado("credorFiltro", campos.credor, dadosAno);
+}
+
+function toggleFiltros(habilitar) {
+  $('#mesFiltro').prop('disabled', !habilitar);
+  $('#unidadeFiltro').prop('disabled', !habilitar);
+  $('#naturezaFiltro').prop('disabled', !habilitar);
+  $('#classificacaoFiltro').prop('disabled', !habilitar);
+  $('#fonteFiltro').prop('disabled', !habilitar);
+  $('#empenhoFiltro').prop('disabled', !habilitar);
+  $('#cpfFiltro').prop('disabled', !habilitar);
+  $('#credorFiltro').prop('disabled', !habilitar);
 }
 
 function inicializarTabela(dados) {
   $('#tabela').show();
-  if ($.fn.DataTable.isDataTable('#tabela')) {
+  if ($.fn.dataTable.isDataTable('#tabela')) {
     tabela.clear().rows.add(dados).draw();
   } else {
     tabela = $('#tabela').DataTable({
       data: dados,
-      columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
-      language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
+      columns: [
+        { data: campos.ano, title: "Ano" },
+        { data: campos.mes, title: "Mês" },
+        { data: campos.unidade, title: "Unidade Orçamentária" },
+        { data: campos.natureza, title: "Natureza de Despesa" },
+        { data: campos.classificacao, title: "Classificação Orçamentária" },
+        { data: campos.fonte, title: "Fonte" },
+        { data: campos.empenho, title: "Empenho" },
+        { data: campos.cpf, title: "CPF/CNPJ" },
+        { data: campos.credor, title: "Credor" }
+      ],
+      paging: true,
+      searching: true,
+      info: true,
+      lengthMenu: [10, 25, 50, 100],
+      language: {
+        url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+      },
       dom: 'Bfrtip',
       buttons: [
-        { extend: 'csvHtml5', className: 'd-none' },
-        { extend: 'excelHtml5', className: 'd-none' },
-      ]
+        'csvHtml5',
+        'excelHtml5'
+      ],
+      order: [[0, 'desc'], [1, 'asc']]
     });
   }
-}
-
-function baixarArquivo(blob, nome) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = nome;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
 }
 </script>
 </body>
