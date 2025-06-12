@@ -1,487 +1,278 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Consulta de Despesas</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
-    body {
-      font-size: 0.75rem;
-      background-color: #f8f9fa;
+    body { background-color: #f8f9fa; }
+    .dataTables_filter { display: none; }
+
+    .form-label, .form-select-sm, .form-control-sm, .table th, .table td {
+      font-size: 0.65rem !important;
     }
-    .dataTables_filter {
-      display: none;
-    }
-    .form-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .form-select-sm, .form-control-sm {
-      font-size: 0.75rem;
-      padding: 0.25rem 0.4rem;
-      height: 1.8rem;
-    }
-    .table thead th {
-      vertical-align: middle;
-      background-color: #343a40;
-      color: #fff;
-      font-weight: 600;
-      white-space: nowrap;
-    }
-    .table tbody td {
-      vertical-align: middle;
-      white-space: nowrap;
-      padding: 0.25rem 0.5rem;
-    }
-    .table-striped > tbody > tr:nth-of-type(odd) {
-      background-color: #e9ecef;
-    }
-    .btn-sm {
-      font-size: 0.7rem;
-      padding: 0.25rem 0.5rem;
-    }
-    .spinner-overlay {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100vh;
-      background-color: rgba(255, 255, 255, 0.7);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      font-size: 0.9rem;
-      font-weight: 600;
-      color: #0d6efd;
-    }
+
+    .xsmall { font-size: 0.6rem !important; }
+
+    .spinner-overlay,
     .spinner-overlay-ano {
       position: fixed;
-      top: 0; left: 0;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100vh;
-      background-color: rgba(255, 255, 255, 0.5);
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
+      padding-top: 60px;
+      z-index: 9999;
+    }
+
+    .spinner-overlay { background-color: rgba(255, 255, 255, 0.9); }
+    .spinner-overlay-ano {
+      background-color: rgba(255, 255, 255, 0.5);
       z-index: 9998;
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: #6c757d;
     }
+
     .spinner-border {
-      width: 1.8rem;
-      height: 1.8rem;
-      margin-bottom: 0.3rem;
+      width: 2rem;
+      height: 2rem;
     }
-    #totalizadores {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: #212529;
-      background-color: #e2e6ea;
-      padding: 0.3rem 0.6rem;
+
+    .spinner-text {
+      font-size: 0.9rem;
+      margin-top: 5px;
+    }
+
+    table.dataTable td, table.dataTable th { white-space: nowrap; }
+
+    .dt-buttons .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.7rem;
+    }
+
+    .table-wrapper { overflow-x: auto; }
+
+    .totalizadores {
+      font-size: 0.7rem;
+      background: #fff;
+      padding: 5px 10px;
+      border: 1px solid #dee2e6;
       border-radius: 4px;
-      user-select: none;
     }
-    #totalizadores span {
-      margin-right: 1.5rem;
-    }
-    @media (max-width: 1200px) {
-      .table thead th, .table tbody td {
-        white-space: normal;
-      }
+
+    .totalizadores span {
+      display: inline-block;
+      margin-right: 15px;
+      font-weight: 500;
     }
   </style>
 </head>
 <body>
 
-  <!-- Spinner ao carregar CSV -->
-  <div id="spinnerCsv" class="spinner-overlay">
-    <div class="spinner-border text-primary" role="status"></div>
-    Atualizando dados iniciais...
+<!-- Spinners -->
+<div id="spinnerCsv" class="spinner-overlay">
+  <div class="spinner-border text-primary" role="status"></div>
+  <div class="spinner-text">Atualizando dados iniciais...</div>
+</div>
+
+<div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
+  <div class="spinner-border text-secondary" role="status"></div>
+  <div class="spinner-text">Carregando filtros...</div>
+</div>
+
+<div class="container-fluid mt-4">
+  <!-- Filtros -->
+  <div class="row gx-2 gy-2 mb-3">
+    <div class="col-sm-2"><label class="form-label">Ano *</label><select id="anoFiltro" class="form-select form-select-sm" required></select></div>
+    <div class="col-sm-2"><label class="form-label">Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Unidade Orçamentária</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Natureza de Despesa</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Classificação Orçamentária</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label class="form-label">Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
   </div>
 
-  <!-- Spinner ao carregar filtros -->
-  <div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
-    <div class="spinner-border text-secondary" role="status"></div>
-    Carregando filtros...
+  <!-- Totalizadores -->
+  <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
   </div>
 
-  <div class="container my-3">
-    <div class="row g-2 mb-2">
-      <div class="col-auto">
-        <label for="anoFiltro" class="form-label">Ano *</label>
-        <select id="anoFiltro" class="form-select form-select-sm" required></select>
-      </div>
-      <div class="col-auto">
-        <label for="mesFiltro" class="form-label">Mês</label>
-        <select id="mesFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
-      <div class="col-auto">
-        <label for="unidadeFiltro" class="form-label">Unidade Orçamentária</label>
-        <select id="unidadeFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
-      <div class="col-auto">
-        <label for="naturezaFiltro" class="form-label">Natureza de Despesa</label>
-        <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
-      <div class="col-auto">
-        <label for="classificacaoFiltro" class="form-label">Classificação Orçamentária</label>
-        <select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
-      <div class="col-auto">
-        <label for="fonteFiltro" class="form-label">Fonte</label>
-        <select id="fonteFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
-      <div class="col-auto">
-        <label for="empenhoFiltro" class="form-label">Empenho</label>
-        <select id="empenhoFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
-      <div class="col-auto">
-        <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
-        <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
-      <div class="col-auto">
-        <label for="credorFiltro" class="form-label">Credor</label>
-        <select id="credorFiltro" class="form-select form-select-sm" disabled></select>
-      </div>
+  <!-- Botões -->
+  <div class="d-flex justify-content-between mb-2">
+    <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
+    <div class="btn-group">
+      <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
     </div>
-
-    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-      <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
-      <div class="btn-group">
-        <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
-        <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
-        <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
-        <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
-      </div>
-      <div id="totalizadores" class="ms-auto">
-        <span>Empenhado: <span id="totalEmpenhado">0,00</span></span>
-        <span>Liquidado: <span id="totalLiquidado">0,00</span></span>
-        <span>Pago: <span id="totalPago">0,00</span></span>
-      </div>
-    </div>
-
-    <table id="tabela" class="table table-bordered table-striped table-sm" style="width:100%; display:none;"></table>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- Tabela -->
+  <div class="table-wrapper">
+    <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display: none;"></table>
+  </div>
+</div>
 
-  <script>
-    let tabela;
-    let dadosOriginais = [];
-    const campos = {
-      ano: "Ano",
-      mes: "Mês",
-      unidade: "Unidade Orçamentária",
-      natureza: "Natureza de Despesa",
-      classificacao: "Classificação Orçamentária",
-      fonte: "Fonte",
-      empenho: "Empenho",
-      cpf: "CPF/CNPJ",
-      credor: "Credor",
-      empenhado: "Valor Empenhado",
-      liquidado: "Valor Liquidado",
-      pago: "Valor Pago"
-    };
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-    // Ordem fixa para meses em português
-    const mesesOrdem = [
-      "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-    ];
+<script>
+let tabela, dadosOriginais = [];
+const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const campos = {
+  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária",
+  natureza: "Natureza de Despesa", classificacao: "Classificação Orçamentária",
+  fonte: "Fonte", empenho: "Empenho", cpf: "CPF/CNPJ", credor: "Credor"
+};
 
-    // Mostra/oculta spinners
-    function spinner(show, ano = false) {
-      if (ano) {
-        document.getElementById("spinnerAno").style.display = show ? "flex" : "none";
-      } else {
-        document.getElementById("spinnerCsv").style.display = show ? "flex" : "none";
-      }
-    }
+$(document).ready(function () {
+  Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
+    download: true, header: true,
+    complete: function (results) {
+      dadosOriginais = results.data.filter(r => r["Ano"]);
+      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
+      $('#spinnerCsv').hide();
 
-    // Formata número para moeda BRL
-    function formatarBRL(valor) {
-      let num = Number(valor);
-      if (isNaN(num)) return "0,00";
-      return num.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-
-    // Remove duplicados e ordena, tratando mês especialmente
-    function valoresUnicosOrdenados(dados, campo) {
-      let valores = dados
-        .map(d => (d[campo] || "").trim())
-        .filter(v => v !== "");
-
-      if (campo === campos.mes) {
-        valores = [...new Set(valores)].filter(v => mesesOrdem.includes(v));
-        valores.sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
-      } else {
-        valores = [...new Set(valores)].sort((a, b) =>
-          a.localeCompare(b, "pt-BR", { sensitivity: "base" })
-        );
-      }
-      return valores;
-    }
-
-    // Atualiza opções de um select
-    function atualizarOpcoesSelect(idSelect, valores, habilitar = true, placeholder = "Todos") {
-      const select = document.getElementById(idSelect);
-      select.innerHTML = `<option value="">${placeholder}</option>`;
-      valores.forEach(v => {
-        select.innerHTML += `<option value="${v}">${v}</option>`;
+      $('#anoFiltro').on('change', function () {
+        $('#spinnerAno').show();
+        setTimeout(() => {
+          toggleFiltros(true);
+          atualizarTodosFiltros();
+          inicializarTabela(aplicarFiltroEncadeado());
+          $('#spinnerAno').hide();
+        }, 100);
       });
-      select.disabled = !habilitar;
-    }
 
-    // Aplica filtros aos dados
-    function aplicarFiltros() {
-      let ano = document.getElementById("anoFiltro").value.trim();
-      let mes = document.getElementById("mesFiltro").value.trim();
-      let unidade = document.getElementById("unidadeFiltro").value.trim();
-      let natureza = document.getElementById("naturezaFiltro").value.trim();
-      let classificacao = document.getElementById("classificacaoFiltro").value.trim();
-      let fonte = document.getElementById("fonteFiltro").value.trim();
-      let empenho = document.getElementById("empenhoFiltro").value.trim();
-      let cpf = document.getElementById("cpfFiltro").value.trim();
-      let credor = document.getElementById("credorFiltro").value.trim();
+      $('select').not('#anoFiltro').on('change', () => inicializarTabela(aplicarFiltroEncadeado()));
 
-      let filtrados = dadosOriginais.filter(d => {
-        if (ano && d[campos.ano] !== ano) return false;
-        if (mes && d[campos.mes] !== mes) return false;
-        if (unidade && d[campos.unidade] !== unidade) return false;
-        if (natureza && d[campos.natureza] !== natureza) return false;
-        if (classificacao && d[campos.classificacao] !== classificacao) return false;
-        if (fonte && d[campos.fonte] !== fonte) return false;
-        if (empenho && d[campos.empenho] !== empenho) return false;
-        if (cpf && d[campos.cpf] !== cpf) return false;
-        if (credor && d[campos.credor] !== credor) return false;
-        return true;
+      $('#btnLimpar').click(() => {
+        $('select').val('').prop('disabled', true);
+        $('#anoFiltro').prop('disabled', false);
+        $('#tabela').hide();
+        $('#resumoValores').hide();
+        if (tabela) tabela.clear().draw();
       });
-      return filtrados;
-    }
 
-    // Atualiza filtros dependentes (exceto ano que é principal)
-    function atualizarFiltrosDependentes() {
-      spinner(true, true);
-
-      setTimeout(() => {
-        let ano = document.getElementById("anoFiltro").value.trim();
-        if (!ano) {
-          // Desabilita todos os outros filtros
-          ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
-            atualizarOpcoesSelect(id, [], false);
-          });
-          spinner(false, true);
-          return;
-        }
-
-        // Filtra dados só pelo ano
-        let dadosAno = dadosOriginais.filter(d => d[campos.ano] === ano);
-
-        // Se unidade selecionada, filtra demais pelos dados dessa unidade
-        let unidadeSelecionada = document.getElementById("unidadeFiltro").value.trim();
-
-        // Base para os filtros: se unidade selecionada, filtra pelos dados ano+unidade, senão só ano
-        let baseFiltros = unidadeSelecionada
-          ? dadosAno.filter(d => d[campos.unidade] === unidadeSelecionada)
-          : dadosAno;
-
-        // Atualiza os filtros com baseFiltros (ou dadosAno se unidade não selecionada)
-        atualizarOpcoesSelect("mesFiltro", valoresUnicosOrdenados(baseFiltros, campos.mes), true, "Todos");
-        atualizarOpcoesSelect("naturezaFiltro", valoresUnicosOrdenados(baseFiltros, campos.natureza), true, "Todos");
-        atualizarOpcoesSelect("classificacaoFiltro", valoresUnicosOrdenados(baseFiltros, campos.classificacao), true, "Todos");
-        atualizarOpcoesSelect("fonteFiltro", valoresUnicosOrdenados(baseFiltros, campos.fonte), true, "Todos");
-        atualizarOpcoesSelect("empenhoFiltro", valoresUnicosOrdenados(baseFiltros, campos.empenho), true, "Todos");
-        atualizarOpcoesSelect("cpfFiltro", valoresUnicosOrdenados(baseFiltros, campos.cpf), true, "Todos");
-        atualizarOpcoesSelect("credorFiltro", valoresUnicosOrdenados(baseFiltros, campos.credor), true, "Todos");
-
-        spinner(false, true);
-      }, 150);
-    }
-
-    // Atualiza tabela e totalizadores
-    function atualizarTabela() {
-      const dadosFiltrados = aplicarFiltros();
-
-      // Atualiza totalizadores
-      let totalEmpenhado = 0, totalLiquidado = 0, totalPago = 0;
-      dadosFiltrados.forEach(d => {
-        totalEmpenhado += parseFloat(d[campos.empenhado].replace(/[^\d.,-]/g, "").replace(",", ".") || 0);
-        totalLiquidado += parseFloat(d[campos.liquidado].replace(/[^\d.,-]/g, "").replace(",", ".") || 0);
-        totalPago += parseFloat(d[campos.pago].replace(/[^\d.,-]/g, "").replace(",", ".") || 0);
+      $('#exportCsv').click(() => $('.buttons-csv').click());
+      $('#exportXls').click(() => $('.buttons-excel').click());
+      $('#exportJson').click(() => {
+        const dados = tabela.rows({ search: 'applied' }).data().toArray();
+        const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+        baixarArquivo(blob, "dados.json");
       });
-      document.getElementById("totalEmpenhado").textContent = formatarBRL(totalEmpenhado);
-      document.getElementById("totalLiquidado").textContent = formatarBRL(totalLiquidado);
-      document.getElementById("totalPago").textContent = formatarBRL(totalPago);
-
-      // Recria tabela DataTables
-      if (tabela) tabela.clear().destroy();
-
-      if (dadosFiltrados.length === 0) {
-        document.getElementById("tabela").style.display = "none";
-        return;
-      }
-
-      const colunas = Object.keys(campos).map(campo => ({
-        title: campos[campo],
-        data: campos[campo],
-        render: (data, type, row) => {
-          // Formatar valores monetários para as colunas corretas
-          if ([campos.empenhado, campos.liquidado, campos.pago].includes(campo)) {
-            return formatarBRL(data);
-          }
-          return data || "";
-        }
-      }));
-
-      document.getElementById("tabela").style.display = "table";
-
-      tabela = $("#tabela").DataTable({
-        data: dadosFiltrados,
-        columns: colunas,
-        ordering: true,
-        searching: false,
-        paging: true,
-        lengthChange: false,
-        pageLength: 25,
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-        },
-        dom: 'Bfrtip',
-        buttons: [
-          {
-            extend: 'csvHtml5',
-            text: 'CSV',
-            className: 'btn btn-outline-secondary btn-sm',
-            filename: 'dados_filtrados'
-          },
-          {
-            extend: 'excelHtml5',
-            text: 'XLS',
-            className: 'btn btn-outline-secondary btn-sm',
-            filename: 'dados_filtrados'
-          },
-          {
-            extend: 'json',
-            text: 'JSON',
-            className: 'btn btn-outline-secondary btn-sm',
-            action: function ( e, dt, node, config ) {
-              const json = JSON.stringify(dt.rows({ search: 'applied' }).data().toArray(), null, 2);
-              const blob = new Blob([json], {type: "application/json"});
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "dados_filtrados.json";
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              URL.revokeObjectURL(url);
-            }
-          },
-          {
-            text: 'TXT',
-            className: 'btn btn-outline-secondary btn-sm',
-            action: function ( e, dt, node, config ) {
-              const rows = dt.rows({ search: 'applied' }).data().toArray();
-              let txt = "";
-              if(rows.length > 0) {
-                // Cabeçalho
-                txt += Object.values(campos).join("\t") + "\n";
-                rows.forEach(row => {
-                  txt += Object.keys(campos).map(k => row[campos[k]] || "").join("\t") + "\n";
-                });
-              }
-              const blob = new Blob([txt], {type: "text/plain"});
-              const url = URL.createObjectURL(blob);
-              const a = document.createElement("a");
-              a.href = url;
-              a.download = "dados_filtrados.txt";
-              document.body.appendChild(a);
-              a.click();
-              a.remove();
-              URL.revokeObjectURL(url);
-            }
-          }
-        ]
+      $('#exportTxt').click(() => {
+        const dados = tabela.rows({ search: 'applied' }).data().toArray();
+        const colunas = Object.keys(dados[0]);
+        let conteudo = colunas.join(";") + "\n";
+        dados.forEach(linha => conteudo += colunas.map(c => linha[c]).join(";") + "\n");
+        baixarArquivo(new Blob([conteudo], { type: 'text/plain' }), "dados.txt");
       });
     }
+  });
+});
 
-    // Inicializa selects, liga eventos e carrega CSV
-    async function inicializar() {
-      spinner(true, false);
+function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
+  const seletor = $('#' + id);
+  let valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b)); else valores.sort();
+  seletor.empty().append('<option value="">Todos</option>');
+  valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
+  seletor.prop('disabled', false);
+}
 
-      // URL pública do CSV da planilha (ajuste conforme necessário)
-      const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv";
+function atualizarTodosFiltros() {
+  const dados = aplicarFiltroEncadeado();
+  popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
+  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
+  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
+  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
+  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
+  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
+  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
+}
 
-      try {
-        const resposta = await fetch(csvUrl);
-        const csvTexto = await resposta.text();
+function toggleFiltros(status) {
+  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+    .prop('disabled', !status);
+}
 
-        // Parse CSV com PapaParse
-        const parsed = Papa.parse(csvTexto, { header: true, skipEmptyLines: true });
-        dadosOriginais = parsed.data;
+function aplicarFiltroEncadeado() {
+  return dadosOriginais.filter(r =>
+    (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
+    (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
+    (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
+    (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
+    (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
+    (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
+    (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
+    (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
+    (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
+  );
+}
 
-        // Preenche filtro ano
-        const anos = valoresUnicosOrdenados(dadosOriginais, campos.ano);
-        atualizarOpcoesSelect("anoFiltro", anos, true, "Selecione o ano");
-
-        // Inicialmente desabilita os demais filtros
-        ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
-          atualizarOpcoesSelect(id, [], false);
-        });
-
-        spinner(false, false);
-      } catch (err) {
-        spinner(false, false);
-        alert("Erro ao carregar dados CSV: " + err.message);
-      }
-    }
-
-    // Evento mudança filtro ano
-    document.getElementById("anoFiltro").addEventListener("change", () => {
-      atualizarFiltrosDependentes();
-      atualizarTabela();
+function inicializarTabela(dados) {
+  $('#tabela').show();
+  $('#resumoValores').show();
+  atualizarTotalizadores(dados);
+  if ($.fn.DataTable.isDataTable('#tabela')) {
+    tabela.clear().rows.add(dados).draw();
+  } else {
+    tabela = $('#tabela').DataTable({
+      data: dados,
+      columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
+      dom: 'Bfrtip',
+      scrollX: true,
+      buttons: [
+        { extend: 'csvHtml5', className: 'd-none' },
+        { extend: 'excelHtml5', className: 'd-none' }
+      ]
     });
+  }
+}
 
-    // Eventos para os demais filtros
-    ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
-      document.getElementById(id).addEventListener("change", () => {
-        if(id === "unidadeFiltro") {
-          atualizarFiltrosDependentes();
-        } else {
-          atualizarTabela();
-        }
-      });
-    });
+function atualizarTotalizadores(dados) {
+  const toFloat = v => parseFloat(String(v).replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
+  const format = n => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
-    // Botão limpar filtros
-    document.getElementById("btnLimpar").addEventListener("click", () => {
-      document.getElementById("anoFiltro").value = "";
-      ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
-        atualizarOpcoesSelect(id, [], false);
-      });
-      document.getElementById("tabela").style.display = "none";
-      document.getElementById("totalEmpenhado").textContent = "0,00";
-      document.getElementById("totalLiquidado").textContent = "0,00";
-      document.getElementById("totalPago").textContent = "0,00";
-    });
+  const totalEmp = dados.reduce((s, l) => s + toFloat(l["Valor Empenhado"]), 0);
+  const totalLiq = dados.reduce((s, l) => s + toFloat(l["Valor Liquidado"]), 0);
+  const totalPag = dados.reduce((s, l) => s + toFloat(l["Valor Pago"]), 0);
 
-    // Inicializa tudo
-    inicializar();
+  $("#totalEmpenhado").text(`Empenhado: ${format(totalEmp)}`);
+  $("#totalLiquidado").text(`Liquidado: ${format(totalLiq)}`);
+  $("#totalPago").text(`Pago: ${format(totalPag)}`);
+}
 
-  </script>
+function baixarArquivo(blob, nome) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+</script>
 </body>
 </html>
