@@ -1,4 +1,3 @@
-<!-- Código completo atualizado com filtro "Fonte" -->
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -103,45 +102,20 @@ $(document).ready(function () {
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
 
       $('#anoFiltro').on('change', function () {
-        const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
-        popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno, true);
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
         toggleFiltros(true);
-        inicializarTabela(dadosAno);
-      });
-
-      $('#mesFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
         inicializarTabela(dados);
       });
 
-      $('#unidadeFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#naturezaFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#classificacaoFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#fonteFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
-        inicializarTabela(dados);
-      });
-
-      ['empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
-        $('#' + id).on('change', () => inicializarTabela(aplicarFiltroEncadeado()))
-      );
+      $('#mesFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#unidadeFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#naturezaFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#classificacaoFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#fonteFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#empenhoFiltro').on('change', atualizarTabela);
+      $('#cpfFiltro').on('change', atualizarTabela);
+      $('#credorFiltro').on('change', atualizarTabela);
 
       $('#btnLimpar').click(() => {
         $('select').val('').prop('disabled', true);
@@ -171,6 +145,23 @@ $(document).ready(function () {
   });
 });
 
+function atualizarFiltrosEncadeados() {
+  const dados = aplicarFiltroEncadeado();
+  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
+  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
+  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
+  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
+  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
+  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
+  inicializarTabela(dados);
+}
+
+function atualizarTabela() {
+  const dados = aplicarFiltroEncadeado();
+  inicializarTabela(dados);
+}
+
 function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
   const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
@@ -184,11 +175,6 @@ function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
 function toggleFiltros(status) {
   $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
     .prop('disabled', !status);
-}
-
-function filtrarDados(dados, campo, valor) {
-  if (!valor) return dados;
-  return dados.filter(d => d[campo] === valor);
 }
 
 function aplicarFiltroEncadeado() {
@@ -207,6 +193,7 @@ function aplicarFiltroEncadeado() {
 
 function inicializarTabela(dados) {
   $('#tabela').show();
+  if (!dados.length) return $('#tabela').hide();
   if ($.fn.DataTable.isDataTable('#tabela')) {
     tabela.clear().rows.add(dados).draw();
   } else {
