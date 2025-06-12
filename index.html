@@ -36,6 +36,9 @@
       border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 0.5rem;
     }
     .totalizadores span { display: inline-block; margin-right: 15px; font-weight: 500; }
+
+    #dataAtualizacao { font-size: 0.7rem; color: #6c757d; }
+    
   </style>
 </head>
 <body>
@@ -178,10 +181,18 @@ function baixarArquivo(blob,nome){
 }
 
 $(document).ready(function(){
-  Papa.parse("https://www.pjf.mg.gov.br/transparencia/despesas_publicas/relatorio-resumido/arquivos/data.csv", {
+  Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
     download:true, header:true,
     complete:function(res){
       dadosOriginais=res.data.filter(r=>r["Ano"]);
+      // Pega a data atualizada da planilha (primeiro registro que tiver campo "Última Atualização")
+      const info = raw.find(r => r[campos.update]);
+      if (info && info[campos.update]) {
+        $('#dataAtualizacao').text(`Atualizado em: ${info[campos.update]}`);
+      }
+      dadosOriginais = raw;
+
+      
       popularFiltroEncadeado("anoFiltro",campos.ano,dadosOriginais);
       $("#spinnerCsv").hide();
 
