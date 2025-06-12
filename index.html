@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Consulta de Despesas - Apresentação em Cards</title>
+  <title>Consulta de Despesas - Visualização e Exportação</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     body {
@@ -46,6 +47,7 @@
 </div>
 
 <div class="container my-4">
+
   <div class="row g-3 filters">
     <div class="col-md-3">
       <label for="anoFiltro" class="form-label">Ano *</label>
@@ -85,13 +87,19 @@
     </div>
   </div>
 
-  <button id="btnLimpar" class="btn btn-secondary mb-4">Limpar Filtros</button>
+  <div class="mb-3">
+    <button id="btnLimpar" class="btn btn-secondary me-2">Limpar Filtros</button>
+    <button id="btnExportCsv" class="btn btn-success me-2" disabled>Exportar CSV</button>
+    <button id="btnExportXlsx" class="btn btn-primary" disabled>Exportar XLSX</button>
+  </div>
 
   <div id="cardsContainer" class="row"></div>
 </div>
 
+<!-- Bibliotecas -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <script>
   const campos = {
@@ -110,6 +118,7 @@
 
   let dadosOriginais = [];
 
+  // Popular filtro select com valores únicos
   function popularFiltro(id, campo, dados) {
     const filtro = $('#' + id);
     let valores = [...new Set(dados.map(d => d[campo]).filter(v => v && v.trim() !== ''))];
@@ -126,6 +135,7 @@
     filtro.prop('disabled', false);
   }
 
+  // Aplica os filtros selecionados
   function aplicarFiltros() {
     let dadosFiltrados = dadosOriginais.slice();
 
@@ -147,16 +157,21 @@
       }
     });
 
+    // Habilita/desabilita botões de exportação
+    $('#btnExportCsv, #btnExportXlsx').prop('disabled', dadosFiltrados.length === 0);
+
     return dadosFiltrados;
   }
 
+  // Atualiza filtros encadeados após seleção do ano
   function atualizarFiltrosEncadeados() {
     const anoSelecionado = $('#anoFiltro').val();
     if (!anoSelecionado) {
-      // Desabilitar os filtros
       Object.keys(campos).forEach(c => {
         if(c !== 'ano') $('#'+c+'Filtro').prop('disabled', true).val('');
       });
+      $('#btnExportCsv, #btnExportXlsx').prop('disabled', true);
+      $('#cardsContainer').empty();
       return;
     }
     let dadosAno = dadosOriginais.filter(d => d[campos.ano] === anoSelecionado);
@@ -171,24 +186,24 @@
     popularFiltro("credorFiltro", campos.credor, dadosAno);
   }
 
-  function criarCard(registro) {
+  // Cria card com todos os campos do registro (todas as colunas)
+  function criarCardCompleto(registro) {
+    let conteudo = '';
+    for (const campo in registro) {
+      conteudo += `<p><span class="field-label">${campo}:</span> ${registro[campo]}</p>`;
+    }
+
     return `
       <div class="col-md-6 col-lg-4">
         <div class="card">
-          <div class="card-header">Ano: ${registro[campos.ano]} - Mês: ${registro[campos.mes]}</div>
-          <div class="card-body">
-            <p><span class="field-label">Unidade Orçamentária:</span> ${registro[campos.unidade]}</p>
-            <p><span class="field-label">Natureza de Despesa:</span> ${registro[campos.natureza]}</p>
-            <p><span class="field-label">Classificação Orçamentária:</span> ${registro[campos.classificacao]}</p>
-            <p><span class="field-label">Fonte:</span> ${registro[campos.fonte]}</p>
-            <p><span class="field-label">Empenho:</span> ${registro[campos.empenho]}</p>
-            <p><span class="field-label">CPF/CNPJ:</span> ${registro[campos.cpf]}</p>
-            <p><span class="field-label">Credor:</span> ${registro[campos.credor]}</p>
-          </div>
+          <div class="card-header">Registro</div>
+          <div class="card-body">${conteudo}</div>
         </div>
-      </div>`;
+      </div>
+    `;
   }
 
+  // Exibe os cards na tela
   function mostrarCards(dados) {
     const container = $('#cardsContainer');
     container.empty();
@@ -198,8 +213,30 @@
       return;
     }
 
-    const cards = dados.map(criarCard).join('');
+    const cards = dados.map(criarCardCompleto).join('');
     container.html(cards);
+  }
+
+  // Exporta dados filtrados para CSV
+  function exportarCSV(dados) {
+    if(dados.length === 0) return;
+    const csv = Papa.unparse(dados);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = "dados_exportados.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Exporta dados filtrados para XLSX (Excel)
+  function exportarXLSX(dados) {
+    if(dados.length === 0) return;
+    const worksheet = XLSX.utils.json_to_sheet(dados);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
+    XLSX.writeFile(workbook, "dados_exportados.xlsx");
   }
 
   $(document).ready(function () {
@@ -213,19 +250,32 @@
 
         $('#spinnerCsv').hide();
 
+        // Atualiza filtros encadeados e resultados ao selecionar ano
         $('#anoFiltro').on('change', () => {
           atualizarFiltrosEncadeados();
           mostrarCards(aplicarFiltros());
         });
 
+        // Atualiza resultados ao alterar qualquer outro filtro
         $('select').not('#anoFiltro').on('change', () => {
           mostrarCards(aplicarFiltros());
         });
 
+        // Limpar filtros
         $('#btnLimpar').click(() => {
           $('select').val('');
           $('select').not('#anoFiltro').prop('disabled', true);
+          $('#btnExportCsv, #btnExportXlsx').prop('disabled', true);
           $('#cardsContainer').empty();
+        });
+
+        // Botões exportação
+        $('#btnExportCsv').click(() => {
+          exportarCSV(aplicarFiltros());
+        });
+
+        $('#btnExportXlsx').click(() => {
+          exportarXLSX(aplicarFiltros());
         });
       }
     });
