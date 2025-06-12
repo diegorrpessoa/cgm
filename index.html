@@ -12,29 +12,57 @@
     .form-label { font-size: 0.85rem; }
     .form-select-sm, .form-control-sm { font-size: 0.85rem; }
 
-    .spinner-overlay,
-    .spinner-overlay-ano {
+    .spinner-overlay {
       position: fixed;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
+      top: 0;
+      left: 0;
+      width: 100%;
+      background-color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       z-index: 9999;
+      padding-top: 20px;
     }
 
-    .spinner-overlay-ano .spinner-border {
+    .spinner-overlay-ano {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      background-color: rgba(255, 255, 255, 0.6);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      z-index: 9998;
+      padding-top: 60px;
+    }
+
+    .spinner-border {
       width: 2rem;
       height: 2rem;
     }
 
-    .spinner-overlay .spinner-border {
-      width: 3rem;
-      height: 3rem;
+    .spinner-text {
+      font-size: 0.9rem;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body class="bg-light">
+
+<!-- Spinner ao carregar CSV -->
+<div id="spinnerCsv" class="spinner-overlay">
+  <div class="spinner-border text-primary" role="status"></div>
+  <div class="spinner-text">Carregando dados...</div>
+</div>
+
+<!-- Spinner ao carregar filtros -->
+<div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
+  <div class="spinner-border text-secondary" role="status"></div>
+  <div class="spinner-text">Carregando dados...</div>
+</div>
+
 <div class="container my-4">
-  <!-- Filtros -->
   <div class="row g-2 mb-3">
     <div class="col-sm-2">
       <label for="anoFiltro" class="form-label">Ano *</label>
@@ -74,7 +102,6 @@
     </div>
   </div>
 
-  <!-- Botões -->
   <div class="d-flex justify-content-between mb-2">
     <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
     <div class="btn-group">
@@ -85,26 +112,9 @@
     </div>
   </div>
 
-  <!-- Tabela -->
   <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%; display: none;"></table>
 </div>
 
-<!-- Spinners -->
-<div id="spinnerGlobal" class="spinner-overlay">
-  <div class="text-center text-light">
-    <div class="spinner-border text-light" role="status"></div>
-    <div class="mt-2 fs-5">Carregando dados iniciais...</div>
-  </div>
-</div>
-
-<div id="spinnerAno" class="spinner-overlay-ano d-none">
-  <div class="text-center text-primary">
-    <div class="spinner-border text-primary" role="status"></div>
-    <div class="mt-2 fs-6">Carregando filtros...</div>
-  </div>
-</div>
-
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
@@ -120,9 +130,15 @@ let tabela;
 let dadosOriginais = [];
 const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const campos = {
-  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária", natureza: "Natureza de Despesa",
-  classificacao: "Classificação Orçamentária", fonte: "Fonte", empenho: "Empenho",
-  cpf: "CPF/CNPJ", credor: "Credor"
+  ano: "Ano",
+  mes: "Mês",
+  unidade: "Unidade Orçamentária",
+  natureza: "Natureza de Despesa",
+  classificacao: "Classificação Orçamentária",
+  fonte: "Fonte",
+  empenho: "Empenho",
+  cpf: "CPF/CNPJ",
+  credor: "Credor"
 };
 
 $(document).ready(function () {
@@ -131,55 +147,48 @@ $(document).ready(function () {
     header: true,
     complete: function (results) {
       dadosOriginais = results.data.filter(r => r["Ano"]);
-      $('#spinnerGlobal').hide();
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
-    }
-  });
+      $('#spinnerCsv').hide();
 
-  $('#anoFiltro').on('change', function () {
-    $('#spinnerAno').removeClass('d-none');
-    setTimeout(() => {
-      toggleFiltros(true);
-      inicializarTabela(aplicarFiltroEncadeado());
-      Object.entries(campos).forEach(([id, campo]) => {
-        if (id !== "ano") {
-          popularFiltroEncadeado(id + "Filtro", campo, aplicarFiltroEncadeado(), campo === "Mês");
-        }
+      $('#anoFiltro').on('change', function () {
+        $('#spinnerAno').show();
+        setTimeout(() => {
+          toggleFiltros(true);
+          atualizarTodosFiltros();
+          inicializarTabela(aplicarFiltroEncadeado());
+          $('#spinnerAno').hide();
+        }, 100); // Simula carregamento
       });
-      $('#spinnerAno').addClass('d-none');
-    }, 500);
-  });
 
-  $('select').on('change', function () {
-    if (this.id !== "anoFiltro") {
-      inicializarTabela(aplicarFiltroEncadeado());
+      $('select').not('#anoFiltro').on('change', () => {
+        inicializarTabela(aplicarFiltroEncadeado());
+      });
+
+      $('#btnLimpar').click(() => {
+        $('select').val('').prop('disabled', true);
+        $('#anoFiltro').prop('disabled', false);
+        $('#tabela').hide();
+        if (tabela) tabela.clear().draw();
+      });
+
+      $('#exportCsv').click(() => $('.buttons-csv').click());
+      $('#exportXls').click(() => $('.buttons-excel').click());
+      $('#exportJson').click(() => {
+        const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
+        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+        baixarArquivo(blob, "dados.json");
+      });
+      $('#exportTxt').click(() => {
+        const dados = tabela.rows({ search: 'applied' }).data().toArray();
+        const colunas = Object.keys(dados[0]);
+        let conteudo = colunas.join(";") + "\n";
+        dados.forEach(linha => {
+          conteudo += colunas.map(c => linha[c]).join(";") + "\n";
+        });
+        const blob = new Blob([conteudo], { type: 'text/plain' });
+        baixarArquivo(blob, "dados.txt");
+      });
     }
-  });
-
-  $('#btnLimpar').click(() => {
-    $('select').val('').prop('disabled', true);
-    $('#anoFiltro').prop('disabled', false);
-    $('#tabela').hide();
-    if (tabela) tabela.clear().draw();
-  });
-
-  $('#exportCsv').click(() => $('.buttons-csv').click());
-  $('#exportXls').click(() => $('.buttons-excel').click());
-  $('#exportJson').click(() => {
-    const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
-    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-    baixarArquivo(blob, "dados.json");
-  });
-
-  $('#exportTxt').click(() => {
-    const dados = tabela.rows({ search: 'applied' }).data().toArray();
-    const colunas = Object.keys(dados[0]);
-    let conteudo = colunas.join(";") + "\n";
-    dados.forEach(linha => {
-      conteudo += colunas.map(c => linha[c]).join(";") + "\n";
-    });
-    const blob = new Blob([conteudo], { type: 'text/plain' });
-    baixarArquivo(blob, "dados.txt");
   });
 });
 
@@ -193,12 +202,21 @@ function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   seletor.prop('disabled', false);
 }
 
+function atualizarTodosFiltros() {
+  const dados = aplicarFiltroEncadeado();
+  popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
+  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
+  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
+  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
+  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
+  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
+  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
+}
+
 function toggleFiltros(status) {
-  Object.keys(campos).forEach(c => {
-    if (c !== "ano") {
-      $('#' + c + 'Filtro').prop('disabled', !status);
-    }
-  });
+  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+    .prop('disabled', !status);
 }
 
 function aplicarFiltroEncadeado() {
