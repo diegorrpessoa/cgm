@@ -1,14 +1,15 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title></title>
+  <title>Consulta de Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
-    .dataTables_filter { display: none; } /* remove campo "Buscar registros" */
+    .dataTables_filter { display: none; }
     .form-label { font-size: 0.85rem; }
     .form-select-sm, .form-control-sm { font-size: 0.85rem; }
   </style>
@@ -37,16 +38,20 @@
       <select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select>
     </div>
     <div class="col-sm-2">
+      <label for="fonteFiltro" class="form-label">Fonte</label>
+      <select id="fonteFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+    <div class="col-sm-3">
       <label for="empenhoFiltro" class="form-label">Empenho</label>
-      <input type="text" id="empenhoFiltro" class="form-control form-control-sm" placeholder="Digite o empenho" disabled>
+      <select id="empenhoFiltro" class="form-select form-select-sm" disabled></select>
     </div>
     <div class="col-sm-3">
       <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
-      <input type="text" id="cpfFiltro" class="form-control form-control-sm" placeholder="Digite o CPF ou CNPJ" disabled>
+      <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
     </div>
     <div class="col-sm-3">
       <label for="credorFiltro" class="form-label">Credor</label>
-      <input type="text" id="credorFiltro" class="form-control form-control-sm" placeholder="Digite o nome do credor" disabled>
+      <select id="credorFiltro" class="form-select form-select-sm" disabled></select>
     </div>
   </div>
 
@@ -83,6 +88,7 @@ const campos = {
   unidade: "Unidade Orçamentária",
   natureza: "Natureza de Despesa",
   classificacao: "Classificação Orçamentária",
+  fonte: "Fonte",
   empenho: "Empenho",
   cpf: "CPF/CNPJ",
   credor: "Credor"
@@ -97,36 +103,23 @@ $(document).ready(function () {
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
 
       $('#anoFiltro').on('change', function () {
-        const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
-        popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno, true);
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
         toggleFiltros(true);
-        inicializarTabela(dadosAno);
-      });
-
-      $('#mesFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
         inicializarTabela(dados);
       });
 
-      $('#unidadeFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#naturezaFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
-        inicializarTabela(dados);
-      });
-
-      ['classificacaoFiltro', 'empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
-        $('#' + id).on('change keyup', () => inicializarTabela(aplicarFiltroEncadeado()))
-      );
+      $('#mesFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#unidadeFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#naturezaFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#classificacaoFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#fonteFiltro').on('change', atualizarFiltrosEncadeados);
+      $('#empenhoFiltro').on('change', atualizarTabela);
+      $('#cpfFiltro').on('change', atualizarTabela);
+      $('#credorFiltro').on('change', atualizarTabela);
 
       $('#btnLimpar').click(() => {
-        $('select, input').val('').prop('disabled', true);
+        $('select').val('').prop('disabled', true);
         $('#anoFiltro').prop('disabled', false);
         $('#tabela').hide();
         if (tabela) tabela.clear().draw();
@@ -153,6 +146,23 @@ $(document).ready(function () {
   });
 });
 
+function atualizarFiltrosEncadeados() {
+  const dados = aplicarFiltroEncadeado();
+  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
+  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
+  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
+  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
+  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
+  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
+  inicializarTabela(dados);
+}
+
+function atualizarTabela() {
+  const dados = aplicarFiltroEncadeado();
+  inicializarTabela(dados);
+}
+
 function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
   const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
@@ -164,13 +174,8 @@ function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
 }
 
 function toggleFiltros(status) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
     .prop('disabled', !status);
-}
-
-function filtrarDados(dados, campo, valor) {
-  if (!valor) return dados;
-  return dados.filter(d => d[campo] === valor);
 }
 
 function aplicarFiltroEncadeado() {
@@ -180,14 +185,16 @@ function aplicarFiltroEncadeado() {
     (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
     (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
     (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
-    (!$('#empenhoFiltro').val() || r[campos.empenho]?.toLowerCase().includes($('#empenhoFiltro').val().toLowerCase())) &&
-    (!$('#cpfFiltro').val() || r[campos.cpf]?.toLowerCase().includes($('#cpfFiltro').val().toLowerCase())) &&
-    (!$('#credorFiltro').val() || r[campos.credor]?.toLowerCase().includes($('#credorFiltro').val().toLowerCase()))
+    (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
+    (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
+    (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
+    (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
   );
 }
 
 function inicializarTabela(dados) {
   $('#tabela').show();
+  if (!dados.length) return $('#tabela').hide();
   if ($.fn.DataTable.isDataTable('#tabela')) {
     tabela.clear().rows.add(dados).draw();
   } else {
