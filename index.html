@@ -11,17 +11,57 @@
     .dataTables_filter { display: none; }
     .form-label { font-size: 0.85rem; }
     .form-select-sm, .form-control-sm { font-size: 0.85rem; }
+
+    /* Spinner principal (tela toda) */
+    #spinner-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    /* Spinner secundário (ao selecionar ano) */
+    #spinner-ano-overlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(255, 255, 255, 0.4);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    #spinner-ano-overlay .spinner-border {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .filtros-container {
+      position: relative;
+    }
   </style>
 </head>
 <body class="bg-light">
-
-<!-- Spinner de carregamento -->
-<div id="loadingSpinner" class="text-center my-5">
-  <div class="spinner-border text-primary" role="status"></div>
-  <div class="mt-2">Carregando...</div>
+<!-- Spinner inicial -->
+<div id="spinner-overlay">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Carregando...</span>
+  </div>
 </div>
 
-<div class="container my-4">
+<div class="container my-4 filtros-container">
+  <!-- Spinner ao selecionar Ano -->
+  <div id="spinner-ano-overlay">
+    <div class="spinner-border text-secondary" role="status">
+      <span class="visually-hidden">Carregando filtros...</span>
+    </div>
+  </div>
+
   <div class="row g-2 mb-3">
     <div class="col-sm-2">
       <label for="anoFiltro" class="form-label">Ano *</label>
@@ -101,88 +141,68 @@ const campos = {
 };
 
 $(document).ready(function () {
-  $('.container .row, .d-flex, #tabela').hide(); // Oculta tudo até carregar
-
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
     download: true,
     header: true,
     complete: function (results) {
+      $('#spinner-overlay').fadeOut();
       dadosOriginais = results.data.filter(r => r["Ano"]);
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
-
-      $('#loadingSpinner').hide();
-      $('.container .row, .d-flex').show();
-
-      $('#anoFiltro').on('change', function () {
-        const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
-        popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno, true);
-        toggleFiltros(true);
-        inicializarTabela(dadosAno);
-        popularFiltroEncadeado("cpfFiltro", campos.cpf, dadosAno);
-        popularFiltroEncadeado("credorFiltro", campos.credor, dadosAno);
-      });
-
-      $('#mesFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#unidadeFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#naturezaFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#classificacaoFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#fonteFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
-        inicializarTabela(dados);
-      });
-
-      ['empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
-        $('#' + id).on('change', () => inicializarTabela(aplicarFiltroEncadeado()))
-      );
-
-      $('#btnLimpar').click(() => {
-        $('select').val('').prop('disabled', true);
-        $('#anoFiltro').prop('disabled', false);
-        $('#tabela').hide();
-        if (tabela) tabela.clear().draw();
-      });
-
-      $('#exportCsv').click(() => $('.buttons-csv').click());
-      $('#exportXls').click(() => $('.buttons-excel').click());
-      $('#exportJson').click(() => {
-        const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
-        const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-        baixarArquivo(blob, "dados.json");
-      });
-      $('#exportTxt').click(() => {
-        const dados = tabela.rows({ search: 'applied' }).data().toArray();
-        const colunas = Object.keys(dados[0]);
-        let conteudo = colunas.join(";") + "\n";
-        dados.forEach(linha => {
-          conteudo += colunas.map(c => linha[c]).join(";") + "\n";
-        });
-        const blob = new Blob([conteudo], { type: 'text/plain' });
-        baixarArquivo(blob, "dados.txt");
-      });
     }
   });
+
+  $('#anoFiltro').on('change', function () {
+    $('#spinner-ano-overlay').fadeIn();
+    setTimeout(() => {
+      const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
+      popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno, true);
+      toggleFiltros(true);
+      inicializarTabela(dadosAno);
+      $('#spinner-ano-overlay').fadeOut();
+    }, 500); // Delay visual para mostrar o spinner
+  });
+
+  $('#mesFiltro').on('change', () => atualizaFiltro('unidadeFiltro', campos.unidade));
+  $('#unidadeFiltro').on('change', () => atualizaFiltro('naturezaFiltro', campos.natureza));
+  $('#naturezaFiltro').on('change', () => atualizaFiltro('classificacaoFiltro', campos.classificacao));
+  $('#classificacaoFiltro').on('change', () => atualizaFiltro('fonteFiltro', campos.fonte));
+  $('#fonteFiltro').on('change', () => atualizaFiltro('empenhoFiltro', campos.empenho));
+
+  ['empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
+    $('#' + id).on('change', () => inicializarTabela(aplicarFiltroEncadeado()))
+  );
+
+  $('#btnLimpar').click(() => {
+    $('select').val('').prop('disabled', true);
+    $('#anoFiltro').prop('disabled', false);
+    $('#tabela').hide();
+    if (tabela) tabela.clear().draw();
+  });
+
+  $('#exportCsv').click(() => $('.buttons-csv').click());
+  $('#exportXls').click(() => $('.buttons-excel').click());
+  $('#exportJson').click(() => {
+    const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
+    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+    baixarArquivo(blob, "dados.json");
+  });
+  $('#exportTxt').click(() => {
+    const dados = tabela.rows({ search: 'applied' }).data().toArray();
+    const colunas = Object.keys(dados[0]);
+    let conteudo = colunas.join(";") + "\n";
+    dados.forEach(linha => {
+      conteudo += colunas.map(c => linha[c]).join(";") + "\n";
+    });
+    const blob = new Blob([conteudo], { type: 'text/plain' });
+    baixarArquivo(blob, "dados.txt");
+  });
 });
+
+function atualizaFiltro(id, campo) {
+  const dados = aplicarFiltroEncadeado();
+  popularFiltroEncadeado(id, campo, dados);
+  inicializarTabela(dados);
+}
 
 function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
@@ -249,3 +269,4 @@ function baixarArquivo(blob, nome) {
 </script>
 </body>
 </html>
+
