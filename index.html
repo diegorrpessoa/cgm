@@ -12,56 +12,37 @@
     .form-label { font-size: 0.85rem; }
     .form-select-sm, .form-control-sm { font-size: 0.85rem; }
 
-    /* Spinner principal (tela toda) */
-    #spinner-overlay {
+    /* Spinner principal (overlay escuro) */
+    #spinnerOverlay {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background-color: rgba(255, 255, 255, 0.8);
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background-color: rgba(0,0,0,0.5);
       z-index: 9999;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
     }
 
-    /* Spinner secundário (ao selecionar ano) */
-    #spinner-ano-overlay {
-      position: absolute;
+    /* Spinner secundário (overlay claro) */
+    #spinnerFiltro {
+      position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background-color: rgba(255, 255, 255, 0.4);
+      background-color: rgba(255,255,255,0.6);
+      z-index: 9998;
       display: none;
-      justify-content: center;
       align-items: center;
-      z-index: 1000;
-    }
-
-    #spinner-ano-overlay .spinner-border {
-      width: 2rem;
-      height: 2rem;
-    }
-
-    .filtros-container {
-      position: relative;
+      justify-content: center;
     }
   </style>
 </head>
 <body class="bg-light">
-<!-- Spinner inicial -->
-<div id="spinner-overlay">
-  <div class="spinner-border text-primary" role="status">
-    <span class="visually-hidden">Carregando...</span>
-  </div>
-</div>
+<div id="spinnerOverlay"><div class="spinner-border text-light" role="status"></div></div>
+<div id="spinnerFiltro"><div class="spinner-border text-primary" role="status"></div></div>
 
-<div class="container my-4 filtros-container">
-  <!-- Spinner ao selecionar Ano -->
-  <div id="spinner-ano-overlay">
-    <div class="spinner-border text-secondary" role="status">
-      <span class="visually-hidden">Carregando filtros...</span>
-    </div>
-  </div>
-
+<div class="container my-4">
   <div class="row g-2 mb-3">
     <div class="col-sm-2">
       <label for="anoFiltro" class="form-label">Ano *</label>
@@ -141,36 +122,35 @@ const campos = {
 };
 
 $(document).ready(function () {
+  $('#spinnerOverlay').show();
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
     download: true,
     header: true,
     complete: function (results) {
-      $('#spinner-overlay').fadeOut();
+      $('#spinnerOverlay').hide();
       dadosOriginais = results.data.filter(r => r["Ano"]);
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
     }
   });
 
   $('#anoFiltro').on('change', function () {
-    $('#spinner-ano-overlay').fadeIn();
-    setTimeout(() => {
-      const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
-      popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno, true);
-      toggleFiltros(true);
-      inicializarTabela(dadosAno);
-      $('#spinner-ano-overlay').fadeOut();
-    }, 500); // Delay visual para mostrar o spinner
+    if (!this.value) return;
+    $('#spinnerFiltro').show();
+    const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
+
+    ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
+      const campo = campos[id.replace("Filtro", "")];
+      popularFiltroEncadeado(id, campo, dadosAno, campo === "Mês");
+    });
+
+    $('#spinnerFiltro').hide();
+    $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro').prop('disabled', false);
+    inicializarTabela(dadosAno);
   });
 
-  $('#mesFiltro').on('change', () => atualizaFiltro('unidadeFiltro', campos.unidade));
-  $('#unidadeFiltro').on('change', () => atualizaFiltro('naturezaFiltro', campos.natureza));
-  $('#naturezaFiltro').on('change', () => atualizaFiltro('classificacaoFiltro', campos.classificacao));
-  $('#classificacaoFiltro').on('change', () => atualizaFiltro('fonteFiltro', campos.fonte));
-  $('#fonteFiltro').on('change', () => atualizaFiltro('empenhoFiltro', campos.empenho));
-
-  ['empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
-    $('#' + id).on('change', () => inicializarTabela(aplicarFiltroEncadeado()))
-  );
+  $('select').not('#anoFiltro').on('change', function () {
+    inicializarTabela(aplicarFiltroEncadeado());
+  });
 
   $('#btnLimpar').click(() => {
     $('select').val('').prop('disabled', true);
@@ -186,6 +166,7 @@ $(document).ready(function () {
     const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
     baixarArquivo(blob, "dados.json");
   });
+
   $('#exportTxt').click(() => {
     const dados = tabela.rows({ search: 'applied' }).data().toArray();
     const colunas = Object.keys(dados[0]);
@@ -198,12 +179,6 @@ $(document).ready(function () {
   });
 });
 
-function atualizaFiltro(id, campo) {
-  const dados = aplicarFiltroEncadeado();
-  popularFiltroEncadeado(id, campo, dados);
-  inicializarTabela(dados);
-}
-
 function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
   const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
@@ -211,17 +186,10 @@ function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
   else valores.sort();
   seletor.empty().append('<option value="">Todos</option>');
   valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
-  seletor.prop('disabled', false);
-}
-
-function toggleFiltros(status) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
-    .prop('disabled', !status);
 }
 
 function filtrarDados(dados, campo, valor) {
-  if (!valor) return dados;
-  return dados.filter(d => d[campo] === valor);
+  return !valor ? dados : dados.filter(d => d[campo] === valor);
 }
 
 function aplicarFiltroEncadeado() {
@@ -269,4 +237,3 @@ function baixarArquivo(blob, nome) {
 </script>
 </body>
 </html>
-
