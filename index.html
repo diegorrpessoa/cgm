@@ -12,7 +12,7 @@
     .form-label { font-size: 0.85rem; }
     .form-select-sm, .form-control-sm { font-size: 0.85rem; }
 
-    /* Spinner principal (overlay escuro) */
+    /* Spinner principal (overlay escuro com texto) */
     #spinnerOverlay {
       position: fixed;
       top: 0; left: 0;
@@ -22,218 +22,231 @@
       display: none;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
       color: #fff;
+      font-size: 1.2rem;
     }
 
-    /* Spinner secundário (overlay claro) */
+    /* Spinner secundário (overlay claro com texto) */
     #spinnerFiltro {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background-color: rgba(255,255,255,0.6);
+      background-color: rgba(255,255,255,0.7);
       z-index: 9998;
       display: none;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      color: #333;
+      font-size: 1.1rem;
     }
   </style>
 </head>
 <body class="bg-light">
-<div id="spinnerOverlay"><div class="spinner-border text-light" role="status"></div></div>
-<div id="spinnerFiltro"><div class="spinner-border text-primary" role="status"></div></div>
-
-<div class="container my-4">
-  <div class="row g-2 mb-3">
-    <div class="col-sm-2">
-      <label for="anoFiltro" class="form-label">Ano *</label>
-      <select id="anoFiltro" class="form-select form-select-sm" required></select>
-    </div>
-    <div class="col-sm-2">
-      <label for="mesFiltro" class="form-label">Mês</label>
-      <select id="mesFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    <div class="col-sm-2">
-      <label for="unidadeFiltro" class="form-label">Unidade Orçamentária</label>
-      <select id="unidadeFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    <div class="col-sm-2">
-      <label for="naturezaFiltro" class="form-label">Natureza de Despesa</label>
-      <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    <div class="col-sm-2">
-      <label for="classificacaoFiltro" class="form-label">Classificação Orçamentária</label>
-      <select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    <div class="col-sm-2">
-      <label for="fonteFiltro" class="form-label">Fonte</label>
-      <select id="fonteFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    <div class="col-sm-3">
-      <label for="empenhoFiltro" class="form-label">Empenho</label>
-      <select id="empenhoFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    <div class="col-sm-3">
-      <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
-      <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    <div class="col-sm-3">
-      <label for="credorFiltro" class="form-label">Credor</label>
-      <select id="credorFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
+  <!-- Spinners -->
+  <div id="spinnerOverlay">
+    <div class="spinner-border text-light mb-2" role="status"></div>
+    <div>Carregando dados...</div>
+  </div>
+  <div id="spinnerFiltro">
+    <div class="spinner-border text-primary mb-2" role="status"></div>
+    <div>Atualizando filtros...</div>
   </div>
 
-  <div class="d-flex justify-content-between mb-2">
-    <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
-    <div class="btn-group">
-      <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
+  <div class="container my-4">
+    <div class="row g-2 mb-3">
+      <div class="col-sm-2">
+        <label for="anoFiltro" class="form-label">Ano *</label>
+        <select id="anoFiltro" class="form-select form-select-sm" required></select>
+      </div>
+      <div class="col-sm-2">
+        <label for="mesFiltro" class="form-label">Mês</label>
+        <select id="mesFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
+      <div class="col-sm-2">
+        <label for="unidadeFiltro" class="form-label">Unidade Orçamentária</label>
+        <select id="unidadeFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
+      <div class="col-sm-2">
+        <label for="naturezaFiltro" class="form-label">Natureza de Despesa</label>
+        <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
+      <div class="col-sm-2">
+        <label for="classificacaoFiltro" class="form-label">Classificação Orçamentária</label>
+        <select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
+      <div class="col-sm-2">
+        <label for="fonteFiltro" class="form-label">Fonte</label>
+        <select id="fonteFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
+      <div class="col-sm-3">
+        <label for="empenhoFiltro" class="form-label">Empenho</label>
+        <select id="empenhoFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
+      <div class="col-sm-3">
+        <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
+        <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
+      <div class="col-sm-3">
+        <label for="credorFiltro" class="form-label">Credor</label>
+        <select id="credorFiltro" class="form-select form-select-sm" disabled></select>
+      </div>
     </div>
+
+    <div class="d-flex justify-content-between mb-2">
+      <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
+      <div class="btn-group">
+        <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
+        <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
+        <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
+        <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
+      </div>
+    </div>
+
+    <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%; display: none;"></table>
   </div>
 
-  <table id="tabela" class="table table-bordered table-sm table-striped" style="width:100%; display: none;"></table>
-</div>
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script>
+    let tabela;
+    let dadosOriginais = [];
+    const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    const campos = {
+      ano: "Ano",
+      mes: "Mês",
+      unidade: "Unidade Orçamentária",
+      natureza: "Natureza de Despesa",
+      classificacao: "Classificação Orçamentária",
+      fonte: "Fonte",
+      empenho: "Empenho",
+      cpf: "CPF/CNPJ",
+      credor: "Credor"
+    };
 
-<script>
-let tabela;
-let dadosOriginais = [];
-const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const campos = {
-  ano: "Ano",
-  mes: "Mês",
-  unidade: "Unidade Orçamentária",
-  natureza: "Natureza de Despesa",
-  classificacao: "Classificação Orçamentária",
-  fonte: "Fonte",
-  empenho: "Empenho",
-  cpf: "CPF/CNPJ",
-  credor: "Credor"
-};
+    $(document).ready(function () {
+      $('#spinnerOverlay').show();
+      Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
+        download: true,
+        header: true,
+        complete: function (results) {
+          $('#spinnerOverlay').hide();
+          dadosOriginais = results.data.filter(r => r["Ano"]);
+          popularFiltro("anoFiltro", campos.ano, dadosOriginais);
+        }
+      });
 
-$(document).ready(function () {
-  $('#spinnerOverlay').show();
-  Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
-    download: true,
-    header: true,
-    complete: function (results) {
-      $('#spinnerOverlay').hide();
-      dadosOriginais = results.data.filter(r => r["Ano"]);
-      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
+      $('#anoFiltro').on('change', function () {
+        if (!this.value) return;
+        $('#spinnerFiltro').show();
+        const dadosAno = filtrar(dadosOriginais, campos.ano, this.value);
+
+        ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
+          const campo = campos[id.replace("Filtro", "")];
+          popularFiltro(id, campo, dadosAno, campo === "Mês");
+        });
+
+        $('#spinnerFiltro').hide();
+        $('select').not('#anoFiltro').prop('disabled', false);
+        inicializarTabela(dadosAno);
+      });
+
+      $('select').not('#anoFiltro').on('change', function () {
+        inicializarTabela(aplicarTodosFiltros());
+      });
+
+      $('#btnLimpar').click(() => {
+        $('select').val('').prop('disabled', true);
+        $('#anoFiltro').prop('disabled', false);
+        $('#tabela').hide();
+        if (tabela) tabela.clear().draw();
+      });
+
+      $('#exportCsv').click(() => $('.buttons-csv').click());
+      $('#exportXls').click(() => $('.buttons-excel').click());
+      $('#exportJson').click(() => {
+        const json = tabela.rows({ search: 'applied' }).data().toArray();
+        const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json' });
+        baixar(blob, "dados.json");
+      });
+      $('#exportTxt').click(() => {
+        const data = tabela.rows({ search: 'applied' }).data().toArray();
+        const cols = Object.keys(data[0]);
+        let conteudo = cols.join(";") + "\n";
+        data.forEach(l => {
+          conteudo += cols.map(c => l[c]).join(";") + "\n";
+        });
+        const blob = new Blob([conteudo], { type: 'text/plain' });
+        baixar(blob, "dados.txt");
+      });
+    });
+
+    function popularFiltro(id, campo, dados, ordenarMes = false) {
+      const seletor = $('#' + id);
+      const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+      if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+      else valores.sort();
+      seletor.empty().append('<option value="">Todos</option>');
+      valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
     }
-  });
 
-  $('#anoFiltro').on('change', function () {
-    if (!this.value) return;
-    $('#spinnerFiltro').show();
-    const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
+    function filtrar(dados, campo, valor) {
+      return !valor ? dados : dados.filter(d => d[campo] === valor);
+    }
 
-    ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
-      const campo = campos[id.replace("Filtro", "")];
-      popularFiltroEncadeado(id, campo, dadosAno, campo === "Mês");
-    });
+    function aplicarTodosFiltros() {
+      return dadosOriginais.filter(r =>
+        (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
+        (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
+        (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
+        (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
+        (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
+        (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
+        (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
+        (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
+        (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
+      );
+    }
 
-    $('#spinnerFiltro').hide();
-    $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro').prop('disabled', false);
-    inicializarTabela(dadosAno);
-  });
+    function inicializarTabela(dados) {
+      $('#tabela').show();
+      if ($.fn.DataTable.isDataTable('#tabela')) {
+        tabela.clear().rows.add(dados).draw();
+      } else {
+        tabela = $('#tabela').DataTable({
+          data: dados,
+          columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
+          language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
+          dom: 'Bfrtip',
+          buttons: [
+            { extend: 'csvHtml5', className: 'd-none' },
+            { extend: 'excelHtml5', className: 'd-none' },
+          ]
+        });
+      }
+    }
 
-  $('select').not('#anoFiltro').on('change', function () {
-    inicializarTabela(aplicarFiltroEncadeado());
-  });
-
-  $('#btnLimpar').click(() => {
-    $('select').val('').prop('disabled', true);
-    $('#anoFiltro').prop('disabled', false);
-    $('#tabela').hide();
-    if (tabela) tabela.clear().draw();
-  });
-
-  $('#exportCsv').click(() => $('.buttons-csv').click());
-  $('#exportXls').click(() => $('.buttons-excel').click());
-  $('#exportJson').click(() => {
-    const jsonData = tabela.rows({ search: 'applied' }).data().toArray();
-    const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
-    baixarArquivo(blob, "dados.json");
-  });
-
-  $('#exportTxt').click(() => {
-    const dados = tabela.rows({ search: 'applied' }).data().toArray();
-    const colunas = Object.keys(dados[0]);
-    let conteudo = colunas.join(";") + "\n";
-    dados.forEach(linha => {
-      conteudo += colunas.map(c => linha[c]).join(";") + "\n";
-    });
-    const blob = new Blob([conteudo], { type: 'text/plain' });
-    baixarArquivo(blob, "dados.txt");
-  });
-});
-
-function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
-  const seletor = $('#' + id);
-  const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
-  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
-  else valores.sort();
-  seletor.empty().append('<option value="">Todos</option>');
-  valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
-}
-
-function filtrarDados(dados, campo, valor) {
-  return !valor ? dados : dados.filter(d => d[campo] === valor);
-}
-
-function aplicarFiltroEncadeado() {
-  return dadosOriginais.filter(r =>
-    (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
-    (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
-    (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
-    (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
-    (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
-    (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
-    (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
-    (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
-    (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
-  );
-}
-
-function inicializarTabela(dados) {
-  $('#tabela').show();
-  if ($.fn.DataTable.isDataTable('#tabela')) {
-    tabela.clear().rows.add(dados).draw();
-  } else {
-    tabela = $('#tabela').DataTable({
-      data: dados,
-      columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
-      language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
-      dom: 'Bfrtip',
-      buttons: [
-        { extend: 'csvHtml5', className: 'd-none' },
-        { extend: 'excelHtml5', className: 'd-none' },
-      ]
-    });
-  }
-}
-
-function baixarArquivo(blob, nome) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = nome;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-</script>
+    function baixar(blob, nome) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = nome;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
 </body>
 </html>
+
