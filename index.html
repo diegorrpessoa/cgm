@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -42,8 +39,7 @@
     <div class="col-sm-2">
       <label for="naturezaFiltro" class="form-label">Natureza de Despesa</label>
       <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
-    </div>
-    
+    </div>    
     <div class="col-sm-2">
       <label for="fonteFiltro" class="form-label">Fonte</label>
       <select id="fonteFiltro" class="form-select form-select-sm" disabled></select>
@@ -69,10 +65,10 @@
   <div class="d-flex justify-content-between mb-2">
     <button class="btn btn-outline-primary btn-sm" id="btnLimpar">Limpar Filtros</button>
     <div class="btn-group">
-      <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
       <button class="btn btn-outline-secondary btn-sm" id="exportXls">XLS</button>
-      <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportCsv">CSV</button>
       <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
+      <button class="btn btn-outline-secondary btn-sm" id="exportJson">JSON</button>
     </div>
   </div>
 
@@ -98,6 +94,7 @@ const campos = {
   mes: "Mês",
   unidade: "Unidade Orçamentária",
   natureza: "Natureza de Despesa",
+  fonte: "Fonte",
   classificacao: "Classificação Orçamentária",
   empenho: "Empenho",
   cpf: "CPF/CNPJ",
@@ -138,6 +135,12 @@ $(document).ready(function () {
       $('#naturezaFiltro').on('change', function () {
         const dados = aplicarFiltroEncadeado();
         popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
+        inicializarTabela(dados);
+      });
+
+      $('#fonteFiltro').on('change', function () {
+        const dados = aplicarFiltroEncadeado();
+        popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
         inicializarTabela(dados);
       });
 
@@ -184,7 +187,7 @@ function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
 }
 
 function toggleFiltros(status) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
     .prop('disabled', !status);
 }
 
@@ -199,6 +202,7 @@ function aplicarFiltroEncadeado() {
     (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
     (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
     (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
+    (!$('fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
     (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
     (!$('#empenhoFiltro').val() || r[campos.empenho]?.toLowerCase().includes($('#empenhoFiltro').val().toLowerCase())) &&
     (!$('#cpfFiltro').val() || r[campos.cpf]?.toLowerCase().includes($('#cpfFiltro').val().toLowerCase())) &&
