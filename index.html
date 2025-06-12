@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Despesas</title>
+  <title>3Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -195,34 +195,33 @@ function aplicarFiltroEncadeado(){
   }, dadosOriginais);
 }
 
-function inicializarTabela(dados){
+  function inicializarTabela(dados){
   $('#tabela').show();
   if(tabela){
     tabela.clear().rows.add(dados).draw();
   } else {
+    const colunas = Object.keys(dados[0]).map(c => ({
+      title: c,
+      data: c,
+      render: (typeof dados[0][c] === 'string' && dados[0][c].startsWith("R$")) || c.startsWith("Valor") ?
+        $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
+    }));
+
     tabela = $('#tabela').DataTable({
-      data:dados,
-      destroy:true,pageLength:30,searching:true,ordering:true,
-      autoWidth:false,scrollX:true,dom:'Bfrtip',
-      buttons:[
-        {extend:'csvHtml5',className:'d-none'},
-        {extend:'excelHtml5',className:'d-none'}
+      data: dados,
+      destroy: true,
+      pageLength: 30,
+      searching: true,
+      ordering: true,
+      autoWidth: false,
+      scrollX: true,
+      dom: 'Bfrtip',
+      buttons: [
+        { extend: 'csvHtml5', className: 'd-none' },
+        { extend: 'excelHtml5', className: 'd-none' }
       ],
-      columns:[
-        {title:"Ano",data:"Ano"},
-        {title:"Mês",data:"Mês"},
-        {title:"Unidade",data:"Unidade Orçamentária"},
-        {title:"Natureza",data:"Natureza de Despesa"},
-        {title:"Classificação",data:"Classificação Orçamentária"},
-        {title:"Fonte",data:"Fonte"},
-        {title:"Empenho",data:"Empenho"},
-        {title:"CPF/CNPJ",data:"CPF/CNPJ"},
-        {title:"Credor",data:"Credor"},
-        {title:"Empenhado",data:"Valor Empenhado",render:$.fn.dataTable.render.number('.',',',2,'R$ ')},
-        {title:"Liquidado",data:"Valor Liquidado",render:$.fn.dataTable.render.number('.',',',2,'R$ ')},
-        {title:"Pago",data:"Valor Pago",render:$.fn.dataTable.render.number('.',',',2,'R$ ')}
-      ],
-      language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
+      columns: colunas,
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" }
     });
   }
   atualizarResumo(dados);
