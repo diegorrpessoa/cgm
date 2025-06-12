@@ -15,61 +15,28 @@
       font-size: 0.65rem !important;
     }
 
-    .xsmall { font-size: 0.6rem !important; }
-
     .spinner-overlay,
     .spinner-overlay-ano {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding-top: 60px;
-      z-index: 9999;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start; padding-top: 60px; z-index: 9999;
     }
-
     .spinner-overlay { background-color: rgba(255, 255, 255, 0.9); }
     .spinner-overlay-ano {
-      background-color: rgba(255, 255, 255, 0.5);
-      z-index: 9998;
+      background-color: rgba(255, 255, 255, 0.5); z-index: 9998;
     }
-
-    .spinner-border {
-      width: 2rem;
-      height: 2rem;
-    }
-
-    .spinner-text {
-      font-size: 0.9rem;
-      margin-top: 5px;
-    }
-
+    .spinner-border { width: 2rem; height: 2rem; }
+    .spinner-text { font-size: 0.9rem; margin-top: 5px; }
     table.dataTable td, table.dataTable th { white-space: nowrap; }
-
     .dt-buttons .btn {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.7rem;
+      padding: 0.25rem 0.5rem; font-size: 0.7rem;
     }
-
     .table-wrapper { overflow-x: auto; }
-
     .totalizadores {
-      font-size: 0.7rem;
-      background: #fff;
-      padding: 5px 10px;
-      border: 1px solid #dee2e6;
-      border-radius: 4px;
+      font-size: 0.7rem; background: #fff; padding: 5px 10px;
+      border: 1px solid #dee2e6; border-radius: 4px; margin-bottom: 0.5rem;
     }
-
-    .totalizadores span {
-      display: inline-block;
-      margin-right: 15px;
-      font-weight: 500;
-    }
+    .totalizadores span { display: inline-block; margin-right: 15px; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -79,7 +46,6 @@
   <div class="spinner-border text-primary" role="status"></div>
   <div class="spinner-text">Atualizando dados iniciais...</div>
 </div>
-
 <div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
   <div class="spinner-border text-secondary" role="status"></div>
   <div class="spinner-text">Carregando filtros...</div>
@@ -101,9 +67,9 @@
 
   <!-- Totalizadores -->
   <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
-    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
-    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
-    <span id="totalPago">Pago: R$ 0,00</span>
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
   </div>
 
   <!-- Botões -->
@@ -123,7 +89,6 @@
   </div>
 </div>
 
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
@@ -137,141 +102,132 @@
 <script>
 let tabela, dadosOriginais = [];
 const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
-const campos = {
-  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária",
-  natureza: "Natureza de Despesa", classificacao: "Classificação Orçamentária",
-  fonte: "Fonte", empenho: "Empenho", cpf: "CPF/CNPJ", credor: "Credor"
-};
+const campos = { ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária", natureza: "Natureza de Despesa", classificacao: "Classificação Orçamentária", fonte: "Fonte", empenho: "Empenho", cpf: "CPF/CNPJ", credor: "Credor" };
 
-$(document).ready(function () {
+// Função para atualizar múltiplos selects dinamicamente
+function atualizarTodosFiltros() {
+  const filtrados = aplicarFiltroEncadeado(true);
+  ["mesFiltro","unidadeFiltro","naturezaFiltro","classificacaoFiltro","fonteFiltro","empenhoFiltro","cpfFiltro","credorFiltro"].forEach(id => {
+    const campo = campos[id.replace("Filtro","")];
+    popularFiltroEncadeado(id, campo, filtrados, id==="mesFiltro");
+  });
+}
+
+// Comportamento de filtros encadeados
+function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
+  const sel = $(`#${id}`);
+  let v = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
+  if (ordenarMes) v.sort((a,b)=>mesesOrdem.indexOf(a)-mesesOrdem.indexOf(b)); else v.sort();
+  const atual = sel.val()||"";
+  sel.empty().append('<option value="">Todos</option>');
+  v.forEach(o=>sel.append(`<option value="${o}">${o}</option>`));
+  sel.val(atual).prop("disabled", false);
+}
+
+// Constrói base filtrada conforme seleções
+function aplicarFiltroEncadeado(antes=false) {
+  return dadosOriginais.filter(r =>
+    (!$("#anoFiltro").val() || r[campos.ano]=== $("#anoFiltro").val()) &&
+    (!$("#mesFiltro").val() || r[campos.mes]=== $("#mesFiltro").val()) &&
+    (!$("#unidadeFiltro").val() || r[campos.unidade]=== $("#unidadeFiltro").val()) &&
+    (!$("#naturezaFiltro").val() || r[campos.natureza]=== $("#naturezaFiltro").val()) &&
+    (!$("#classificacaoFiltro").val() || r[campos.classificacao]=== $("#classificacaoFiltro").val()) &&
+    (!$("#fonteFiltro").val() || r[campos.fonte]=== $("#fonteFiltro").val()) &&
+    (!$("#empenhoFiltro").val() || r[campos.empenho]=== $("#empenhoFiltro").val()) &&
+    (!$("#cpfFiltro").val() || r[campos.cpf]=== $("#cpfFiltro").val()) &&
+    (!$("#credorFiltro").val() || r[campos.credor]=== $("#credorFiltro").val())
+  );
+}
+
+// Inicializa tabela e totalizadores
+function inicializarTabela(dados) {
+  $("#resumoValores").show();
+  atualizarTotalizadores(dados);
+  $("#tabela").show();
+  if ($.fn.DataTable.isDataTable("#tabela")) tabela.clear().rows.add(dados).draw();
+  else tabela = $("#tabela").DataTable({
+    data: dados,
+    columns: Object.keys(dados[0]).map(c=>({title:c,data:c})),
+    language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"},
+    dom:'Bfrtip', scrollX:true,
+    buttons:[
+      {extend:'csvHtml5', className:'d-none'},
+      {extend:'excelHtml5', className:'d-none'}
+    ]
+  });
+}
+
+function atualizarTotalizadores(dados) {
+  const toNum=v=>parseFloat(String(v).replace(",",".").replace(/[^\d.-]/g,""))||0;
+  const form = n=>n.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+  const tot = { Empenhado:0, Liquidado:0, Pago:0 };
+  dados.forEach(r=>{
+    tot.Empenhado+=toNum(r["Valor Empenhado"]);
+    tot.Liquidado+=toNum(r["Valor Liquidado"]);
+    tot.Pago +=toNum(r["Valor Pago"]);
+  });
+  $("#totalEmpenhado").text("Empenhado: "+form(tot.Empenhado));
+  $("#totalLiquidado").text("Liquidado: "+form(tot.Liquidado));
+  $("#totalPago").text("Pago: "+form(tot.Pago));
+}
+
+function baixarArquivo(blob,nome){
+  const u=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=u; a.download=nome; document.body.appendChild(a);
+  a.click(); a.remove(); URL.revokeObjectURL(u);
+}
+
+$(document).ready(function(){
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
-    download: true, header: true,
-    complete: function (results) {
-      dadosOriginais = results.data.filter(r => r["Ano"]);
-      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
-      $('#spinnerCsv').hide();
+    download:true, header:true,
+    complete:function(res){
+      dadosOriginais=res.data.filter(r=>r["Ano"]);
+      popularFiltroEncadeado("anoFiltro",campos.ano,dadosOriginais);
+      $("#spinnerCsv").hide();
 
-      $('#anoFiltro').on('change', function () {
-        $('#spinnerAno').show();
-        setTimeout(() => {
+      $("#anoFiltro").on("change", function(){
+        $("#spinnerAno").show();
+        setTimeout(()=>{
           toggleFiltros(true);
           atualizarTodosFiltros();
           inicializarTabela(aplicarFiltroEncadeado());
-          $('#spinnerAno').hide();
+          $("#spinnerAno").hide();
         }, 100);
       });
 
-      $('select').not('#anoFiltro').on('change', () => inicializarTabela(aplicarFiltroEncadeado()));
-
-      $('#btnLimpar').click(() => {
-        $('select').val('').prop('disabled', true);
-        $('#anoFiltro').prop('disabled', false);
-        $('#tabela').hide();
-        $('#resumoValores').hide();
-        if (tabela) tabela.clear().draw();
+      $("select").not("#anoFiltro").on("change",function(){
+        const dados=aplicarFiltroEncadeado();
+        atualizarTodosFiltros();
+        inicializarTabela(dados);
       });
 
-      $('#exportCsv').click(() => $('.buttons-csv').click());
-      $('#exportXls').click(() => $('.buttons-excel').click());
-      $('#exportJson').click(() => {
-        const dados = tabela.rows({ search: 'applied' }).data().toArray();
-        const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
-        baixarArquivo(blob, "dados.json");
+      $("#btnLimpar").click(()=>{
+        $("select").val("").prop("disabled",true);
+        $("#anoFiltro").prop("disabled",false);
+        $("#tabela,#resumoValores").hide();
+        if(tabela) tabela.clear().draw();
       });
-      $('#exportTxt').click(() => {
-        const dados = tabela.rows({ search: 'applied' }).data().toArray();
-        const colunas = Object.keys(dados[0]);
-        let conteudo = colunas.join(";") + "\n";
-        dados.forEach(linha => conteudo += colunas.map(c => linha[c]).join(";") + "\n");
-        baixarArquivo(new Blob([conteudo], { type: 'text/plain' }), "dados.txt");
+
+      $("#exportCsv").click(()=>$(".buttons-csv").click());
+      $("#exportXls").click(()=>$(".buttons-excel").click());
+      $("#exportJson").click(()=>{
+        const d=tabela.rows({search:"applied"}).data().toArray();
+        baixarArquivo(new Blob([JSON.stringify(d,null,2)],{type:"application/json"}),"dados.json");
+      });
+      $("#exportTxt").click(()=>{
+        const d=tabela.rows({search:"applied"}).data().toArray();
+        const h=Object.keys(d[0]).join(";");
+        let c=h+"\n";
+        d.forEach(r=>c+=Object.keys(r).map(k=>r[k]).join(";")+"\n");
+        baixarArquivo(new Blob([c],{type:"text/plain"}),"dados.txt");
       });
     }
   });
 });
 
-function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
-  const seletor = $('#' + id);
-  let valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
-  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b)); else valores.sort();
-  seletor.empty().append('<option value="">Todos</option>');
-  valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
-  seletor.prop('disabled', false);
-}
-
-function atualizarTodosFiltros() {
-  const dados = aplicarFiltroEncadeado();
-  popularFiltroEncadeado("mesFiltro", campos.mes, dados, true);
-  popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
-  popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
-  popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
-  popularFiltroEncadeado("fonteFiltro", campos.fonte, dados);
-  popularFiltroEncadeado("empenhoFiltro", campos.empenho, dados);
-  popularFiltroEncadeado("cpfFiltro", campos.cpf, dados);
-  popularFiltroEncadeado("credorFiltro", campos.credor, dados);
-}
-
-function toggleFiltros(status) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
-    .prop('disabled', !status);
-}
-
-function aplicarFiltroEncadeado() {
-  return dadosOriginais.filter(r =>
-    (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
-    (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
-    (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
-    (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
-    (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
-    (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
-    (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
-    (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
-    (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
-  );
-}
-
-function inicializarTabela(dados) {
-  $('#tabela').show();
-  $('#resumoValores').show();
-  atualizarTotalizadores(dados);
-  if ($.fn.DataTable.isDataTable('#tabela')) {
-    tabela.clear().rows.add(dados).draw();
-  } else {
-    tabela = $('#tabela').DataTable({
-      data: dados,
-      columns: Object.keys(dados[0]).map(c => ({ title: c, data: c })),
-      language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
-      dom: 'Bfrtip',
-      scrollX: true,
-      buttons: [
-        { extend: 'csvHtml5', className: 'd-none' },
-        { extend: 'excelHtml5', className: 'd-none' }
-      ]
-    });
-  }
-}
-
-function atualizarTotalizadores(dados) {
-  const toFloat = v => parseFloat(String(v).replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
-  const format = n => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-  const totalEmp = dados.reduce((s, l) => s + toFloat(l["Valor Empenhado"]), 0);
-  const totalLiq = dados.reduce((s, l) => s + toFloat(l["Valor Liquidado"]), 0);
-  const totalPag = dados.reduce((s, l) => s + toFloat(l["Valor Pago"]), 0);
-
-  $("#totalEmpenhado").text(`Empenhado: ${format(totalEmp)}`);
-  $("#totalLiquidado").text(`Liquidado: ${format(totalLiq)}`);
-  $("#totalPago").text(`Pago: ${format(totalPag)}`);
-}
-
-function baixarArquivo(blob, nome) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = nome;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+function toggleFiltros(ativar){
+  $("#mesFiltro,#unidadeFiltro,#naturezaFiltro,#classificacaoFiltro,#fonteFiltro,#empenhoFiltro,#cpfFiltro,#credorFiltro")
+    .prop("disabled", !ativar);
 }
 </script>
 </body>
