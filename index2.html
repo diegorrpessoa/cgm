@@ -66,9 +66,9 @@
 
   <!-- Totalizadores -->
   <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
-    <span id="totalEmpenhado">Total Empenhado: R$ 0,00</span>
-    <span id="totalLiquidado">Total Liquidado: R$ 0,00</span>
-    <span id="totalPago">Total Pago: R$ 0,00</span>
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
   </div>
 
   <!-- Botões -->
@@ -81,6 +81,8 @@
       <button class="btn btn-outline-secondary btn-sm" id="exportTxt">TXT</button>
     </div>
   </div>
+  
+  <div class="text-end xsmall text-muted mb-2" id="dataAtualizacao"></div>
 
   <!-- Tabela -->
   <div class="table-wrapper">
@@ -165,9 +167,9 @@ function atualizarTotalizadores(dados) {
     tot.Liquidado+=toNum(r["Valor Liquidado"]);
     tot.Pago +=toNum(r["Valor Pago"]);
   });
-  $("#totalEmpenhado").text("Empenhado: "+form(tot.Empenhado));
-  $("#totalLiquidado").text("Liquidado: "+form(tot.Liquidado));
-  $("#totalPago").text("Pago: "+form(tot.Pago));
+  $("#totalEmpenhado").text("Total Empenhado: "+form(tot.Empenhado));
+  $("#totalLiquidado").text("Total Liquidado: "+form(tot.Liquidado));
+  $("#totalPago").text("Total Pago: "+form(tot.Pago));
 }
 
 function baixarArquivo(blob,nome){
@@ -183,6 +185,12 @@ $(document).ready(function(){
       dadosOriginais=res.data.filter(r=>r["Ano"]);
       popularFiltroEncadeado("anoFiltro",campos.ano,dadosOriginais);
       $("#spinnerCsv").hide();
+
+      // Atualiza data/hora
+      const agora = new Date();
+      const formatado = agora.toLocaleDateString('pt-BR') + ' - ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      $('#dataAtualizacao').text('Atualizado em: ' + formatado);
+
 
       $("#anoFiltro").on("change", function(){
         $("#spinnerAno").show();
