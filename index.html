@@ -3,19 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title></title>
+  <title>Consulta de Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
-    .dataTables_filter { display: none; } /* remove campo "Buscar registros" */
+    .dataTables_filter { display: none; }
     .form-label { font-size: 0.85rem; }
-    .form-select-sm, .form-control-sm { font-size: 0.85rem; }
-    .spinner-border {
-      width: 1rem;
-      height: 1rem;
-      border-width: 0.15em;
-    }
+    .form-select-sm { font-size: 0.85rem; }
   </style>
 </head>
 <body class="bg-light">
@@ -23,10 +18,7 @@
   <div class="row g-2 mb-3">
     <div class="col-sm-2">
       <label for="anoFiltro" class="form-label">Ano *</label>
-      <div class="d-flex align-items-center">
-        <select id="anoFiltro" class="form-select form-select-sm" required disabled></select>
-        <div id="spinnerAno" class="spinner-border text-primary ms-2" role="status" style="display:none;"></div>
-      </div>
+      <select id="anoFiltro" class="form-select form-select-sm" required></select>
     </div>
     <div class="col-sm-2">
       <label for="mesFiltro" class="form-label">Mês</label>
@@ -45,16 +37,20 @@
       <select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select>
     </div>
     <div class="col-sm-2">
+      <label for="fonteFiltro" class="form-label">Fonte</label>
+      <select id="fonteFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+    <div class="col-sm-2">
       <label for="empenhoFiltro" class="form-label">Empenho</label>
-      <input type="text" id="empenhoFiltro" class="form-control form-control-sm" placeholder="Digite o empenho" disabled>
+      <select id="empenhoFiltro" class="form-select form-select-sm" disabled></select>
     </div>
     <div class="col-sm-3">
       <label for="cpfFiltro" class="form-label">CPF/CNPJ</label>
-      <input type="text" id="cpfFiltro" class="form-control form-control-sm" placeholder="Digite o CPF ou CNPJ" disabled>
+      <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
     </div>
     <div class="col-sm-3">
       <label for="credorFiltro" class="form-label">Credor</label>
-      <input type="text" id="credorFiltro" class="form-control form-control-sm" placeholder="Digite o nome do credor" disabled>
+      <select id="credorFiltro" class="form-select form-select-sm" disabled></select>
     </div>
   </div>
 
@@ -86,59 +82,30 @@ let tabela;
 let dadosOriginais = [];
 const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
 const campos = {
-  ano: "Ano",
-  mes: "Mês",
-  unidade: "Unidade Orçamentária",
-  natureza: "Natureza de Despesa",
-  classificacao: "Classificação Orçamentária",
-  empenho: "Empenho",
-  cpf: "CPF/CNPJ",
-  credor: "Credor"
+  ano: "Ano", mes: "Mês", unidade: "Unidade Orçamentária", natureza: "Natureza de Despesa",
+  classificacao: "Classificação Orçamentária", fonte: "Fonte", empenho: "Empenho",
+  cpf: "CPF/CNPJ", credor: "Credor"
 };
 
 $(document).ready(function () {
-  $('#spinnerAno').show();
-
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
     download: true,
     header: true,
     complete: function (results) {
       dadosOriginais = results.data.filter(r => r["Ano"]);
-      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
-      $('#anoFiltro').prop('disabled', false);
-      $('#spinnerAno').hide();
+      popularFiltro("anoFiltro", campos.ano, dadosOriginais);
 
       $('#anoFiltro').on('change', function () {
-        const dadosAno = filtrarDados(dadosOriginais, campos.ano, this.value);
-        popularFiltroEncadeado("mesFiltro", campos.mes, dadosAno, true);
-        toggleFiltros(true);
-        inicializarTabela(dadosAno);
+        atualizarFiltrosEncadeados();
       });
 
-      $('#mesFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("unidadeFiltro", campos.unidade, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#unidadeFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("naturezaFiltro", campos.natureza, dados);
-        inicializarTabela(dados);
-      });
-
-      $('#naturezaFiltro').on('change', function () {
-        const dados = aplicarFiltroEncadeado();
-        popularFiltroEncadeado("classificacaoFiltro", campos.classificacao, dados);
-        inicializarTabela(dados);
-      });
-
-      ['classificacaoFiltro', 'empenhoFiltro', 'cpfFiltro', 'credorFiltro'].forEach(id =>
-        $('#' + id).on('change keyup', () => inicializarTabela(aplicarFiltroEncadeado()))
-      );
+      $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #fonteFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
+        .on('change', function () {
+          atualizarFiltrosEncadeados();
+        });
 
       $('#btnLimpar').click(() => {
-        $('select, input').val('').prop('disabled', true);
+        $('select').val('').prop('disabled', true);
         $('#anoFiltro').prop('disabled', false);
         $('#tabela').hide();
         if (tabela) tabela.clear().draw();
@@ -165,36 +132,40 @@ $(document).ready(function () {
   });
 });
 
-function popularFiltroEncadeado(id, campo, dados, ordenarMes = false) {
+function popularFiltro(id, campo, dados, ordenarMes = false) {
   const seletor = $('#' + id);
   const valores = [...new Set(dados.map(d => d[campo]).filter(Boolean))];
-  if (ordenarMes) valores.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+  if (ordenarMes) valores.sort((a, b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
   else valores.sort();
   seletor.empty().append('<option value="">Todos</option>');
   valores.forEach(v => seletor.append(`<option value="${v}">${v}</option>`));
   seletor.prop('disabled', false);
 }
 
-function toggleFiltros(status) {
-  $('#mesFiltro, #unidadeFiltro, #naturezaFiltro, #classificacaoFiltro, #empenhoFiltro, #cpfFiltro, #credorFiltro')
-    .prop('disabled', !status);
+function atualizarFiltrosEncadeados() {
+  let filtrado = aplicarFiltros();
+  popularFiltro("mesFiltro", campos.mes, filtrado, true);
+  popularFiltro("unidadeFiltro", campos.unidade, filtrado);
+  popularFiltro("naturezaFiltro", campos.natureza, filtrado);
+  popularFiltro("classificacaoFiltro", campos.classificacao, filtrado);
+  popularFiltro("fonteFiltro", campos.fonte, filtrado);
+  popularFiltro("empenhoFiltro", campos.empenho, filtrado);
+  popularFiltro("cpfFiltro", campos.cpf, filtrado);
+  popularFiltro("credorFiltro", campos.credor, filtrado);
+  inicializarTabela(filtrado);
 }
 
-function filtrarDados(dados, campo, valor) {
-  if (!valor) return dados;
-  return dados.filter(d => d[campo] === valor);
-}
-
-function aplicarFiltroEncadeado() {
+function aplicarFiltros() {
   return dadosOriginais.filter(r =>
     (!$('#anoFiltro').val() || r[campos.ano] === $('#anoFiltro').val()) &&
     (!$('#mesFiltro').val() || r[campos.mes] === $('#mesFiltro').val()) &&
     (!$('#unidadeFiltro').val() || r[campos.unidade] === $('#unidadeFiltro').val()) &&
     (!$('#naturezaFiltro').val() || r[campos.natureza] === $('#naturezaFiltro').val()) &&
     (!$('#classificacaoFiltro').val() || r[campos.classificacao] === $('#classificacaoFiltro').val()) &&
-    (!$('#empenhoFiltro').val() || r[campos.empenho]?.toLowerCase().includes($('#empenhoFiltro').val().toLowerCase())) &&
-    (!$('#cpfFiltro').val() || r[campos.cpf]?.toLowerCase().includes($('#cpfFiltro').val().toLowerCase())) &&
-    (!$('#credorFiltro').val() || r[campos.credor]?.toLowerCase().includes($('#credorFiltro').val().toLowerCase()))
+    (!$('#fonteFiltro').val() || r[campos.fonte] === $('#fonteFiltro').val()) &&
+    (!$('#empenhoFiltro').val() || r[campos.empenho] === $('#empenhoFiltro').val()) &&
+    (!$('#cpfFiltro').val() || r[campos.cpf] === $('#cpfFiltro').val()) &&
+    (!$('#credorFiltro').val() || r[campos.credor] === $('#credorFiltro').val())
   );
 }
 
@@ -210,7 +181,7 @@ function inicializarTabela(dados) {
       dom: 'Bfrtip',
       buttons: [
         { extend: 'csvHtml5', className: 'd-none' },
-        { extend: 'excelHtml5', className: 'd-none' },
+        { extend: 'excelHtml5', className: 'd-none' }
       ]
     });
   }
