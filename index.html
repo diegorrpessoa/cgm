@@ -98,6 +98,19 @@
   <div class="table-wrapper">
     <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
   </div>
+  
+<div class="mb-2 d-flex justify-content-end align-items-center">
+  <label for="registrosPagina" class="me-2 xsmall">Registros por página:</label>
+  <select id="registrosPagina" class="form-select form-select-sm w-auto">
+    <option value="10">10</option>
+    <option value="25">25</option>
+    <option value="30" selected>30</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+    <option value="-1">Todos</option>
+  </select>
+</div>
+  
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -143,6 +156,11 @@ $(document).ready(function(){
         $('#resumoValores,#tabela').hide();
         tabela?.clear().draw();
       });
+
+$('#registrosPagina').on('change', function () {
+  const dadosFiltrados = aplicarFiltroEncadeado();
+  inicializarTabela(dadosFiltrados);
+});      
       $('#exportCsv').click(()=>$('.buttons-csv').click());
       $('#exportXls').click(()=>$('.buttons-excel').click());
       $('#exportJson').click(()=>{const d=tabela.rows({search:'applied'}).data().toArray(); baixarArquivo(new Blob([JSON.stringify(d,null,2)],{type:'application/json'}),'dados.json');});
@@ -210,7 +228,8 @@ function aplicarFiltroEncadeado(){
     tabela = $('#tabela').DataTable({
       data: dados,
       destroy: true,
-      pageLength: 30,
+      pageLength: parseInt($('#registrosPagina').val(), 10),
+      lengthMenu: [[10, 25, 30, 50, 100, -1], [10, 25, 30, 50, 100, "Todos"]],
       searching: true,
       ordering: true,
       autoWidth: false,
