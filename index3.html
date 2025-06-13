@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
-    .spinner-overlay, .spinner-overlay-ano {
+    .spinner-overlay {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -39,53 +39,17 @@
   <div class="spinner-border text-success"></div>
   <div class="spinner-text">Carregando dados de receitas...</div>
 </div>
-<div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
-  <div class="spinner-border text-secondary"></div>
-  <div class="spinner-text">Carregando filtros...</div>
-</div>
 
 <div class="container-fluid mt-4">
   <div class="row gx-2 gy-2 mb-3">
-    <div class="col-sm-2"><label>Ano *</label><select id="anoFiltro" class="form-select form-select-sm"></select></div>
-    <div class="col-sm-2"><label>Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Unidade</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Categoria</label><select id="categoriaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Origem</label><select id="origemFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Espécie</label><select id="especieFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Rubrica</label><select id="rubricaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Alínea</label><select id="alineiaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Subalínea</label><select id="subalineiaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-4"><label>Receita</label><select id="receitaFiltro" class="form-select form-select-sm" disabled></select></div>
-  </div>
-
-  <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
-    <span id="totalPrevisto">Previsto: R$ 0,00</span>
-    <span id="totalArrecadado">Arrecadado: R$ 0,00</span>
-  </div>
-
-  <div class="d-flex justify-content-between mb-2">
-    <button id="btnLimpar" class="btn btn-outline-success btn-sm">Limpar Filtros</button>
-    <div class="btn-group">
-      <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-      <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-      <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-      <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+    <div class="col-sm-2">
+      <label>Ano *</label>
+      <select id="anoFiltro" class="form-select form-select-sm"></select>
     </div>
   </div>
 
   <div class="table-wrapper">
     <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
-  </div>
-
-  <div id="lengthSelectorContainer" class="text-end">
-    <label for="lengthSelector">Registros por página:</label>
-    <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
-      <option value="10">10</option>
-      <option value="20">20</option>
-      <option value="50">50</option>
-      <option value="100">100</option>
-    </select>
   </div>
 </div>
 
@@ -99,56 +63,37 @@
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
-const campos = {
-  ano: "Ano",
-  mes: "Mês",
-  unidade: "Unidade Gestora",
-  categoria: "Categoria Econômica",
-  origem: "Origem",
-  especie: "Espécie",
-  rubrica: "Rubrica",
-  alineia: "Alínea",
-  subalineia: "Subalínea",
-  fonte: "Fonte",
-  receita: "Receita"
-};
-
-const ordemFiltros = Object.keys(campos);
 let dadosCsv = [];
 let tabela;
 
-const atualizarResumo = (df) => {
-  const totalPrevisto = df.reduce((sum, row) => sum + parseFloat(row["Valor Previsto"] || 0), 0);
-  const totalArrecadado = df.reduce((sum, row) => sum + parseFloat(row["Valor Arrecadado"] || 0), 0);
-  $('#totalPrevisto').text("Previsto: R$ " + totalPrevisto.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-  $('#totalArrecadado').text("Arrecadado: R$ " + totalArrecadado.toLocaleString('pt-BR', { minimumFractionDigits: 2 }));
-  $('#resumoValores').show();
-};
-
-const popularFiltro = (filtro, dados) => {
-  const valoresUnicos = [...new Set(dados.map(row => row[campos[filtro]]).filter(Boolean))].sort();
-  const select = $('#' + filtro + 'Filtro');
-  select.empty().append('<option value="">Todos</option>');
-  valoresUnicos.forEach(valor => select.append(`<option value="${valor}">${valor}</option>`));
-};
-
-const aplicarFiltroEncadeado = () => {
-  return dadosCsv.filter(row => {
-    return ordemFiltros.every(filtro => {
-      const val = $('#' + filtro + 'Filtro').val();
-      return !val || row[campos[filtro]] === val;
-    });
+const carregarCsv = (url) => {
+  Papa.parse(url, {
+    download: true,
+    header: true,
+    skipEmptyLines: true,
+    complete: function(results) {
+      dadosCsv = results.data.filter(row => row["Ano"]);
+      popularFiltroAno(dadosCsv);
+      inicializarTabela(dadosCsv);
+      $('#spinnerCsv').hide();
+    },
+    error: function(err) {
+      alert("Erro ao carregar CSV: " + err);
+      $('#spinnerCsv').hide();
+    }
   });
 };
 
-const atualizarFiltrosEncadeados = (aPartir) => {
-  const index = ordemFiltros.indexOf(aPartir);
-  for (let i = index + 1; i < ordemFiltros.length; i++) {
-    const filtro = ordemFiltros[i];
-    $('#' + filtro + 'Filtro').val('');
-    const df = aplicarFiltroEncadeado();
-    popularFiltro(filtro, df);
-  }
+const popularFiltroAno = (dados) => {
+  const anos = [...new Set(dados.map(row => row["Ano"]).filter(Boolean))].sort();
+  const select = $('#anoFiltro');
+  select.empty().append('<option value="">Todos</option>');
+  anos.forEach(ano => select.append(`<option value="${ano}">${ano}</option>`));
+};
+
+const aplicarFiltroAno = () => {
+  const anoSelecionado = $('#anoFiltro').val();
+  return anoSelecionado ? dadosCsv.filter(row => row["Ano"] === anoSelecionado) : dadosCsv;
 };
 
 const inicializarTabela = (dados) => {
@@ -156,58 +101,21 @@ const inicializarTabela = (dados) => {
     tabela.clear().rows.add(dados).draw();
     return;
   }
-
   const colunas = Object.keys(dados[0] || {}).map(col => ({ title: col, data: col }));
   tabela = $('#tabela').DataTable({
     data: dados,
     columns: colunas,
     dom: 'Bfrtip',
-    buttons: ['csv', 'excel', 'json', 'copy'],
+    buttons: ['csv', 'excel'],
     language: { url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" },
     pageLength: 10
   });
   $('#tabela').show();
 };
 
-const carregarCsv = (url) => {
-  Papa.parse(url, {
-    download: true,
-    header: true,
-    complete: function(results) {
-      dadosCsv = results.data.filter(row => row["Ano"]);
-      popularFiltro("ano", dadosCsv);
-      $('#spinnerCsv').hide();
-    }
-  });
-};
-
-// Eventos
-ordemFiltros.forEach(filtro => {
-  $('#' + filtro + 'Filtro').on('change', function () {
-    const nome = this.id.replace('Filtro', '');
-    if (nome === 'ano') {
-      ordemFiltros.slice(1).forEach(f => $('#' + f + 'Filtro').prop('disabled', false));
-      atualizarFiltrosEncadeados('ano');
-    } else {
-      atualizarFiltrosEncadeados(nome);
-    }
-    const df = aplicarFiltroEncadeado();
-    inicializarTabela(df);
-    atualizarResumo(df);
-  });
-});
-
-$('#btnLimpar').on('click', () => {
-  ordemFiltros.forEach(f => $('#' + f + 'Filtro').val(''));
-  ordemFiltros.slice(1).forEach(f => $('#' + f + 'Filtro').prop('disabled', true));
-  $('#tabela').hide();
-  tabela?.clear().draw();
-  $('#resumoValores').hide();
-});
-
-$('#lengthSelector').on('change', function () {
-  const val = parseInt($(this).val(), 10);
-  if (tabela) tabela.page.len(val).draw();
+$('#anoFiltro').on('change', function () {
+  const filtrado = aplicarFiltroAno();
+  inicializarTabela(filtrado);
 });
 
 const urlCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT2Fo1dHo7uFDOBtQ0IAOgEONJGUDJzVptV3D-TO3ozp4YmnzjBEUog_AxeEzuzyDpPRu6dtjLw59Ej/pub?output=csv";
