@@ -58,14 +58,16 @@
 
 <h2 class="mb-4 text-center">Despesas Públicas</h2>
 
-<div class="filters">
-  <select id="anoFiltro" class="form-select">
-    <option value="">Selecione o ano</option>
+<div class="filters d-flex align-items-center flex-wrap gap-2 mb-3">
+  <select id="anoFiltro" class="form-select form-select-sm" style="width: auto;">
+    <option value="">Ano</option>
   </select>
-  <select id="mesFiltro" class="form-select" disabled>
-    <option value="">Selecione o mês</option>
+
+  <select id="mesFiltro" class="form-select form-select-sm" style="width: auto;" disabled>
+    <option value="">Mês</option>
   </select>
-  <button id="limparFiltros" class="btn btn-secondary">Limpar Filtros</button>
+
+  <button id="limparFiltros" class="btn btn-secondary btn-sm">Limpar</button>
 </div>
 
 <div class="table-responsive d-none" id="tabelaContainer">
