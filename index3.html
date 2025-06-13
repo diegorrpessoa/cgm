@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tabela Clean Moderna e Otimizada</title>
+  <title>Tabela Minimalista com Cabeçalho Fixo</title>
 
   <!-- Bootstrap 5 CSS -->
   <link
@@ -17,195 +17,172 @@
     rel="stylesheet"
   />
 
-  <!-- DataTables Buttons Bootstrap 5 CSS -->
-  <link
-    href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"
-    rel="stylesheet"
-  />
-
   <style>
-    /* Fonte limpa e neutra */
     body {
-      font-family: "Inter", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #fafafa;
-      color: #212529;
-      font-size: 0.95rem;
-      padding: 1.5rem 1rem;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #fff;
+      color: #222;
+      font-size: 0.92rem;
+      margin: 1.5rem;
     }
 
     .container-fluid {
-      max-width: 1200px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
-    /* Wrapper com sombra sutil e cantos arredondados */
-    .table-wrapper {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 6px 15px rgb(0 0 0 / 0.08);
-      border: 1px solid #e1e5eb;
-      max-height: 520px;
-      overflow-y: auto;
-      transition: box-shadow 0.3s ease;
-    }
-    .table-wrapper:focus-within {
-      box-shadow: 0 8px 24px rgb(13 110 253 / 0.3);
-      outline: none;
-    }
-
-    /* Tabela com espaçamento, fonte menor e bordas finas */
-    table.dataTable {
-      border-collapse: separate !important;
-      border-spacing: 0 6px !important;
-      width: 100% !important;
-      font-weight: 500;
-      font-size: 0.9rem;
-      color: #344050;
-      border: none !important;
-    }
-
-    /* Cabeçalho leve, claro, com texto escuro */
-    table.dataTable thead tr {
-      background: #f8f9fa;
-      border-bottom: 2px solid #dee2e6;
-    }
-    table.dataTable thead th {
-      color: #495057;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      padding: 12px 15px;
-      border: none !important;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-
-    /* Linhas com fundo branco e alternado leve */
-    table.dataTable tbody tr {
-      background: #fff;
-      transition: background-color 0.3s ease;
-      border-radius: 6px;
-      box-shadow: 0 2px 5px rgb(0 0 0 / 0.03);
-      margin-bottom: 6px;
-      display: table-row;
-    }
-    table.dataTable tbody tr:nth-child(even) {
-      background: #f9fafb;
-    }
-    table.dataTable tbody tr:hover {
-      background-color: #e9f0ff !important;
-      cursor: pointer;
-    }
-    table.dataTable tbody td {
-      padding: 10px 15px;
-      vertical-align: middle;
-      border: none !important;
-      white-space: nowrap;
-    }
-
-    /* Scroll horizontal para tabelas largas */
-    div.dataTables_wrapper {
-      width: 100%;
-      overflow-x: auto;
-    }
-
-    /* Ajustes dos botões */
-    .dt-buttons {
-      margin-bottom: 1rem;
-    }
-    .btn-sm {
-      font-size: 0.82rem;
-      padding: 0.3rem 0.75rem;
-      border-radius: 6px;
-    }
-
-    /* Labels dos filtros */
-    label.form-label {
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #495057;
-    }
-
-    /* Inputs de filtro */
-    select.form-select {
-      font-size: 0.9rem;
-      padding: 0.3rem 0.5rem;
-      border-radius: 6px;
-      border: 1.3px solid #ced4da;
-      transition: border-color 0.2s ease;
-    }
-    select.form-select:focus {
-      border-color: #0d6efd;
-      box-shadow: 0 0 6px #0d6efd60;
-      outline: none;
-    }
-
-    /* Container dos filtros alinhados e responsivos */
+    /* Filtros */
     .filters-row {
       display: flex;
       gap: 1rem;
       flex-wrap: wrap;
       margin-bottom: 1rem;
-      align-items: flex-end;
+      align-items: center;
+      font-weight: 600;
+      color: #333;
     }
 
-    /* Responsividade */
-    @media (max-width: 575.98px) {
-      .table-wrapper {
-        max-height: 350px;
-      }
-      .filters-row {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .filters-row > div {
-        width: 100%;
-      }
+    .filters-row > div {
+      min-width: 140px;
+      flex-grow: 1;
+    }
+
+    select.form-select {
+      font-size: 0.9rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 4px 8px;
+      transition: border-color 0.2s;
+    }
+    select.form-select:focus {
+      border-color: #0d6efd;
+      outline: none;
+      box-shadow: 0 0 5px #0d6efd60;
+    }
+
+    button.btn {
+      font-size: 0.85rem;
+      padding: 0.25rem 0.7rem;
+      border-radius: 4px;
+    }
+
+    /* Wrapper tabela com scroll vertical */
+    .table-wrapper {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      max-height: 480px;
+      overflow-y: auto;
+      overflow-x: auto;
+    }
+
+    /* DataTables - tabela minimalista */
+    table.dataTable {
+      width: 100% !important;
+      border-collapse: collapse !important;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #222;
+      background-color: #fff;
+    }
+
+    /* Cabeçalho fixo e minimalista */
+    table.dataTable thead tr {
+      background-color: #f9f9f9;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1.5px solid #ccc;
+    }
+    table.dataTable thead th {
+      color: #444;
+      font-weight: 600;
+      padding: 10px 12px;
+      border-bottom: none !important;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    /* Linhas alternadas muito leves */
+    table.dataTable tbody tr:nth-child(even) {
+      background-color: #fbfbfb;
+    }
+    table.dataTable tbody tr:hover {
+      background-color: #e8f0fe;
+    }
+    table.dataTable tbody td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+      white-space: nowrap;
+    }
+
+    /* Scroll horizontal suave */
+    div.dataTables_wrapper {
+      overflow-x: auto;
+    }
+
+    /* Botões DataTables escondidos (usaremos botões externos) */
+    .dt-buttons {
+      display: none;
+    }
+
+    /* Layout filtros e botões */
+    .actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 0.3rem;
     }
   </style>
 </head>
 <body>
-  <div class="container-fluid">
-    <div class="filters-row">
-      <div class="flex-grow-1" style="min-width: 140px;">
+  <div class="container-fluid" role="main">
+    <form class="filters-row" aria-label="Filtros da tabela">
+      <div>
         <label for="anoFiltro" class="form-label">Ano *</label>
-        <select id="anoFiltro" class="form-select" aria-label="Filtro de Ano"></select>
+        <select id="anoFiltro" class="form-select" aria-required="true" aria-describedby="anoHelp">
+          <option value="">Selecione</option>
+        </select>
       </div>
-      <div class="flex-grow-1" style="min-width: 140px;">
+      <div>
         <label for="mesFiltro" class="form-label">Mês *</label>
-        <select id="mesFiltro" class="form-select" aria-label="Filtro de Mês" disabled>
+        <select id="mesFiltro" class="form-select" aria-required="true" disabled aria-describedby="mesHelp">
           <option value="">Selecione o mês</option>
         </select>
       </div>
-      <div class="d-flex align-items-end gap-2 flex-wrap">
-        <button id="btnLimpar" class="btn btn-outline-primary btn-sm" disabled>Limpar Filtro</button>
-        <button id="exportCsv" class="btn btn-outline-secondary btn-sm" disabled>Exportar CSV</button>
-        <button id="exportXls" class="btn btn-outline-secondary btn-sm" disabled>Exportar XLS</button>
+      <div class="actions">
+        <button id="btnLimpar" class="btn btn-outline-primary" type="button" disabled>Limpar</button>
+        <button id="exportCsv" class="btn btn-outline-secondary" type="button" disabled>Exportar CSV</button>
+        <button id="exportXls" class="btn btn-outline-secondary" type="button" disabled>Exportar XLS</button>
       </div>
-    </div>
+    </form>
 
     <div class="table-wrapper" tabindex="0" aria-live="polite" aria-atomic="true" aria-relevant="additions">
-      <table id="tabela" class="table table-striped table-hover table-bordered table-sm" style="width:100%; display:none;"></table>
+      <table
+        id="tabela"
+        class="table dataTable table-hover"
+        role="grid"
+        aria-describedby="tabela_info"
+        style="display:none;"
+      ></table>
     </div>
   </div>
 
   <!-- JQuery -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
-  <!-- Bootstrap Bundle JS (Popper + Bootstrap) -->
+  <!-- Bootstrap Bundle JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- DataTables JS -->
+  <!-- DataTables -->
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-
-  <!-- DataTables Bootstrap 5 JS -->
   <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
-  <!-- DataTables Buttons e exportação -->
+  <!-- DataTables Buttons -->
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
 
-  <!-- PapaParse para CSV -->
+  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
@@ -247,7 +224,7 @@
         limparTabela();
 
         if (!anoSelecionado) {
-          $("#btnLimpar").prop("disabled", true);
+          $("#btnLimpar, #exportCsv, #exportXls").prop("disabled", true);
           return;
         }
 
@@ -347,7 +324,7 @@
         info: true,
         autoWidth: false,
         scrollX: true,
-        scrollY: "480px",
+        scrollY: "440px",
         dom: "Bfrtip",
         buttons: [
           {
@@ -369,7 +346,7 @@
         },
       });
 
-      $("#tabela").fadeIn(300);
+      $("#tabela").fadeIn(200);
       $("#exportCsv, #exportXls").prop("disabled", false);
     }
   </script>
