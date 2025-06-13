@@ -1,69 +1,240 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Filtrar Receita por Ano e Mês</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Receitas</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"
+    rel="stylesheet"
+  />
   <style>
-    body { background-color: #f8f9fa; }
-    .dataTables_filter { display: none; }
-    .form-label, .form-select-sm, .table th, .table td { font-size: 0.75rem !important; }
-    .spinner-overlay {
-      position: fixed; top: 0; left: 0; width:100%; height:100vh;
-      display:flex; flex-direction:column; align-items:center;
-      justify-content:flex-start; padding-top:60px; z-index:9999;
-      background-color: rgba(255,255,255,0.9);
+    body {
+      background-color: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 0.9rem;
+      color: #333;
     }
-    .spinner-border { width:2rem; height:2rem; }
-    .spinner-text { margin-top:5px; font-size:0.9rem; }
-    .table-wrapper { overflow-x: auto; }
+
+    #spinnerCsv {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-top: 70px;
+      background-color: rgba(255, 255, 255, 0.95);
+      z-index: 9999;
+    }
+
+    #spinnerCsv .spinner-border {
+      width: 2.5rem;
+      height: 2.5rem;
+    }
+
+    #spinnerCsv .spinner-text {
+      margin-top: 10px;
+      font-size: 1.1rem;
+      color: #007bff;
+      font-weight: 600;
+    }
+
+    .container-fluid {
+      max-width: 1200px;
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #444;
+    }
+
+    select.form-select-sm {
+      padding: 6px 10px;
+      font-size: 0.9rem;
+    }
+
+    #btnLimpar,
+    #exportCsv,
+    #exportXls {
+      font-size: 0.85rem;
+      padding: 4px 12px;
+      transition: background-color 0.2s ease;
+    }
+
+    #btnLimpar:hover:not(:disabled),
+    #exportCsv:hover:not(:disabled),
+    #exportXls:hover:not(:disabled) {
+      background-color: #e2e6ea;
+      cursor: pointer;
+    }
+
+    .btn-group {
+      gap: 8px;
+    }
+
+    .table-wrapper {
+      position: relative;
+      max-height: 520px; /* Limita altura da tabela */
+      overflow: auto;
+      border-radius: 8px;
+      box-shadow: 0 3px 8px rgb(0 0 0 / 0.12);
+      background-color: #fff;
+      border: 1px solid #dee2e6;
+      margin-bottom: 0.5rem;
+      scroll-behavior: smooth;
+    }
+
+    table.dataTable {
+      border-collapse: separate !important;
+      border-spacing: 0;
+      width: 100% !important;
+    }
+
+    table.dataTable thead tr {
+      background-color: #007bff;
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+
+    table.dataTable tbody tr:nth-child(odd) {
+      background-color: #f9faff;
+    }
+
+    table.dataTable tbody tr:hover {
+      background-color: #cce5ff !important;
+      cursor: pointer;
+    }
+
+    table.dataTable tbody td,
+    table.dataTable thead th {
+      padding: 8px 12px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    table.dataTable tbody td {
+      font-size: 0.88rem;
+      color: #212529;
+    }
+
+    /* Mensagem de tabela vazia */
+    .dataTables_empty {
+      font-size: 1rem;
+      font-weight: 500;
+      color: #666;
+      padding: 30px 0;
+      text-align: center;
+    }
+
+    /* Controle de página personalizado */
     #lengthSelectorContainer {
-      margin-top:10px; font-size:0.75rem;
-      display:flex; justify-content:flex-end; align-items:center; gap:8px;
+      margin-top: 8px;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+      color: #555;
+      user-select: none;
     }
-    #lengthSelector { width:80px; padding:2px 4px; }
+
+    #lengthSelector {
+      width: 70px;
+      padding: 3px 8px;
+      font-size: 0.85rem;
+      border-radius: 4px;
+      border: 1px solid #ced4da;
+      background-color: #fff;
+      transition: border-color 0.15s ease-in-out;
+    }
+
+    #lengthSelector:focus {
+      border-color: #86b7fe;
+      outline: 0;
+      box-shadow: 0 0 6px #a7d1ff;
+    }
+
+    /* Botões export e limpar alinhados */
+    .action-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .action-buttons > * {
+      flex-grow: 1;
+      min-width: 120px;
+    }
+
+    @media (max-width: 575.98px) {
+      .action-buttons {
+        flex-direction: column;
+      }
+      #lengthSelectorContainer {
+        justify-content: center;
+      }
+    }
   </style>
 </head>
 <body>
   <div id="spinnerCsv" class="spinner-overlay">
-    <div class="spinner-border text-primary"></div>
+    <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
     <div class="spinner-text">Carregando dados...</div>
   </div>
 
   <div class="container-fluid mt-4">
-    <div class="row gx-2 gy-2 mb-3">
-      <div class="col-sm-2">
+    <div class="row gx-2 gy-3 mb-3">
+      <div class="col-sm-2 col-6">
         <label for="anoFiltro">Ano *</label>
-        <select id="anoFiltro" class="form-select form-select-sm"></select>
+        <select id="anoFiltro" class="form-select form-select-sm" aria-label="Filtro de Ano"></select>
       </div>
-      <div class="col-sm-2">
+      <div class="col-sm-2 col-6">
         <label for="mesFiltro">Mês *</label>
-        <select id="mesFiltro" class="form-select form-select-sm" disabled>
+        <select id="mesFiltro" class="form-select form-select-sm" aria-label="Filtro de Mês" disabled>
           <option value="">Selecione o mês</option>
         </select>
       </div>
     </div>
 
-    <div class="d-flex justify-content-between mb-2">
+    <div class="action-buttons">
       <button id="btnLimpar" class="btn btn-outline-primary btn-sm" disabled>Limpar Filtro</button>
-      <div class="btn-group">
+
+      <div>
         <button id="exportCsv" class="btn btn-outline-secondary btn-sm" disabled>Exportar CSV</button>
         <button id="exportXls" class="btn btn-outline-secondary btn-sm" disabled>Exportar XLS</button>
       </div>
     </div>
 
-    <div class="table-wrapper">
-      <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
+    <div class="table-wrapper" tabindex="0" aria-live="polite" aria-atomic="true" aria-relevant="additions">
+      <table id="tabela" class="table table-striped table-hover table-bordered table-sm" style="width:100%; display:none;"></table>
     </div>
 
     <div id="lengthSelectorContainer" style="display:none;">
       <label for="lengthSelector">Registros por página:</label>
-      <select id="lengthSelector" class="form-select form-select-sm">
-        <option value="10">10</option>
+      <select id="lengthSelector" class="form-select form-select-sm" aria-label="Número de registros por página">
+        <option value="10" selected>10</option>
         <option value="20">20</option>
         <option value="50">50</option>
         <option value="100">100</option>
@@ -71,7 +242,6 @@
     </div>
   </div>
 
-  <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
@@ -82,8 +252,18 @@
 
   <script>
     const meses = [
-      "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
-      "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+      "JANEIRO",
+      "FEVEREIRO",
+      "MARÇO",
+      "ABRIL",
+      "MAIO",
+      "JUNHO",
+      "JULHO",
+      "AGOSTO",
+      "SETEMBRO",
+      "OUTUBRO",
+      "NOVEMBRO",
+      "DEZEMBRO",
     ];
 
     let dadosOriginais = [];
@@ -91,48 +271,55 @@
     let tabela = null;
 
     $(document).ready(function () {
-      // Carregar CSV (substitua a URL pela sua planilha)
-      Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv", {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function (res) {
-          dadosOriginais = res.data.filter(r => r["ANO"]);
-          colunasCSV = res.meta.fields; // array com os nomes das colunas da planilha
+      Papa.parse(
+        "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv",
+        {
+          download: true,
+          header: true,
+          skipEmptyLines: true,
+          complete: function (res) {
+            dadosOriginais = res.data.filter((r) => r["ANO"]);
+            colunasCSV = res.meta.fields;
 
-          // Preencher filtro Ano
-          const anos = [...new Set(dadosOriginais.map(r => r["ANO"]))].sort();
-          $('#anoFiltro').append('<option value="">Selecione</option>');
-          anos.forEach(ano => $('#anoFiltro').append(`<option value="${ano}">${ano}</option>`));
+            // Preencher filtro Ano
+            const anos = [...new Set(dadosOriginais.map((r) => r["ANO"]))].sort();
+            $("#anoFiltro").append('<option value="">Selecione</option>');
+            anos.forEach((ano) =>
+              $("#anoFiltro").append(`<option value="${ano}">${ano}</option>`)
+            );
 
-          $('#spinnerCsv').hide();
+            $("#spinnerCsv").fadeOut(400);
+          },
         }
-      });
+      );
 
       // Ao selecionar ano, habilitar e preencher filtro meses
-      $('#anoFiltro').on('change', function () {
+      $("#anoFiltro").on("change", function () {
         const anoSelecionado = $(this).val();
-        $('#mesFiltro').empty().append('<option value="">Selecione o mês</option>').prop('disabled', true);
+        $("#mesFiltro")
+          .empty()
+          .append('<option value="">Selecione o mês</option>')
+          .prop("disabled", true);
         limparTabela();
 
         if (!anoSelecionado) {
-          $('#btnLimpar').prop('disabled', true);
+          $("#btnLimpar").prop("disabled", true);
           return;
         }
 
-        meses.forEach(mes => {
+        meses.forEach((mes) => {
           if (colunasCSV.includes(mes)) {
-            $('#mesFiltro').append(`<option value="${mes}">${mes}</option>`);
+            $("#mesFiltro").append(`<option value="${mes}">${mes}</option>`);
           }
         });
 
-        $('#mesFiltro').prop('disabled', false);
-        $('#btnLimpar').prop('disabled', false);
+        $("#mesFiltro").prop("disabled", false);
+        $("#btnLimpar").prop("disabled", false);
       });
 
       // Ao selecionar mês, montar tabela
-      $('#mesFiltro').on('change', function () {
-        const ano = $('#anoFiltro').val();
+      $("#mesFiltro").on("change", function () {
+        const ano = $("#anoFiltro").val();
         const mes = $(this).val();
 
         if (!ano || !mes) {
@@ -140,8 +327,9 @@
           return;
         }
 
-        // Filtrar dados pelo ano e valores do mês existentes e não vazios
-        const dadosFiltrados = dadosOriginais.filter(r => r["ANO"] === ano && r[mes] && r[mes].trim() !== "");
+        const dadosFiltrados = dadosOriginais.filter(
+          (r) => r["ANO"] === ano && r[mes] && r[mes].trim() !== ""
+        );
 
         if (dadosFiltrados.length === 0) {
           limparTabela();
@@ -149,19 +337,25 @@
         }
 
         montarTabela(dadosFiltrados, mes);
+        // Scroll suave para o topo da tabela para foco do usuário
+        $(".table-wrapper").animate({ scrollTop: 0 }, 300);
       });
 
       // Botão limpar filtros
-      $('#btnLimpar').on('click', () => {
-        $('#anoFiltro').val('');
-        $('#mesFiltro').val('').empty().append('<option value="">Selecione o mês</option>').prop('disabled', true);
+      $("#btnLimpar").on("click", () => {
+        $("#anoFiltro").val("");
+        $("#mesFiltro")
+          .val("")
+          .empty()
+          .append('<option value="">Selecione o mês</option>')
+          .prop("disabled", true);
         limparTabela();
-        $('#btnLimpar, #exportCsv, #exportXls').prop('disabled', true);
+        $("#btnLimpar, #exportCsv, #exportXls").prop("disabled", true);
       });
 
       // Exportar CSV / XLS
-      $('#exportCsv').on('click', () => tabela?.button('.buttons-csv').trigger());
-      $('#exportXls').on('click', () => tabela?.button('.buttons-excel').trigger());
+      $("#exportCsv").on("click", () => tabela?.button(".buttons-csv").trigger());
+      $("#exportXls").on("click", () => tabela?.button(".buttons-excel").trigger());
     });
 
     function limparTabela() {
@@ -170,9 +364,9 @@
         tabela.destroy();
         tabela = null;
       }
-      $('#tabela').hide();
-      $('#lengthSelectorContainer').hide();
-      $('#exportCsv, #exportXls').prop('disabled', true);
+      $("#tabela").hide();
+      $("#lengthSelectorContainer").hide();
+      $("#exportCsv, #exportXls").prop("disabled", true);
     }
 
     function montarTabela(dados, mesSelecionado) {
@@ -181,14 +375,13 @@
         tabela.destroy();
       }
 
-      // Construir array de colunas para DataTables:
-      // Exibir todas as colunas originais EXCETO os meses
+      // Exibir todas as colunas originais EXCETO as colunas dos meses
       const colunasParaExibir = colunasCSV
-        .filter(c => !meses.includes(c))
-        .map(c => ({
+        .filter((c) => !meses.includes(c))
+        .map((c) => ({
           title: c,
           data: c,
-          render: null
+          render: null,
         }));
 
       // Acrescentar coluna do mês selecionado (última coluna)
@@ -197,36 +390,62 @@
         data: mesSelecionado,
         render: function (data, type, row) {
           if (!data) return "";
-          // converter string numérica no formato brasileiro para float e formatar para moeda BRL
-          let valorNum = parseFloat(data.replace(/\./g, '').replace(',', '.'));
+          let valorNum = parseFloat(data.replace(/\./g, "").replace(",", "."));
           if (isNaN(valorNum)) return data;
-          return valorNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-        }
+          return valorNum.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          });
+        },
       });
 
-      tabela = $('#tabela').DataTable({
+      tabela = $("#tabela").DataTable({
         data: dados,
         columns: colunasParaExibir,
         paging: true,
         pageLength: 10,
+        lengthChange: false,
         searching: false,
         ordering: true,
-        dom: 'Bfrtip',
+        order: [], // desabilita order padrão
+        info: true,
+        autoWidth: false,
+        scrollX: true,
+        scrollY: "450px",
+        scroller: false,
+        dom: "Bfrtip",
         buttons: [
-          { extend: 'csvHtml5', className: 'buttons-csv d-none', filename: `dados_${mesSelecionado.toLowerCase()}` },
-          { extend: 'excelHtml5', className: 'buttons-excel d-none', filename: `dados_${mesSelecionado.toLowerCase()}` }
+          {
+            extend: "csvHtml5",
+            className: "buttons-csv d-none",
+            filename: `dados_${mesSelecionado.toLowerCase()}`,
+          },
+          {
+            extend: "excelHtml5",
+            className: "buttons-excel d-none",
+            filename: `dados_${mesSelecionado.toLowerCase()}`,
+          },
         ],
-        language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" }
+        language: {
+          url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json",
+        },
+        drawCallback: function () {
+          // Ajustar largura das colunas após o redraw
+          tabela.columns.adjust();
+        },
       });
 
-      $('#tabela').show();
-      $('#lengthSelectorContainer').show();
-      $('#exportCsv, #exportXls').prop('disabled', false);
+      $("#tabela").fadeIn(400);
+      $("#lengthSelectorContainer").show();
+      $("#exportCsv, #exportXls").prop("disabled", false);
 
-      $('#lengthSelector').off().on('change', function () {
-        const len = parseInt($(this).val());
-        tabela.page.len(len).draw();
-      });
+      // Controle para alterar número de registros por página
+      $("#lengthSelector")
+        .off()
+        .on("change", function () {
+          const len = parseInt($(this).val());
+          tabela.page.len(len).draw();
+        });
     }
   </script>
 </body>
