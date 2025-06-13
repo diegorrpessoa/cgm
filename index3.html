@@ -3,58 +3,32 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>4 Receitas</title>
+  <title>5 Receitas</title>
+
+  <!-- Estilos -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
     body { background-color: #f8f9fa; }
     .dataTables_filter { display: none; }
-    .form-label, .form-select-sm, .table th, .table td {
-      font-size: 0.75rem !important;
-    }
-    .spinner-overlay, .spinner-overlay-ano {
+    .form-label, .form-select-sm, .table th, .table td { font-size: 0.75rem !important; }
+    .spinner-overlay {
       position: fixed; top: 0; left: 0; width:100%; height:100vh;
       display:flex; flex-direction:column; align-items:center;
       justify-content:flex-start; padding-top:60px; z-index:9999;
+      background-color: rgba(255,255,255,0.9);
     }
-    .spinner-overlay { background-color: rgba(255,255,255,0.9); }
-    .spinner-overlay-ano { background-color: rgba(255,255,255,0.5); }
     .spinner-border { width:2rem; height:2rem; }
     .spinner-text { margin-top:5px; font-size:0.9rem; }
-    table.dataTable td, table.dataTable th { white-space: nowrap; }
-    .totalizadores {
-      font-size: 0.75rem; background: #fff; padding:5px 10px;
-      border:1px solid #dee2e6; border-radius:4px;
-    }
-    .totalizadores span { margin-right:15px; font-weight:500; }
-
-    .dataTables_wrapper .dataTables_paginate {
-      margin-top:0.5rem; text-align:center;
-      font-size:0.75rem;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button {
-      padding:0.25rem 0.5rem;
-      margin:0 2px; border-radius:5px;
-      background-color:#e9ecef; border:1px solid #dee2e6;
-      transition:background-color .2s;
-    }
-    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
-    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
-      background-color:#0d6efd; color:#fff; font-weight:bold;
-    }
-
+    .table-wrapper { overflow-x: auto; }
     #lengthSelectorContainer {
       margin-top:10px; font-size:0.75rem;
       display:flex; justify-content:flex-end; align-items:center; gap:8px;
     }
     #lengthSelector { width:80px; padding:2px 4px; }
-
-    .row label { font-weight:600; font-size:0.8rem; }
-    .table-wrapper { overflow-x:auto; }
   </style>
 </head>
-<!-- ... mantenha o <head> como antes ... -->
 <body>
   <div id="spinnerCsv" class="spinner-overlay">
     <div class="spinner-border text-primary"></div>
@@ -68,8 +42,10 @@
         <select id="anoFiltro" class="form-select form-select-sm"></select>
       </div>
       <div class="col-sm-2">
-        <label for="mesFiltro">Mês</label>
-        <select id="mesFiltro" class="form-select form-select-sm" disabled></select>
+        <label for="mesFiltro">Mês *</label>
+        <select id="mesFiltro" class="form-select form-select-sm" disabled>
+          <option value="">Selecione o mês</option>
+        </select>
       </div>
     </div>
 
@@ -96,104 +72,99 @@
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
   <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
   <script>
-    let tabela, dadosOriginais = [];
-    const mesesOrdem = [
+    const meses = [
       "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
       "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
     ];
 
-    $(document).ready(function(){
-      const urlCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv";
+    let dadosOriginais = [], tabela = null;
 
-      Papa.parse(urlCsv, {
+    $(document).ready(function () {
+      Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv", {
         download: true,
         header: true,
-        skipEmptyLines: true,
-        complete: function(res) {
-          dadosOriginais = res.data.filter(r => r["ANO"] && r["ANO"].trim() !== "");
+        complete: function (res) {
+          dadosOriginais = res.data.filter(r => r["ANO"]);
           const anos = [...new Set(dadosOriginais.map(r => r["ANO"]))].sort();
-          anos.forEach(a => $('#anoFiltro').append(`<option value="${a}">${a}</option>`));
-          $('#anoFiltro').prepend(`<option value="">Selecione</option>`);
+          anos.forEach(ano => $('#anoFiltro').append(`<option value="${ano}">${ano}</option>`));
+          $('#anoFiltro').prepend('<option value="">Selecione</option>');
           $('#spinnerCsv').hide();
         }
       });
 
-      $('#anoFiltro').on('change', function(){
-        const ano = $(this).val();
-        $('#mesFiltro').empty().append('<option value="">Todos os meses</option>').prop('disabled', true);
+      $('#anoFiltro').on('change', function () {
+        const anoSelecionado = $(this).val();
+        $('#mesFiltro').empty().append('<option value="">Selecione o mês</option>').prop('disabled', true);
 
-        if (!ano) return;
+        if (!anoSelecionado) return;
 
-        const dadosAno = dadosOriginais.filter(r => r["ANO"] === ano);
-        const meses = [...new Set(dadosAno.map(r => r["MÊS"]?.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")))];
-
-        // Ordenar conforme a ordem cronológica de meses
-        const mesesOrdenados = mesesOrdem.filter(m => meses.includes(m));
-        mesesOrdenados.forEach(m => {
-          $('#mesFiltro').append(`<option value="${m}">${m.charAt(0) + m.slice(1).toLowerCase()}</option>`);
+        meses.forEach(mes => {
+          if (dadosOriginais[0].hasOwnProperty(mes)) {
+            $('#mesFiltro').append(`<option value="${mes}">${mes}</option>`);
+          }
         });
 
         $('#mesFiltro').prop('disabled', false);
-        $('#btnLimpar, #exportCsv, #exportXls').prop('disabled', false);
-        $('#lengthSelectorContainer').show();
-
-        const dados = dadosOriginais.filter(r => r["ANO"] === ano);
-        renderizarTabela(dados);
       });
 
-      $('#mesFiltro').on('change', function(){
+      $('#mesFiltro').on('change', function () {
         const ano = $('#anoFiltro').val();
         const mes = $(this).val();
-        let dados = dadosOriginais.filter(r => r["ANO"] === ano);
-        if (mes) {
-          dados = dados.filter(r =>
-            r["MÊS"]?.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") === mes
-          );
-        }
-        renderizarTabela(dados);
+        if (!ano || !mes) return;
+
+        const dadosFiltrados = dadosOriginais.filter(r => r["ANO"] === ano && r[mes]);
+
+        const campos = Object.keys(dadosFiltrados[0]);
+        const campoDescricao = campos.find(c => !["ANO", ...meses].includes(c.toUpperCase())) || "Categoria";
+
+        const dadosTabela = dadosFiltrados.map(r => ({
+          Descrição: r[campoDescricao],
+          Valor: parseFloat(r[mes]?.replace(',', '.') || 0)
+        }));
+
+        renderizarTabela(dadosTabela);
       });
 
       $('#btnLimpar').click(() => {
         $('#anoFiltro, #mesFiltro').val('');
-        $('#mesFiltro').empty().append('<option value="">Todos os meses</option>').prop('disabled', true);
-        tabela?.clear().draw();
+        $('#mesFiltro').empty().append('<option value="">Selecione o mês</option>').prop('disabled', true);
+        if (tabela) tabela.clear().draw();
         $('#tabela').hide();
         $('#btnLimpar, #exportCsv, #exportXls').prop('disabled', true);
         $('#lengthSelectorContainer').hide();
       });
 
-      $('#exportCsv').click(() => tabela.button('.buttons-csv').trigger());
-      $('#exportXls').click(() => tabela.button('.buttons-excel').trigger());
+      $('#exportCsv').click(() => tabela?.button('.buttons-csv').trigger());
+      $('#exportXls').click(() => tabela?.button('.buttons-excel').trigger());
     });
 
     function renderizarTabela(dados) {
-      $('#lengthSelectorContainer').show();
-      const tam = parseInt($('#lengthSelector').val()) || 10;
-
       if (tabela) tabela.destroy();
-
-      const cols = Object.keys(dados[0]).map(c => ({
-        title: c,
-        data: c,
-        render: c.match(/Valor|Receita/i) ? $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
-      }));
 
       tabela = $('#tabela').DataTable({
         data: dados,
-        columns: cols,
+        columns: [
+          { title: "Descrição", data: "Descrição" },
+          {
+            title: "Valor",
+            data: "Valor",
+            render: $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
+          }
+        ],
         paging: true,
-        pageLength: tam,
-        ordering: true,
+        pageLength: 10,
         searching: false,
-        info: true,
+        ordering: true,
         dom: 'Bfrtip',
         buttons: [
           { extend: 'csvHtml5', className: 'buttons-csv d-none' },
@@ -203,9 +174,12 @@
       });
 
       $('#tabela').show();
-      $('#lengthSelector').off().on('change', function() {
-        const l = parseInt(this.value);
-        tabela.page.len(l).draw();
+      $('#btnLimpar, #exportCsv, #exportXls').prop('disabled', false);
+      $('#lengthSelectorContainer').show();
+
+      $('#lengthSelector').off().on('change', function () {
+        const len = parseInt($(this).val());
+        tabela.page.len(len).draw();
       });
     }
   </script>
