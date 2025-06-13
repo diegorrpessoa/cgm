@@ -1,95 +1,76 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Despesas - Minimalista</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Despesas Públicas</title>
 
   <!-- Bootstrap 5 -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- DataTables -->
-  <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+  <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+  <!-- DataTables Buttons -->
+  <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css" rel="stylesheet">
 
   <style>
     body {
-      background-color: #fff;
-      color: #212529;
-      font-family: "Inter", sans-serif;
+      font-size: 0.875rem;
       padding: 2rem;
-    }
-
-    h2 {
-      text-align: center;
-      font-weight: 500;
-      margin-bottom: 2rem;
+      background-color: #f9f9f9;
     }
 
     .filters {
-      max-width: 600px;
-      margin: 0 auto 1.5rem auto;
       display: flex;
       gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
     }
 
-    select.form-select {
-      border-radius: 0.5rem;
-      background-color: #f8f9fa;
+    .filters select,
+    .filters button {
+      min-width: 150px;
     }
 
-    .table-responsive {
-      border: none;
+    #tabela_wrapper {
+      margin-top: 2rem;
     }
 
-    table.dataTable thead th {
-      background-color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      border-bottom: 2px solid #dee2e6;
+    table.dataTable th,
+    table.dataTable td {
+      white-space: nowrap;
     }
 
-    table.dataTable.no-footer {
-      border-bottom: none;
+    .dt-buttons {
+      margin-bottom: 1rem;
     }
 
-    table.dataTable tbody td {
-      border-bottom: 1px solid #f1f1f1;
-    }
-
-    .dataTables_paginate .pagination {
+    .dataTables_wrapper .dataTables_paginate {
       justify-content: center;
     }
 
-    .text-end {
-      text-align: right;
+    .table-responsive {
+      overflow-x: auto;
     }
   </style>
 </head>
 <body>
 
-<h2>Despesas Públicas</h2>
+<h2 class="mb-4 text-center">Despesas Públicas</h2>
 
 <div class="filters">
-  <select id="anoFiltro" class="form-select" aria-label="Filtro por ano">
-    <option value="">Ano</option>
+  <select id="anoFiltro" class="form-select">
+    <option value="">Selecione o ano</option>
   </select>
-  <select id="mesFiltro" class="form-select" aria-label="Filtro por mês" disabled>
-    <option value="">Mês</option>
+  <select id="mesFiltro" class="form-select" disabled>
+    <option value="">Selecione o mês</option>
   </select>
+  <button id="limparFiltros" class="btn btn-secondary">Limpar Filtros</button>
 </div>
 
-<div class="table-responsive">
-  <table id="tabela" class="table table-borderless" style="width:100%">
-    <thead>
-      <tr>
-        <th>ANO</th>
-        <th>CATEGORIA</th>
-        <th>ORIGEM</th>
-        <th>ESPÉCIE</th>
-        <th>NATUREZA</th>
-        <th class="text-end">VALOR</th>
-      </tr>
-    </thead>
+<div class="table-responsive d-none" id="tabelaContainer">
+  <table id="tabela" class="table table-striped table-bordered nowrap" style="width:100%">
+    <thead></thead>
     <tbody></tbody>
   </table>
 </div>
@@ -98,22 +79,25 @@
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
   const meses = [
-    "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+    "JANEIRO", "FEVEREIRO", "MARCO", "ABRIL", "MAIO", "JUNHO",
     "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
   ];
 
   let dadosOriginais = [];
   let tabela = null;
 
-  function formatarMoedaBR(valor) {
-    if (!valor) return "";
+  function formatarMoeda(valor) {
+    if (!valor) return '';
     let num = parseFloat(valor.replace(/\./g, '').replace(',', '.'));
-    if (isNaN(num)) return valor;
-    return num.toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+    return isNaN(num) ? valor : num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
   function popularAnos() {
@@ -130,35 +114,75 @@
     $('#mesFiltro').prop('disabled', false);
   }
 
-  function carregarTabela(dados, mes) {
-    if (tabela) {
-      tabela.clear().destroy();
-    }
-
-    tabela = $('#tabela').DataTable({
-      data: dados,
-      columns: [
-        { data: 'ANO' },
-        { data: 'NOME CATEGORIA ECONOMICA' },
-        { data: 'NOME ORIGEM' },
-        { data: 'NOME ESPECIE' },
-        { data: 'NOME NATUREZA' },
-        { data: mes, render: formatarMoedaBR, className: 'text-end' }
-      ],
-      pageLength: 10,
-      lengthChange: false,
-      ordering: true,
-      searching: false,
-      info: false,
-      pagingType: 'simple',
-      language: {
-        paginate: {
-          previous: "‹",
-          next: "›"
-        },
-        emptyTable: "Sem dados disponíveis."
+  function construirCabecalho(colunas, mesSelecionado) {
+    const thead = $('#tabela thead');
+    thead.empty();
+    let linha = '<tr>';
+    colunas.forEach(col => {
+      if (!meses.includes(col) && col !== 'TOTAL') {
+        linha += `<th>${col}</th>`;
       }
     });
+    linha += `<th>${mesSelecionado}</th>`;
+    linha += '</tr>';
+    thead.append(linha);
+  }
+
+  function carregarTabela(dadosFiltrados, mesSelecionado) {
+    if (tabela) {
+      tabela.destroy();
+      $('#tabela tbody').empty();
+    }
+
+    if (dadosFiltrados.length === 0) {
+      $('#tabelaContainer').addClass('d-none');
+      return;
+    }
+
+    const colunas = Object.keys(dadosFiltrados[0]);
+    construirCabecalho(colunas, mesSelecionado);
+
+    const tbody = $('#tabela tbody');
+    dadosFiltrados.forEach(row => {
+      let linha = '<tr>';
+      colunas.forEach(col => {
+        if (!meses.includes(col) && col !== 'TOTAL') {
+          linha += `<td>${row[col]}</td>`;
+        }
+      });
+      linha += `<td>${formatarMoeda(row[mesSelecionado])}</td>`;
+      linha += '</tr>';
+      tbody.append(linha);
+    });
+
+    tabela = $('#tabela').DataTable({
+      scrollX: true,
+      lengthChange: false,
+      pageLength: 10,
+      ordering: true,
+      language: {
+        url: "//cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+      },
+      dom: 'Bfrtip',
+      buttons: [
+        { extend: 'csv', text: 'CSV' },
+        { extend: 'excel', text: 'Excel' },
+        { extend: 'copy', text: 'TXT' },
+        {
+          text: 'JSON',
+          action: function () {
+            const dados = tabela.rows({ search: 'applied' }).data().toArray();
+            const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'dados.json';
+            link.click();
+          }
+        }
+      ]
+    });
+
+    $('#tabelaContainer').removeClass('d-none');
   }
 
   $(document).ready(function () {
@@ -173,29 +197,30 @@
     });
 
     $('#anoFiltro').on('change', function () {
-      const anoSelecionado = $(this).val();
-      $('#mesFiltro').empty().append('<option value="">Mês</option>').prop('disabled', true);
-      if (tabela) {
-        tabela.clear().destroy();
-        $('#tabela tbody').empty();
-      }
-      if (anoSelecionado) {
-        popularMeses();
-      }
+      $('#mesFiltro').empty().append('<option value="">Selecione o mês</option>').prop('disabled', true);
+      $('#tabelaContainer').addClass('d-none');
+      if ($(this).val()) popularMeses();
     });
 
     $('#mesFiltro').on('change', function () {
       const ano = $('#anoFiltro').val();
       const mes = $(this).val();
-      if (!ano || !mes) {
-        if (tabela) {
-          tabela.clear().destroy();
-          $('#tabela tbody').empty();
-        }
-        return;
+      if (ano && mes) {
+        const dadosFiltrados = dadosOriginais.filter(d => d.ANO === ano && d[mes]);
+        carregarTabela(dadosFiltrados, mes);
+      } else {
+        $('#tabelaContainer').addClass('d-none');
       }
-      const filtrados = dadosOriginais.filter(item => item.ANO === ano && item[mes] && item[mes].trim() !== '');
-      carregarTabela(filtrados, mes);
+    });
+
+    $('#limparFiltros').on('click', function () {
+      $('#anoFiltro').val('');
+      $('#mesFiltro').empty().append('<option value="">Selecione o mês</option>').prop('disabled', true);
+      $('#tabelaContainer').addClass('d-none');
+      if (tabela) {
+        tabela.clear().destroy();
+        $('#tabela tbody').empty();
+      }
     });
   });
 </script>
