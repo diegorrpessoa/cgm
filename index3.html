@@ -1,452 +1,345 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Receitas</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Exibição de Despesas - Tabela Melhorada</title>
 
-  <link
-    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-    rel="stylesheet"
-  />
-  <link
-    href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"
-    rel="stylesheet"
-  />
-  <link
-    href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"
-    rel="stylesheet"
-  />
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  
+  <!-- DataTables Bootstrap5 CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
+
   <style>
-    body {
-      background-color: #f8f9fa;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      font-size: 0.9rem;
-      color: #333;
+    body { background-color: #f8f9fa; }
+    .dataTables_filter { display: none; }
+    .form-label, .form-select-sm, .form-control-sm, .table th, .table td {
+      font-size: 0.65rem !important;
     }
-
-    #spinnerCsv {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
+    .xsmall { font-size: 0.6rem !important; }
+    .spinner-overlay, .spinner-overlay-ano {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: flex-start; padding-top: 60px; z-index: 9999;
+    }
+    .spinner-overlay { background-color: rgba(255, 255, 255, 0.9); }
+    .spinner-overlay-ano { background-color: rgba(255, 255, 255, 0.5); z-index: 9998; }
+    .spinner-border { width: 2rem; height: 2rem; }
+    .spinner-text { font-size: 0.9rem; margin-top: 5px; }
+    table.dataTable td, table.dataTable th { white-space: nowrap; }
+    .dt-buttons .btn { padding: 0.25rem 0.5rem; font-size: 0.7rem; }
+    .table-wrapper { overflow-x: auto; }
+    .totalizadores {
+      font-size: 0.7rem; background: #fff; padding: 5px 10px;
+      border: 1px solid #dee2e6; border-radius: 4px;
+    }
+    .totalizadores span { display: inline-block; margin-right: 15px; font-weight: 500; }
+    /* Paginação clean */
+    .dataTables_wrapper .dataTables_paginate {
+      margin-top: 0.5rem;
+      text-align: center !important;
       display: flex;
-      flex-direction: column;
+      justify-content: center;
       align-items: center;
-      justify-content: flex-start;
-      padding-top: 70px;
-      background-color: rgba(255, 255, 255, 0.95);
-      z-index: 9999;
+      font-size: 0.7rem;
+      gap: 4px;
+      padding: 6px 0;
     }
-
-    #spinnerCsv .spinner-border {
-      width: 2.5rem;
-      height: 2.5rem;
-    }
-
-    #spinnerCsv .spinner-text {
-      margin-top: 10px;
-      font-size: 1.1rem;
-      color: #007bff;
-      font-weight: 600;
-    }
-
-    .container-fluid {
-      max-width: 1200px;
-      padding-left: 1rem;
-      padding-right: 1rem;
-    }
-
-    label {
-      font-weight: 600;
-      font-size: 0.85rem;
-      color: #444;
-    }
-
-    select.form-select-sm {
-      padding: 6px 10px;
-      font-size: 0.9rem;
-    }
-
-    #btnLimpar,
-    #exportCsv,
-    #exportXls {
-      font-size: 0.85rem;
-      padding: 4px 12px;
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+      padding: 4px 8px !important;
+      margin: 0 2px !important;
+      font-size: 0.65rem !important;
+      border-radius: 6px !important;
+      background-color: #e9ecef !important;
+      border: 1px solid #dee2e6 !important;
+      color: #212529 !important;
       transition: background-color 0.2s ease;
     }
-
-    #btnLimpar:hover:not(:disabled),
-    #exportCsv:hover:not(:disabled),
-    #exportXls:hover:not(:disabled) {
-      background-color: #e2e6ea;
-      cursor: pointer;
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+      background-color: #d0d7df !important;
+      color: #212529 !important;
     }
-
-    .btn-group {
-      gap: 8px;
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+      background-color: #0d6efd !important;
+      color: #fff !important;
+      font-weight: bold !important;
     }
-
-    .table-wrapper {
-      position: relative;
-      max-height: 520px; /* Limita altura da tabela */
-      overflow: auto;
-      border-radius: 8px;
-      box-shadow: 0 3px 8px rgb(0 0 0 / 0.12);
-      background-color: #fff;
-      border: 1px solid #dee2e6;
-      margin-bottom: 0.5rem;
-      scroll-behavior: smooth;
-    }
-
-    table.dataTable {
-      border-collapse: separate !important;
-      border-spacing: 0;
-      width: 100% !important;
-    }
-
-    table.dataTable thead tr {
-      background-color: #007bff;
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      font-weight: 700;
-      font-size: 0.9rem;
-    }
-
-    table.dataTable tbody tr:nth-child(odd) {
-      background-color: #f9faff;
-    }
-
-    table.dataTable tbody tr:hover {
-      background-color: #cce5ff !important;
-      cursor: pointer;
-    }
-
-    table.dataTable tbody td,
-    table.dataTable thead th {
-      padding: 8px 12px;
-      vertical-align: middle;
-      white-space: nowrap;
-    }
-
-    table.dataTable tbody td {
-      font-size: 0.88rem;
-      color: #212529;
-    }
-
-    /* Mensagem de tabela vazia */
-    .dataTables_empty {
-      font-size: 1rem;
-      font-weight: 500;
-      color: #666;
-      padding: 30px 0;
-      text-align: center;
-    }
-
-    /* Controle de página personalizado */
     #lengthSelectorContainer {
-      margin-top: 8px;
-      font-size: 0.85rem;
+      margin-top: 10px;
+      font-size: 0.75rem;
       display: flex;
       justify-content: flex-end;
       align-items: center;
-      gap: 6px;
-      color: #555;
-      user-select: none;
+      gap: 8px;
     }
-
     #lengthSelector {
       width: 70px;
-      padding: 3px 8px;
-      font-size: 0.85rem;
-      border-radius: 4px;
-      border: 1px solid #ced4da;
-      background-color: #fff;
-      transition: border-color 0.15s ease-in-out;
+      font-size: 0.75rem;
+      padding: 2px 6px;
     }
-
-    #lengthSelector:focus {
-      border-color: #86b7fe;
-      outline: 0;
-      box-shadow: 0 0 6px #a7d1ff;
+    .row label {
+      font-weight: 600;
+      font-size: 0.72rem !important;
+      color: #343a40;
+      margin-bottom: 2px;
+      padding-left: 2px;
     }
-
-    /* Botões export e limpar alinhados */
-    .action-buttons {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    .dataTables_info {
+      font-size: 0.65rem !important;
+      color: #6c757d !important;
+      margin-top: 8px;
+      padding-left: 5px;
     }
-
-    .action-buttons > * {
-      flex-grow: 1;
-      min-width: 120px;
+    .form-select-sm, .form-control-sm {
+      border-radius: 4px !important;
+      padding: 2px 6px !important;
+      background-color: #ffffff !important;
+      border: 1px solid #ced4da !important;
+      font-size: 0.7rem !important;
     }
-
-    @media (max-width: 575.98px) {
-      .action-buttons {
-        flex-direction: column;
-      }
-      #lengthSelectorContainer {
-        justify-content: center;
-      }
+    .row.gx-2.gy-2.mb-3 > div {
+      margin-bottom: 4px;
     }
   </style>
 </head>
 <body>
-  <div id="spinnerCsv" class="spinner-overlay">
-    <div class="spinner-border text-primary" role="status" aria-hidden="true"></div>
-    <div class="spinner-text">Carregando dados...</div>
+
+<div id="spinnerCsv" class="spinner-overlay">
+  <div class="spinner-border text-primary" role="status"></div>
+  <div class="spinner-text">Atualizando dados iniciais...</div>
+</div>
+<div id="spinnerAno" class="spinner-overlay-ano" style="display:none;">
+  <div class="spinner-border text-secondary" role="status"></div>
+  <div class="spinner-text">Carregando filtros...</div>
+</div>
+
+<div class="container-fluid mt-4">
+  <div class="row gx-2 gy-2 mb-3">
+    <div class="col-sm-2"><label for="anoFiltro">Ano *</label><select id="anoFiltro" class="form-select form-select-sm"></select></div>
+    <div class="col-sm-2"><label for="mesFiltro">Mês</label><select id="mesFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label for="unidadeFiltro">Unidade</label><select id="unidadeFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label for="naturezaFiltro">Natureza</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label for="classificacaoFiltro">Classificação</label><select id="classificacaoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label for="fonteFiltro">Fonte</label><select id="fonteFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label for="empenhoFiltro">Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label for="cpfFiltro">CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label for="credorFiltro">Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
   </div>
 
-  <div class="container-fluid mt-4">
-    <div class="row gx-2 gy-3 mb-3">
-      <div class="col-sm-2 col-6">
-        <label for="anoFiltro">Ano *</label>
-        <select id="anoFiltro" class="form-select form-select-sm" aria-label="Filtro de Ano"></select>
-      </div>
-      <div class="col-sm-2 col-6">
-        <label for="mesFiltro">Mês *</label>
-        <select id="mesFiltro" class="form-select form-select-sm" aria-label="Filtro de Mês" disabled>
-          <option value="">Selecione o mês</option>
-        </select>
-      </div>
-    </div>
+  <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
+  </div>
 
-    <div class="action-buttons">
-      <button id="btnLimpar" class="btn btn-outline-primary btn-sm" disabled>Limpar Filtro</button>
-
-      <div>
-        <button id="exportCsv" class="btn btn-outline-secondary btn-sm" disabled>Exportar CSV</button>
-        <button id="exportXls" class="btn btn-outline-secondary btn-sm" disabled>Exportar XLS</button>
-      </div>
-    </div>
-
-    <div class="table-wrapper" tabindex="0" aria-live="polite" aria-atomic="true" aria-relevant="additions">
-      <table id="tabela" class="table table-striped table-hover table-bordered table-sm" style="width:100%; display:none;"></table>
-    </div>
-
-    <div id="lengthSelectorContainer" style="display:none;">
-      <label for="lengthSelector">Registros por página:</label>
-      <select id="lengthSelector" class="form-select form-select-sm" aria-label="Número de registros por página">
-        <option value="10" selected>10</option>
-        <option value="20">20</option>
-        <option value="50">50</option>
-        <option value="100">100</option>
-      </select>
+  <div class="d-flex justify-content-between mb-2 flex-wrap gap-2">
+    <button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar Filtros</button>
+    <div class="btn-group">
+      <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
+      <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
+      <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
+      <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
     </div>
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <div class="table-wrapper">
+    <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
+  </div>
 
-  <script>
-    const meses = [
-      "JANEIRO",
-      "FEVEREIRO",
-      "MARÇO",
-      "ABRIL",
-      "MAIO",
-      "JUNHO",
-      "JULHO",
-      "AGOSTO",
-      "SETEMBRO",
-      "OUTUBRO",
-      "NOVEMBRO",
-      "DEZEMBRO",
-    ];
+  <div id="lengthSelectorContainer">
+    <label for="lengthSelector">Registros por página:</label>
+    <select id="lengthSelector" class="form-select form-select-sm d-inline-block" aria-label="Selecionar número de registros">
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </div>
+</div>
 
-    let dadosOriginais = [];
-    let colunasCSV = [];
-    let tabela = null;
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-    $(document).ready(function () {
-      Papa.parse(
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv",
-        {
-          download: true,
-          header: true,
-          skipEmptyLines: true,
-          complete: function (res) {
-            dadosOriginais = res.data.filter((r) => r["ANO"]);
-            colunasCSV = res.meta.fields;
+<script>
+let tabela, dadosOriginais = [];
+const mesesOrdem = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+const campos = {
+  ano:"Ano", mes:"Mês", unidade:"Unidade Orçamentária", natureza:"Natureza",
+  classificacao:"Classificação Orçamentária", fonte:"Fonte", empenho:"Empenho",
+  cpf:"CPF/CNPJ", credor:"Credor"
+};
+const ordemFiltros = ["ano","mes","unidade","natureza","classificacao","fonte","empenho","cpf","credor"];
 
-            // Preencher filtro Ano
-            const anos = [...new Set(dadosOriginais.map((r) => r["ANO"]))].sort();
-            $("#anoFiltro").append('<option value="">Selecione</option>');
-            anos.forEach((ano) =>
-              $("#anoFiltro").append(`<option value="${ano}">${ano}</option>`)
-            );
+$(document).ready(function(){
+  // Ajuste para seu CSV - altere a URL abaixo para a origem real dos dados CSV
+  Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv", {
+    download:true,
+    header:true,
+    complete:function(res){
+      dadosOriginais = res.data.filter(r => r["Ano"]); // filtra linhas válidas
+      popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
+      $('#spinnerCsv').hide();
 
-            $("#spinnerCsv").fadeOut(400);
-          },
-        }
-      );
-
-      // Ao selecionar ano, habilitar e preencher filtro meses
-      $("#anoFiltro").on("change", function () {
-        const anoSelecionado = $(this).val();
-        $("#mesFiltro")
-          .empty()
-          .append('<option value="">Selecione o mês</option>')
-          .prop("disabled", true);
-        limparTabela();
-
-        if (!anoSelecionado) {
-          $("#btnLimpar").prop("disabled", true);
-          return;
-        }
-
-        meses.forEach((mes) => {
-          if (colunasCSV.includes(mes)) {
-            $("#mesFiltro").append(`<option value="${mes}">${mes}</option>`);
-          }
+      ordemFiltros.forEach(f => {
+        $('#' + f + 'Filtro').on('change', () => {
+          resetFiltrosApos(f);
+          $('#spinnerAno').show();
+          setTimeout(() => {
+            atualizarFiltrosEncadeados(f);
+            const df = aplicarFiltroEncadeado();
+            inicializarTabela(df);
+            $('#spinnerAno').hide();
+          }, 100);
         });
-
-        $("#mesFiltro").prop("disabled", false);
-        $("#btnLimpar").prop("disabled", false);
       });
 
-      // Ao selecionar mês, montar tabela
-      $("#mesFiltro").on("change", function () {
-        const ano = $("#anoFiltro").val();
-        const mes = $(this).val();
+      $('#btnLimpar').click(() => {
+        ordemFiltros.forEach(f => $('#'+f+'Filtro').val('').prop('disabled', f !== "ano"));
+        $('#resumoValores,#tabela').hide();
+        tabela?.clear().draw();
+      });
 
-        if (!ano || !mes) {
-          limparTabela();
-          return;
+      // Exportações
+      $('#exportCsv').click(() => $('.buttons-csv').click());
+      $('#exportXls').click(() => $('.buttons-excel').click());
+      $('#exportJson').click(() => {
+        const d = tabela.rows({search:'applied'}).data().toArray();
+        baixarArquivo(new Blob([JSON.stringify(d, null, 2)], {type:'application/json'}), 'dados.json');
+      });
+      $('#exportTxt').click(() => {
+        const d = tabela.rows({search:'applied'}).data().toArray();
+        if(!d.length) return;
+        const cols = Object.keys(d[0]);
+        let s = cols.join(";") + "\n" + d.map(l => cols.map(c => l[c]).join(";")).join("\n");
+        baixarArquivo(new Blob([s], {type:'text/plain'}), 'dados.txt');
+      });
+
+      // Inicializa seletor de registros
+      $('#lengthSelector').val('10');
+      $('#lengthSelector').on('change', function(){
+        const val = parseInt($(this).val());
+        if(tabela){
+          tabela.page.len(val).draw();
         }
-
-        const dadosFiltrados = dadosOriginais.filter(
-          (r) => r["ANO"] === ano && r[mes] && r[mes].trim() !== ""
-        );
-
-        if (dadosFiltrados.length === 0) {
-          limparTabela();
-          return;
-        }
-
-        montarTabela(dadosFiltrados, mes);
-        // Scroll suave para o topo da tabela para foco do usuário
-        $(".table-wrapper").animate({ scrollTop: 0 }, 300);
       });
+    }
+  });
+});
 
-      // Botão limpar filtros
-      $("#btnLimpar").on("click", () => {
-        $("#anoFiltro").val("");
-        $("#mesFiltro")
-          .val("")
-          .empty()
-          .append('<option value="">Selecione o mês</option>')
-          .prop("disabled", true);
-        limparTabela();
-        $("#btnLimpar, #exportCsv, #exportXls").prop("disabled", true);
-      });
+function popularFiltroEncadeado(id, campo, dados){
+  const s = $('#' + id);
+  s.empty().append('<option value="">Todos</option>');
+  let vals = [...new Set(dados.map(r => r[campo]).filter(v => v))];
+  if(campo === "Mês") vals.sort((a,b) => mesesOrdem.indexOf(a) - mesesOrdem.indexOf(b));
+  else vals.sort();
+  vals.forEach(v => s.append(`<option value="${v}">${v}</option>`));
+  s.prop('disabled', false);
+}
 
-      // Exportar CSV / XLS
-      $("#exportCsv").on("click", () => tabela?.button(".buttons-csv").trigger());
-      $("#exportXls").on("click", () => tabela?.button(".buttons-excel").trigger());
+function resetFiltrosApos(f){
+  ordemFiltros.slice(ordemFiltros.indexOf(f)+1).forEach(n => {
+    $('#'+n+'Filtro').val('').prop('disabled', true);
+  });
+}
+
+function aplicarFiltroAteOrdem(idx){
+  return ordemFiltros.slice(0, idx+1).reduce((acc, f) => {
+    const v = $('#'+f+'Filtro').val();
+    return v ? acc.filter(r => r[campos[f]] === v) : acc;
+  }, dadosOriginais);
+}
+
+function atualizarFiltrosEncadeados(f){
+  const idx = ordemFiltros.indexOf(f);
+  const base = aplicarFiltroAteOrdem(idx);
+  ordemFiltros.slice(idx+1).forEach(k => {
+    popularFiltroEncadeado(k+'Filtro', campos[k], base);
+  });
+}
+
+function aplicarFiltroEncadeado(){
+  return ordemFiltros.reduce((acc, f) => {
+    const v = $('#'+f+'Filtro').val();
+    return v ? acc.filter(r => r[campos[f]] === v) : acc;
+  }, dadosOriginais);
+}
+
+function inicializarTabela(dados){
+  if(!dados.length){
+    $('#tabela').hide();
+    $('#resumoValores').hide();
+    return;
+  }
+  $('#tabela').show();
+
+  // Obtem valor atual do seletor de registros
+  let pageLength = parseInt($('#lengthSelector').val()) || 10;
+
+  if(tabela){
+    tabela.clear().rows.add(dados).page.len(pageLength).draw();
+  } else {
+    const colunas = Object.keys(dados[0]).map(c => ({
+      title: c,
+      data: c,
+      render: (typeof dados[0][c] === 'string' && dados[0][c].startsWith("R$")) || c.toLowerCase().includes("valor") ?
+        $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
+    }));
+
+    tabela = $('#tabela').DataTable({
+      data: dados,
+      destroy: true,
+      pageLength: pageLength,
+      searching: true,
+      ordering: true,
+      autoWidth: false,
+      scrollX: true,
+      dom: 'Bfrtip',
+      buttons: [
+        { extend: 'csvHtml5', className: 'd-none' },
+        { extend: 'excelHtml5', className: 'd-none' }
+      ],
+      columns: colunas,
+      language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" }
     });
+  }
+  atualizarResumo(dados);
+}
 
-    function limparTabela() {
-      if (tabela) {
-        tabela.clear().draw();
-        tabela.destroy();
-        tabela = null;
-      }
-      $("#tabela").hide();
-      $("#lengthSelectorContainer").hide();
-      $("#exportCsv, #exportXls").prop("disabled", true);
-    }
+function atualizarResumo(dados){
+  if(!dados.length){
+    $('#resumoValores').hide();
+    return;
+  }
+  let e = 0, l = 0, p = 0;
+  dados.forEach(r => {
+    e += parseFloat((r["Valor Empenhado"]||"0").replace(/\./g,'').replace(',','.')) || 0;
+    l += parseFloat((r["Valor Liquidado"]||"0").replace(/\./g,'').replace(',','.')) || 0;
+    p += parseFloat((r["Valor Pago"]||"0").replace(/\./g,'').replace(',','.')) || 0;
+  });
+  $('#totalEmpenhado').text('Empenhado: ' + e.toLocaleString('pt-BR', {style:'currency',currency:'BRL'}));
+  $('#totalLiquidado').text('Liquidado: ' + l.toLocaleString('pt-BR', {style:'currency',currency:'BRL'}));
+  $('#totalPago').text('Pago: ' + p.toLocaleString('pt-BR', {style:'currency',currency:'BRL'}));
+  $('#resumoValores').show();
+}
 
-    function montarTabela(dados, mesSelecionado) {
-      if (tabela) {
-        tabela.clear().draw();
-        tabela.destroy();
-      }
+function baixarArquivo(blob, nome){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+</script>
 
-      // Exibir todas as colunas originais EXCETO as colunas dos meses
-      const colunasParaExibir = colunasCSV
-        .filter((c) => !meses.includes(c))
-        .map((c) => ({
-          title: c,
-          data: c,
-          render: null,
-        }));
-
-      // Acrescentar coluna do mês selecionado (última coluna)
-      colunasParaExibir.push({
-        title: `VALOR - ${mesSelecionado}`,
-        data: mesSelecionado,
-        render: function (data, type, row) {
-          if (!data) return "";
-          let valorNum = parseFloat(data.replace(/\./g, "").replace(",", "."));
-          if (isNaN(valorNum)) return data;
-          return valorNum.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          });
-        },
-      });
-
-      tabela = $("#tabela").DataTable({
-        data: dados,
-        columns: colunasParaExibir,
-        paging: true,
-        pageLength: 10,
-        lengthChange: false,
-        searching: false,
-        ordering: true,
-        order: [], // desabilita order padrão
-        info: true,
-        autoWidth: false,
-        scrollX: true,
-        scrollY: "450px",
-        scroller: false,
-        dom: "Bfrtip",
-        buttons: [
-          {
-            extend: "csvHtml5",
-            className: "buttons-csv d-none",
-            filename: `dados_${mesSelecionado.toLowerCase()}`,
-          },
-          {
-            extend: "excelHtml5",
-            className: "buttons-excel d-none",
-            filename: `dados_${mesSelecionado.toLowerCase()}`,
-          },
-        ],
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json",
-        },
-        drawCallback: function () {
-          // Ajustar largura das colunas após o redraw
-          tabela.columns.adjust();
-        },
-      });
-
-      $("#tabela").fadeIn(400);
-      $("#lengthSelectorContainer").show();
-      $("#exportCsv, #exportXls").prop("disabled", false);
-
-      // Controle para alterar número de registros por página
-      $("#lengthSelector")
-        .off()
-        .on("change", function () {
-          const len = parseInt($(this).val());
-          tabela.page.len(len).draw();
-        });
-    }
-  </script>
 </body>
 </html>
