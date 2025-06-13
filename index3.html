@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Receitas por Mês</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -32,11 +33,11 @@
   <div class="container-fluid mt-4">
     <div class="row g-2 mb-2">
       <div class="col-sm-2">
-        <label for="anoFiltro">Ano</label>
+        <label>Ano</label>
         <select id="anoFiltro" class="form-select form-select-sm"></select>
       </div>
       <div class="col-sm-2">
-        <label for="mesFiltro">Mês</label>
+        <label>Mês</label>
         <select id="mesFiltro" class="form-select form-select-sm" disabled>
           <option value="">Selecione o ano</option>
         </select>
@@ -59,7 +60,7 @@
     </div>
 
     <div id="lengthSelectorContainer" class="d-flex justify-content-end mt-2" style="display:none;">
-      <label for="lengthSelector" class="me-2">Linhas por página:</label>
+      <label class="me-2">Linhas por página:</label>
       <select id="lengthSelector" class="form-select form-select-sm" style="width:80px;">
         <option value="10">10</option>
         <option value="20">20</option>
@@ -87,30 +88,36 @@
         complete: res => {
           dadosOriginais = res.data.filter(r => r.ANO);
           const anos = [...new Set(dadosOriginais.map(r => r.ANO))].sort();
-          $('#anoFiltro').append(`<option value="">Selecione</option>` + anos.map(a=>`<option value="${a}">${a}</option>`).join(''));
+          $('#anoFiltro').append('<option value="">Selecione</option>');
+          anos.forEach(a=>{
+            $('#anoFiltro').append(`<option value="${a}">${a}</option>`);
+          });
           $('#spinnerCsv').hide();
         }
       });
 
       $('#anoFiltro').change(() => {
         const ano = $('#anoFiltro').val();
-        $('#mesFiltro').prop('disabled', !ano).html(ano ? `<option value="">Selecione</option>` : `<option value="">Selecione o ano</option>`);
-        if (!ano) return;
-        const meses = ["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
-        meses.forEach(m => $('#mesFiltro').append(`<option value="${m}">${m.charAt(0)+m.slice(1).toLowerCase()}</option>`));
+        $('#mesFiltro').prop('disabled', !ano).html(ano ? '<option value="">Selecione</option>' : '<option value="">Selecione o ano</option>');
+        if(ano) {
+          ["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"]
+            .forEach(m => $('#mesFiltro').append(`<option value="${m}">${m.charAt(0)+m.slice(1).toLowerCase()}</option>`));
+        }
       });
 
       $('#mesFiltro').change(() => {
-        const ano = $('#anoFiltro').val(); const mes = $('#mesFiltro').val();
+        const ano = $('#anoFiltro').val(), mes = $('#mesFiltro').val();
         if (!ano || !mes) return;
         const dados = dadosOriginais.filter(r => r.ANO === ano && r[mes] && !isNaN(parseFloat(r[mes])));
-        renderizarTabela(dados, mes);
-        $('#btnLimpar, #exportCsv, #exportXls, #exportJson, #exportTxt').prop('disabled', false);
+        console.log('Filtrou', dados.length, 'linhas para', ano, mes);
+        if (dados.length) {
+          renderizarTabela(dados, mes);
+          $('#btnLimpar, #exportCsv, #exportXls, #exportJson, #exportTxt').prop('disabled', false);
+        }
       });
 
       $('#btnLimpar').click(() => {
-        $('#anoFiltro, #mesFiltro').val('');
-        $('#mesFiltro').prop('disabled', true);
+        $('#anoFiltro, #mesFiltro').val('').prop('disabled', id => id === 'mesFiltro');
         tabela?.clear().draw();
         $('#tabela, #lengthSelectorContainer').hide();
         $('#btnLimpar, #exportCsv, #exportXls, #exportJson, #exportTxt').prop('disabled', true);
@@ -127,8 +134,8 @@
       const tam = parseInt($('#lengthSelector').val()) || 10;
       tabela?.destroy();
 
-      const colunasMes = ["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
-      const cabeçalhos = Object.keys(dados[0]).filter(c => !colunasMes.includes(c) || c === mesSelecionado);
+      const meses = ["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+      const cabeçalhos = Object.keys(dados[0]).filter(c => !meses.includes(c) || c === mesSelecionado);
       const cols = cabeçalhos.map(c => ({
         title: c,
         data: c,
@@ -161,7 +168,7 @@
             }
           }
         ],
-        language: { url:"https://cdn.datatables.net/plug‑ins/1.13.4/i18n/pt‑BR.json" }
+        language: { url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" }
       });
 
       $('#tabela').show();
