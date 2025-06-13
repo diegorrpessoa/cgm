@@ -3,23 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Receitas por Mês</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
   <style>
-    body { background-color: #f8f9fa; font-size: 0.75rem; }
-    .form-select-sm { font-size: 0.75rem; height: 32px; }
-    label { font-weight: 500; font-size: 0.75rem; }
+    body { background-color: #f8f9fa; font-size:0.75rem; }
+    .form-select-sm, .btn-sm { font-size:0.75rem; height:32px; }
+    label { font-weight:500; font-size:0.75rem; }
     .table th, .table td { white-space: nowrap; }
-    .dataTables_filter { display: none !important; } /* Remove campo buscar */
+    .dataTables_filter { display:none !important; }
     .spinner-overlay {
-      position: fixed; top: 0; left: 0; width:100%; height:100vh;
-      background-color: rgba(255,255,255,0.9);
-      display: flex; align-items: center; justify-content: center;
-      z-index: 9999;
+      position:fixed; top:0; left:0; width:100%; height:100vh;
+      background:rgba(255,255,255,0.9);
+      display:flex; align-items:center; justify-content:center;
+      z-index:9999;
     }
-    .table-wrapper { overflow-x: auto; }
+    .table-wrapper { overflow-x:auto; }
   </style>
 </head>
 <body>
@@ -39,11 +38,11 @@
       <div class="col-sm-2">
         <label for="mesFiltro">Mês</label>
         <select id="mesFiltro" class="form-select form-select-sm" disabled>
-          <option value="">Selecione o ano primeiro</option>
+          <option value="">Selecione o ano</option>
         </select>
       </div>
       <div class="col-sm-2 d-flex align-items-end">
-        <button id="btnLimpar" class="btn btn-outline-secondary btn-sm w-100" disabled>Limpar Filtros</button>
+        <button id="btnLimpar" class="btn btn-outline-secondary btn-sm w-100" disabled>Limpar</button>
       </div>
       <div class="col-sm-4 d-flex align-items-end">
         <div class="btn-group w-100">
@@ -60,7 +59,7 @@
     </div>
 
     <div id="lengthSelectorContainer" class="d-flex justify-content-end mt-2" style="display:none;">
-      <label for="lengthSelector" class="me-2">Registros por página:</label>
+      <label for="lengthSelector" class="me-2">Linhas por página:</label>
       <select id="lengthSelector" class="form-select form-select-sm" style="width:80px;">
         <option value="10">10</option>
         <option value="20">20</option>
@@ -82,33 +81,29 @@
   <script>
     let tabela, dadosOriginais = [];
 
-    $(document).ready(function(){
-      Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv", {
-        download: true,
-        header: true,
-        complete: function(res) {
+    $(document).ready(() => {
+      Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&output=csv", {
+        download:true, header:true,
+        complete: res => {
           dadosOriginais = res.data.filter(r => r.ANO);
           const anos = [...new Set(dadosOriginais.map(r => r.ANO))].sort();
-          anos.forEach(a => $('#anoFiltro').append(`<option value="${a}">${a}</option>`));
-          $('#anoFiltro').prepend(`<option value="">Selecione</option>`);
+          $('#anoFiltro').append(`<option value="">Selecione</option>` + anos.map(a=>`<option value="${a}">${a}</option>`).join(''));
           $('#spinnerCsv').hide();
         }
       });
 
-      $('#anoFiltro').on('change', function(){
-        const ano = $(this).val();
-        $('#mesFiltro').prop('disabled', !ano).html('<option value="">Selecione</option>');
+      $('#anoFiltro').change(() => {
+        const ano = $('#anoFiltro').val();
+        $('#mesFiltro').prop('disabled', !ano).html(ano ? `<option value="">Selecione</option>` : `<option value="">Selecione o ano</option>`);
         if (!ano) return;
         const meses = ["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
-        meses.forEach(m => $('#mesFiltro').append(`<option value="${m}">${m.charAt(0) + m.slice(1).toLowerCase()}</option>`));
+        meses.forEach(m => $('#mesFiltro').append(`<option value="${m}">${m.charAt(0)+m.slice(1).toLowerCase()}</option>`));
       });
 
-      $('#mesFiltro').on('change', function(){
-        const mes = $(this).val();
-        const ano = $('#anoFiltro').val();
-        if (!mes || !ano) return;
-
-        const dados = dadosOriginais.filter(r => r.ANO === ano && r[mes]);
+      $('#mesFiltro').change(() => {
+        const ano = $('#anoFiltro').val(); const mes = $('#mesFiltro').val();
+        if (!ano || !mes) return;
+        const dados = dadosOriginais.filter(r => r.ANO === ano && r[mes] && !isNaN(parseFloat(r[mes])));
         renderizarTabela(dados, mes);
         $('#btnLimpar, #exportCsv, #exportXls, #exportJson, #exportTxt').prop('disabled', false);
       });
@@ -117,8 +112,8 @@
         $('#anoFiltro, #mesFiltro').val('');
         $('#mesFiltro').prop('disabled', true);
         tabela?.clear().draw();
-        $('#tabela').hide();
-        $('#btnLimpar, #exportCsv, #exportXls, #exportJson, #exportTxt, #lengthSelectorContainer').hide();
+        $('#tabela, #lengthSelectorContainer').hide();
+        $('#btnLimpar, #exportCsv, #exportXls, #exportJson, #exportTxt').prop('disabled', true);
       });
 
       $('#exportCsv').click(() => tabela.button('.buttons-csv').trigger());
@@ -130,15 +125,14 @@
     function renderizarTabela(dados, mesSelecionado) {
       $('#lengthSelectorContainer').show();
       const tam = parseInt($('#lengthSelector').val()) || 10;
-      if (tabela) tabela.destroy();
+      tabela?.destroy();
 
-      const colunasMeses = ["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
-      const colunasVisiveis = Object.keys(dados[0]).filter(c => !colunasMeses.includes(c) || c === mesSelecionado);
-
-      const cols = colunasVisiveis.map(c => ({
+      const colunasMes = ["JANEIRO","FEVEREIRO","MARCO","ABRIL","MAIO","JUNHO","JULHO","AGOSTO","SETEMBRO","OUTUBRO","NOVEMBRO","DEZEMBRO"];
+      const cabeçalhos = Object.keys(dados[0]).filter(c => !colunasMes.includes(c) || c === mesSelecionado);
+      const cols = cabeçalhos.map(c => ({
         title: c,
         data: c,
-        render: c.match(/PREVISAO|TOTAL|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO/i)
+        render: /PREVISAO|TOTAL|JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO/.test(c)
           ? $.fn.dataTable.render.number('.', ',', 2, 'R$ ')
           : null
       }));
@@ -153,33 +147,25 @@
         info: true,
         dom: 'Bfrtip',
         buttons: [
-          { extend: 'csvHtml5', className: 'buttons-csv d-none' },
-          { extend: 'excelHtml5', className: 'buttons-excel d-none' },
-          { extend: 'copyHtml5', className: 'buttons-txt d-none' },
+          { extend:'csvHtml5', className:'buttons-csv d-none' },
+          { extend:'excelHtml5', className:'buttons-excel d-none' },
+          { extend:'copyHtml5', className:'buttons-txt d-none' },
           {
-            extend: 'jsonHtml5',
-            className: 'buttons-json d-none',
-            action: function(e, dt, button, config) {
-              const json = JSON.stringify(dt.buttons.exportData().body);
-              const blob = new Blob([json], { type: "application/json" });
-              const url = URL.createObjectURL(blob);
+            extend:'jsonHtml5', className:'buttons-json d-none',
+            action: (e, dt) => {
+              const blob = new Blob([JSON.stringify(dt.buttons.exportData().body)], { type:'application/json' });
               const a = document.createElement('a');
-              a.href = url;
+              a.href = URL.createObjectURL(blob);
               a.download = "dados.json";
-              document.body.appendChild(a);
               a.click();
-              document.body.removeChild(a);
-              URL.revokeObjectURL(url);
             }
           }
         ],
-        language: { url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json" }
+        language: { url:"https://cdn.datatables.net/plug‑ins/1.13.4/i18n/pt‑BR.json" }
       });
 
       $('#tabela').show();
-      $('#lengthSelector').off().on('change', function() {
-        tabela.page.len(parseInt(this.value)).draw();
-      });
+      $('#lengthSelector').off().change(() => tabela.page.len(parseInt($('#lengthSelector').val())).draw());
     }
   </script>
 </body>
