@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>2 Receitas</title>
+  <title>3 Receitas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -109,14 +109,8 @@
         header: true,
         skipEmptyLines: true,
         complete: function(res) {
-          console.log("Resultado bruto do CSV:", res.data);
-
-          dadosOriginais = res.data.filter(r => r.Ano && r.Ano.trim() !== "");
-          console.log("Filtrados com 'Ano' definido:", dadosOriginais);
-
-          const anos = [...new Set(dadosOriginais.map(r => r.Ano))].sort();
-          console.log("Anos disponíveis:", anos);
-
+          dadosOriginais = res.data.filter(r => r["ANO"] && r["ANO"].trim() !== "");
+          const anos = [...new Set(dadosOriginais.map(r => r["ANO"]))].sort();
           anos.forEach(a => $('#anoFiltro').append(`<option value="${a}">${a}</option>`));
           $('#anoFiltro').prepend(`<option value="">Selecione</option>`);
           $('#spinnerCsv').hide();
@@ -130,8 +124,9 @@
       $('#anoFiltro').on('change', function(){
         const ano = $(this).val();
         if (!ano) return;
-        $('#btnLimpar, #exportCsv, #exportXls, #lengthSelectorContainer').show().prop('disabled', false);
-        const dados = dadosOriginais.filter(r => r.Ano === ano);
+        $('#btnLimpar, #exportCsv, #exportXls').prop('disabled', false);
+        $('#lengthSelectorContainer').show();
+        const dados = dadosOriginais.filter(r => r["ANO"] === ano);
         renderizarTabela(dados);
       });
 
@@ -139,7 +134,8 @@
         $('#anoFiltro').val('');
         tabela?.clear().draw();
         $('#tabela').hide();
-        $('#btnLimpar, #exportCsv, #exportXls, #lengthSelectorContainer').hide();
+        $('#btnLimpar, #exportCsv, #exportXls').prop('disabled', true);
+        $('#lengthSelectorContainer').hide();
       });
 
       $('#exportCsv').click(() => tabela.button('.buttons-csv').trigger());
@@ -150,12 +146,12 @@
       $('#lengthSelectorContainer').show();
       const tam = parseInt($('#lengthSelector').val()) || 10;
 
-      if (tabela) tabela.destroy();
+      if(tabela) tabela.destroy();
 
       const cols = Object.keys(dados[0]).map(c => ({
         title: c,
         data: c,
-        render: c.match(/Valor|Receita/) ? $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
+        render: c.match(/Valor|Receita/i) ? $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
       }));
 
       tabela = $('#tabela').DataTable({
