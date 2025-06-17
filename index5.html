@@ -142,6 +142,12 @@
     <div class="col-sm-2"><label>Empenho</label><select id="empenhoFiltro" class="form-select form-select-sm" disabled></select></div>
     <div class="col-sm-2"><label>CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
     <div class="col-sm-2"><label>Credor</label><select id="credorFiltro" class="form-select form-select-sm" disabled></select></div>
+
+      <!-- Data de atualização -->
+  <div id="dataAtualizacao" class="text-end mt-3" style="font-size: 0.65rem; color: #6c757d;">
+    Atualizado em: carregando...
+  </div>
+
   </div>
 
   <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
@@ -194,6 +200,18 @@ const campos = {
   cpf:"CPF/CNPJ",credor:"Credor"
 };
 const ordemFiltros = ["ano","mes","unidade","natureza","classificacao","fonte","empenho","cpf","credor"];
+
+  $(document).ready(function(){
+  const urlCsv = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv";
+  
+  obterDataUltimaAtualizacao(urlCsv);  // <- nova chamada aqui
+  
+  Papa.parse(urlCsv, {
+    download: true,
+    header: true,
+    complete: function(res) {
+      // (restante do código continua normalmente)
+
 
 $(document).ready(function(){
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
@@ -360,6 +378,27 @@ function baixarArquivo(blob, nome){
   a.click();
   document.body.removeChild(a);
 }
+
+
+
+  function obterDataUltimaAtualizacao(url) {
+  fetch(url, { method: 'HEAD' }).then(response => {
+    const modificado = response.headers.get('Last-Modified');
+    if (modificado) {
+      const data = new Date(modificado);
+      const formatada = data.toLocaleString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      });
+      $('#ultimaAtualizacao').text(`Atualizado em: ${formatada}`);
+    } else {
+      $('#ultimaAtualizacao').text(`Data da última atualização indisponível.`);
+    }
+  }).catch(() => {
+    $('#ultimaAtualizacao').text(`Erro ao verificar data de atualização.`);
+  });
+}
+
 </script>
 </body>
 </html>
