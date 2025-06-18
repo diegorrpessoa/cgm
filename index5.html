@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>20Despesas</title>
+  <title>Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -149,10 +149,11 @@
     <span id="totalPago">Pago: R$ 0,00</span>
   </div>
 
-  <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="d-flex justify-content-between align-items-center mb-2">
     <button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar Filtros</button>
     <div class="d-flex align-items-center">
-        <div id="atualizadoEm" class="xsmall text-muted me-3"></div> <div class="btn-group">
+        <div id="atualizadoEm" class="xsmall text-muted me-3"></div> 
+        <div class="btn-group">
             <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
             <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
             <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
@@ -253,15 +254,15 @@ $(document).ready(function(){
     }
   });
 
-  // SEGUNDA REQUISIÇÃO: Carrega o CSV bruto para pegar a célula Y2 (sem cabeçalhos)
-  // Esta requisição é mais leve pois não precisa processar todo o arquivo com mapeamento de cabeçalho.
+  // SEGUNDA REQUISIÇÃO: Carrega o CSV bruto para pegar APENAS a célula Y2 (sem cabeçalhos)
+  // Esta requisição é muito leve pois não precisa processar todo o arquivo com mapeamento de cabeçalho.
   Papa.parse(dataUrl, {
     download: true,
     header: false, // Importante: não usar cabeçalho para acessar células por índice
     complete: function(resMeta) {
         let updateDateString = '';
-        // Y2 corresponde à linha de índice 1 e coluna de índice 24 (lembrando que índices são base 0)
-        // console.log("Dados brutos para Y2:", resMeta.data); // Para depuração
+        // Y2 corresponde à linha de índice 1 e coluna de índice 24 (Y é a 25ª letra, 25-1 = 24)
+        // console.log("Dados brutos para Y2:", resMeta.data); // Descomente para depuração se necessário
         if (resMeta.data && resMeta.data.length > 1 && resMeta.data[1] && resMeta.data[1][24]) {
             updateDateString = resMeta.data[1][24];
         }
@@ -289,11 +290,11 @@ $(document).ready(function(){
                         second: '2-digit',
                     });
                 } else {
-                    console.warn("Conteúdo de Y2 é uma data inválida:", updateDateString);
+                    console.warn("Conteúdo de Y2 é uma data inválida, exibindo string bruta:", updateDateString);
                     formattedDate = updateDateString + " (Data inválida)";
                 }
             } else {
-                console.warn("Conteúdo de Y2 não está no formato DD/MM/AAAA HH:MM:SS:", updateDateString);
+                console.warn("Conteúdo de Y2 não está no formato DD/MM/AAAA HH:MM:SS, exibindo string bruta:", updateDateString);
                 formattedDate = updateDateString + " (Formato inesperado)";
             }
         }
@@ -353,8 +354,7 @@ function inicializarTabela(dados){
   if(tabela){
     tabela.clear().rows.add(dados).page.len(pageLength).draw();
   } else {
-    // Agora que a Data Atualização está em Y2 e não é uma coluna da tabela principal,
-    // não precisamos mais filtrá-la aqui.
+    // Como a data de atualização agora é buscada de Y2, não precisamos filtrar colunas aqui
     const colunas = Object.keys(dados[0]).map(c => ({
       title: c,
       data: c,
