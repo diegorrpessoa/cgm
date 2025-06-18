@@ -151,16 +151,17 @@
 
   <div class="d-flex justify-content-between align-items-center mb-2">
     <button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar Filtros</button>
-    <div class="btn-group">
-      <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-      <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-      <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-      <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+    <div class="d-flex align-items-center"> 
+      <div id="atualizadoEm" class="xsmall text-muted me-3"></div>
+      <div class="btn-group">
+        <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
+        <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
+        <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
+        <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+      </div>
     </div>
   </div>
-
-    <div id="atualizadoEm" class="xsmall text-muted"></div>
-  
+    
   <div class="table-wrapper">
     <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
   </div>
@@ -319,12 +320,15 @@ function inicializarTabela(dados){
   if(tabela){
     tabela.clear().rows.add(dados).page.len(pageLength).draw();
   } else {
-    const colunas = Object.keys(dados[0]).map(c => ({
-      title: c,
-      data: c,
-      render: (typeof dados[0][c] === 'string' && dados[0][c].startsWith("R$")) || c.startsWith("Valor") ?
-        $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
-    }));
+    // MODIFICAÇÃO AQUI: Filtra a coluna "Data Atualização"
+    const colunas = Object.keys(dados[0])
+      .filter(c => c !== "Data Atualização") // Exclui a coluna "Data Atualização"
+      .map(c => ({
+        title: c,
+        data: c,
+        render: (typeof dados[0][c] === 'string' && dados[0][c].startsWith("R$")) || c.startsWith("Valor") ?
+          $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
+      }));
 
     tabela = $('#tabela').DataTable({
       data: dados,
