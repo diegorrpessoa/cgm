@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -144,9 +145,9 @@
   </div>
 
   <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
-    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
-    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
-    <span id="totalPago">Pago: R$ 0,00</span>
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
   </div>
 
   <div class="d-flex justify-content-between mb-2">
@@ -158,9 +159,7 @@
       <button id="exportTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
     </div>
   </div>
-  
-<div id="ultimaAtualizacao" class="text-end text-muted fst-italic"></div>
-  
+
   <div class="table-wrapper">
     <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
   </div>
@@ -256,7 +255,7 @@ function popularFiltroEncadeado(id,campo,dados){
   let vals=[...new Set(dados.map(r=>r[campo]).filter(v=>v))];
   if(campo==="Mês") vals.sort((a,b)=>mesesOrdem.indexOf(a)-mesesOrdem.indexOf(b));
   else vals.sort();
-  vals.forEach(v=>s.append(<option value="${v}">${v}</option>));
+  vals.forEach(v=>s.append(`<option value="${v}">${v}</option>`));
   s.prop('disabled', false);
 }
 
@@ -361,20 +360,6 @@ function baixarArquivo(blob, nome){
   a.click();
   document.body.removeChild(a);
 }
-
-  // Exibir data de modificação do arquivo local (não funciona sempre por segurança do navegador)
-function obterDataArquivoLocal(inputFile) {
-    const file = inputFile.files[0];
-    if (file) {
-        const ultimaModificacao = new Date(file.lastModified);
-        const dataFormatada = ultimaModificacao.toLocaleDateString('pt-BR');
-        $('#ultimaAtualizacao').text("Atualizado em: " + dataFormatada);
-    }
-}
-
-$('#csvFile').on('change', function () {
-    obterDataArquivoLocal(this);
-});
 </script>
 </body>
 </html>
