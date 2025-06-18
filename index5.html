@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>1.0 Despesas</title>
+  <title>Despesas</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -152,8 +152,7 @@
   <div class="d-flex justify-content-between align-items-center mb-2">
     <button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar Filtros</button>
     <div class="d-flex align-items-center">
-        <div id="atualizadoEm" class="xsmall text-muted me-3"></div>
-        <div class="btn-group">
+        <div id="atualizadoEm" class="xsmall text-muted me-3"></div> <div class="btn-group">
             <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
             <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
             <button id="exportJson" class="btn btn-outline-secondary btn-sm">JSON</button>
@@ -197,54 +196,57 @@ const campos = {
 const ordemFiltros = ["ano","mes","unidade","natureza","classificacao","fonte","empenho","cpf","credor"];
 
 $(document).ready(function(){
-  const dataUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9WRiB3lzcwypd1oZpASlEJFyjQ97xROrMk0tX6KJu0pONPCIqnomr-dwZZ25DmGFTT7lv0OvjNG2H/pub?output=csv";
-  
-  // Carrega os dados principais da tabela
+  const dataUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9WRiB3lzcwypd1oZpASlEJFyjQ97xROrMk0tX6KJu0pONP_CIqnomr-dwZZ25DmGFTT7lv0OvjNG2H/pub?output=csv"; // Seu link da planilha
+
   Papa.parse(dataUrl, {
-    download:true,header:true,complete:function(res){
+    download:true,
+    header:true, // Continua usando cabeçalhos para o parser principal
+    complete:function(res){
       dadosOriginais = res.data.filter(r=>r["Ano"]);
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
       $('#spinnerCsv').hide();
 
-      // Carrega a data de atualização da célula Y2 em uma SEGUNDA requisição (sem cabeçalho)
-      Papa.parse(dataUrl, {
-        download: true,
-        header: false, // Importante: não usar cabeçalho para acessar células por índice
-        complete: function(resMeta) {
-          // Y2 corresponde à linha de índice 1 e coluna de índice 24 (lembrando que índices são base 0)
-          if (resMeta.data && resMeta.data.length > 1 && resMeta.data[1] && resMeta.data[1][24]) {
-            let rawDateString = resMeta.data[1][24];
-            let formattedDate = 'N/A';
+      // --- INÍCIO DA ATUALIZAÇÃO PARA "ATUALIZADO EM" ---
+      // Pega a data de atualização da primeira linha dos dados
+      let updateDateString = '';
+      if (dadosOriginais.length > 0 && dadosOriginais[0]["Data Atualização"]) {
+          updateDateString = dadosOriginais[0]["Data Atualização"];
+      }
 
-            try {
-                let dateObject = new Date(rawDateString);
-                // Verifica se a data é válida
-                if (!isNaN(dateObject.getTime())) {
-                    // Formata a data e hora para o fuso horário local do navegador
-                    formattedDate = dateObject.toLocaleString('pt-BR', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        second: '2-digit',
-                        // hour12: false // Adicione isso se quiser formato 24h garantido
-                    });
-                }
-            } catch (e) {
-                console.error("Erro ao parsear a data da célula Y2:", e);
-                formattedDate = rawDateString + " (Erro de formato)";
-            }
-            $('#atualizadoEm').text('Atualizado em: ' + formattedDate);
-          } else {
-            $('#atualizadoEm').text('Atualizado em: N/A');
-          }
-        },
-        error: function(err) {
-          console.error("Erro ao carregar dados para atualização:", err);
-          $('#atualizadoEm').text('Atualizado em: Erro ao carregar');
-        }
-      });
+      let formattedDate = 'N/A';
+      if (updateDateString) {
+          // Regex para extrair as partes da data e hora no formato DD/MM/AAAA HH:MM:SS
+          const parts = updateDateString.match(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})/);
+          if (parts) {
+              // Os grupos do regex: [0]string completa, [1]dia, [2]mês, [3]ano, [4]hora, [5]minuto, [6]segundo
+              const [, day, month, year, hour, minute, second] = parts;
+              
+              // Cria um objeto Date. Note que o mês em JavaScript é base 0 (janeiro=0, fevereiro=1, etc.)
+              const dateObject = new Date(year, month - 1, day, hour, minute, second);
+
+              // Verifica se o objeto Date é válido
+              if (!isNaN(dateObject.getTime())) {
+                  // Formata a data e hora para o fuso horário local do navegador (pt-BR)
+                  formattedDate = dateObject.toLocaleString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                      // hour12: false // Descomente para garantir o formato 24 horas
+                  });
+              } else {
+                  console.warn("Data Atualização inválida, exibindo string bruta:", updateDateString);
+                  formattedDate = updateDateString + " (Erro de formato)";
+              }
+          } else {
+              console.warn("Data Atualização não está no formato DD/MM/AAAA HH:MM:SS, exibindo string bruta:", updateDateString);
+              formattedDate = updateDateString + " (Formato inesperado)";
+          }
+      }
+      $('#atualizadoEm').text('Atualizado em: ' + formattedDate);
+      // --- FIM DA ATUALIZAÇÃO PARA "ATUALIZADO EM" ---
 
       ordemFiltros.forEach(f=>{
         $('#' + f + 'Filtro').on('change', () => {
@@ -340,10 +342,13 @@ function inicializarTabela(dados){
   if(tabela){
     tabela.clear().rows.add(dados).page.len(pageLength).draw();
   } else {
-    const colunas = Object.keys(dados[0]).map(c => ({
-      title: c,
-      data: c,
-      render: (typeof dados[0][c] === 'string' && dados[0][c].startsWith("R$")) || c.startsWith("Valor") ?
+    // Filtra a coluna "Data Atualização" para não exibi-la na tabela
+    const colunas = Object.keys(dados[0])
+        .filter(c => c !== "Data Atualização") // Garante que a coluna 'Data Atualização' não seja exibida
+        .map(c => ({
+            title: c,
+            data: c,
+            render: (typeof dados[0][c] === 'string' && dados[0][c].startsWith("R$")) || c.startsWith("Valor") ?
         $.fn.dataTable.render.number('.', ',', 2, 'R$ ') : null
     }));
 
