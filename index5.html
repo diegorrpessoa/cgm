@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Despesas</title>
+  <title>Despesas 9</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
   <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -144,13 +144,14 @@
   </div>
 
   <div class="totalizadores mb-2" id="resumoValores" style="display: none;">
-    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
-    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
-    <span id="totalPago">Pago: R$ 0,00</span>
+    <span id="totalEmpenhado">Empenhado: R$ 0,00</span>
+    <span id="totalLiquidado">Liquidado: R$ 0,00</span>
+    <span id="totalPago">Pago: R$ 0,00</span>
   </div>
 
-  <div class="d-flex justify-content-between mb-2">
+  <div class="d-flex justify-content-between align-items-center mb-2">
     <button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar Filtros</button>
+    <div id="atualizadoEm" class="xsmall text-muted"></div>
     <div class="btn-group">
       <button id="exportCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
       <button id="exportXls" class="btn btn-outline-secondary btn-sm">XLS</button>
@@ -163,7 +164,6 @@
     <table id="tabela" class="table table-bordered table-striped table-sm xsmall w-100" style="display:none;"></table>
   </div>
 
-  <!-- Novo seletor para número de registros -->
   <div id="lengthSelectorContainer" class="text-end">
     <label for="lengthSelector">Registros por página:</label>
     <select id="lengthSelector" class="form-select form-select-sm d-inline-block" aria-label="Selecionar número de registros">
@@ -173,7 +173,7 @@
       <option value="100">100</option>
     </select>
   </div>
-   
+    
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -195,11 +195,34 @@ const campos = {
 const ordemFiltros = ["ano","mes","unidade","natureza","classificacao","fonte","empenho","cpf","credor"];
 
 $(document).ready(function(){
-  Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vTzWz42lwpuf2FwYofqSsAgtDayYLAYCblodcAjQvV-pYxFGengPlHWubJjyTP6_6jidIhpQcuLuvC7/pub?gid=501851609&single=true&output=csv", {
+  // NOVO LINK DA PLANILHA
+  const dataUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vR9WRiB3lzcwypd1oZpASlEJFyjQ97xROrMk0tX6KJu0pONpCIqnomr-dwZZ25DmGFTT7lv0OvjNG2H/pub?output=csv";
+  
+  Papa.parse(dataUrl, {
     download:true,header:true,complete:function(res){
       dadosOriginais = res.data.filter(r=>r["Ano"]);
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
       $('#spinnerCsv').hide();
+
+      // Busca o valor da célula Y2 para "atualizado em:"
+      Papa.parse(dataUrl, {
+        download: true,
+        header: false, // Não usar cabeçalho para pegar a célula específica
+        complete: function(resMeta) {
+          // Y2 é linha 2, coluna 25 (base 0). Ajuste conforme a estrutura da sua nova planilha.
+          // Para esta URL específica, a célula Y2 pode estar em uma posição diferente se a estrutura da planilha mudou.
+          // O índice [1][24] busca a segunda linha e a vigésima quinta coluna.
+          if (resMeta.data && resMeta.data.length > 1 && resMeta.data[1] && resMeta.data[1][24]) {
+            $('#atualizadoEm').text('Atualizado em: ' + resMeta.data[1][24]);
+          } else {
+            $('#atualizadoEm').text('Atualizado em: N/A');
+          }
+        },
+        error: function(err) {
+          console.error("Erro ao carregar dados para atualização:", err);
+          $('#atualizadoEm').text('Atualizado em: Erro ao carregar');
+        }
+      });
 
       ordemFiltros.forEach(f=>{
         $('#' + f + 'Filtro').on('change', () => {
