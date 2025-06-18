@@ -201,11 +201,6 @@ $(document).ready(function(){
   Papa.parse("https://docs.google.com/spreadsheets/d/e/2PACX-1vR9WRiB3lzcwypd1oZpASlEJFyjQ97xROrMk0tX6KJu0pONpCIqnomr-dwZZ25DmGFTT7lv0OvjNG2H/pub?output=csv", {
     download:true,header:true,complete:function(res){
       dadosOriginais = res.data.filter(r=>r["Ano"]);
-       // Exibe o conteúdo da célula "Y2" (primeira linha da coluna "Data Atualização")
-const primeiraLinha = res.data[0];
-const dataAtualizacao = primeiraLinha["Data Atualização"];
-if (dataAtualizacao) {
-  $('#dataAtualizacao').text("Última atualização dos dados: " + dataAtualizacao).fadeIn();
       popularFiltroEncadeado("anoFiltro", campos.ano, dadosOriginais);
       $('#spinnerCsv').hide();
      
