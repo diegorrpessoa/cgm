@@ -1,83 +1,100 @@
+
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Consulta 2ª Via IPTU – PJF</title>
-  <!-- CSS Bootstrap 5.3 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2ª Via de IPTU - Prefeitura de Juiz de Fora</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
   <style>
-    body { background: #f8f9fa; }
-    .container { max-width: 480px; margin-top: 6rem; }
-    .captcha-img { height: 50px; }
-    .breadcrumb { background: none; }
-    label { font-weight: 600; }
+    body {
+      background-color: #f8f9fa;
+    }
+    .breadcrumb {
+      font-size: 0.85rem;
+    }
+    .card {
+      border-radius: 10px;
+    }
+    .form-label {
+      font-weight: 600;
+    }
+    .acessibilidade {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
+    }
   </style>
 </head>
+
 <body>
-  <div class="container bg-white p-4 shadow">
-    <!-- Migalhas (breadcrumb) -->
+  <nav class="navbar navbar-light bg-white shadow-sm px-3">
+    <a class="navbar-brand" href="#">Prefeitura de Juiz de Fora</a>
+    <div class="acessibilidade">
+      <button class="btn btn-sm btn-outline-dark">A+</button>
+      <button class="btn btn-sm btn-outline-dark">A-</button>
+      <button class="btn btn-sm btn-outline-dark">Contraste</button>
+    </div>
+  </nav>
+
+  <div class="container mt-4">
     <nav aria-label="breadcrumb">
-      <ol class="breadcrumb px-0">
-        <li class="breadcrumb-item"><a href="#" onclick="voltar(); return false;">Início</a></li>
-        <li class="breadcrumb-item">IPTU</li>
-        <li class="breadcrumb-item active" aria-current="page">2ª Via</li>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Início</a></li>
+        <li class="breadcrumb-item"><a href="#">IPTU</a></li>
+        <li class="breadcrumb-item active" aria-current="page">2ª Via de IPTU</li>
       </ol>
     </nav>
 
-    <h5 class="mb-4">Emitir 2ª via do IPTU</h5>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Emissão da 2ª Via do IPTU</h5>
+        <p class="card-text">Informe o número de inscrição do seu imóvel para emitir a segunda via do IPTU.</p>
 
-    <form id="formIPTU">
-      <div class="mb-3">
-        <label for="inscricao" class="form-label">Número de Inscrição</label>
-        <input type="text" class="form-control" id="inscricao" placeholder="000.000/000" maxlength="12"
-          oninput="this.value = this.value
-            .replace(/\D/g, '')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2/$3');" required>
-      </div>
+        <form id="form-iptu">
+          <div class="mb-3">
+            <label for="inscricao" class="form-label">Nº de Inscrição</label>
+            <input type="text" class="form-control" id="inscricao" placeholder="000.000/000" required>
+          </div>
+          <div class="mb-3">
+            <label for="captcha" class="form-label">Digite os caracteres da imagem abaixo:</label>
+            <div class="d-flex align-items-center mb-2">
+              <img src="https://dummyimage.com/120x40/cccccc/000000&text=AB12C" alt="Captcha" class="me-2"/>
+              <input type="text" class="form-control w-25" id="captcha" required>
+            </div>
+          </div>
 
-      <div class="mb-3">
-        <label class="form-label">Digite o código de segurança</label>
-        <div class="input-group">
-          <img src="https://via.placeholder.com/150x50?text=CAPTCHA" alt="captcha" class="captcha-img me-2">
-          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="refreshCaptcha()">⟳</button>
-        </div>
-        <input type="text" class="form-control mt-2" id="captcha" placeholder="Código do captcha" maxlength="6" required>
-      </div>
+          <button type="submit" class="btn btn-primary">Buscar</button>
+          <button type="reset" class="btn btn-secondary ms-2">Limpar</button>
+        </form>
 
-      <div class="d-flex justify-content-between">
-        <button type="reset" class="btn btn-outline-secondary">Limpar</button>
-        <button type="submit" class="btn btn-primary">Buscar</button>
+        <div id="resultado" class="mt-4"></div>
       </div>
-    </form>
+    </div>
   </div>
 
-  <!-- JS Bootstrap e jQuery -->
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
   <script>
-    // Voltar para a tela anterior
-    function voltar() {
-      window.history.back();
-    }
+    $(document).ready(function () {
+      $('#inscricao').mask('000.000/000');
 
-    // Refrescar o captcha (exemplo)
-    function refreshCaptcha() {
-      const img = document.querySelector('.captcha-img');
-      img.src = `https://via.placeholder.com/150x50?text=CAPTCHA&${Date.now()}`;
-    }
+      $('#form-iptu').on('submit', function (e) {
+        e.preventDefault();
+        const inscricao = $('#inscricao').val();
+        const captcha = $('#captcha').val();
 
-    // Submissão simulada
-    $('#formIPTU').on('submit', function(e) {
-      e.preventDefault();
-      const inscr = $('#inscricao').val();
-      const captcha = $('#captcha').val();
-      if (!inscr || !captcha) return alert('Preencha todos os campos.');
-      alert(`Buscando 2ª via para inscrição ${inscr}`);
-      // Aqui você chamaria API do tributos4.pjf.mg.gov.br/iptu
+        // Valida simples de captcha e simula uma resposta
+        if (captcha.toUpperCase() === 'AB12C') {
+          $('#resultado').html('<div class="alert alert-success">IPTU localizado para inscrição ' + inscricao + '. <a href="#">Clique aqui para emitir a 2ª via</a>.</div>');
+        } else {
+          $('#resultado').html('<div class="alert alert-danger">Captcha inválido. Tente novamente.</div>');
+        }
+      });
     });
   </script>
 </body>
+
 </html>
