@@ -57,6 +57,17 @@
       --bs-accordion-bg: #fff;
       --bs-accordion-border-color: #dee2e6;
     }
+
+    .btn-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2rem;
+    }
+
+    .btn-container .btn {
+      min-width: 150px;
+    }
   </style>
 </head>
 
@@ -83,7 +94,6 @@
     <h4 class="mb-3">2ª Via de IPTU 2025</h4>
 
     <div class="accordion" id="acordeonServico">
-
       <div class="accordion-item">
         <h5 class="accordion-header">
           <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#oQueE">
@@ -208,14 +218,11 @@
           </div>
         </div>
       </div>
-<br><br>
-      
-            <div class="btn-container">
+    </div>
+
+    <div class="btn-container">
       <button class="btn btn-outline-secondary btn-sm" onclick="history.back()">← Voltar</button>
       <a href="https://diegorrpessoa.github.io/cgm/servicos3.html" class="btn btn-sm btn-primary">Acessar serviço</a>
-    </div>
-  </div>
-
     </div>
   </div>
 
@@ -223,3 +230,4 @@
 </body>
 
 </html>
+
