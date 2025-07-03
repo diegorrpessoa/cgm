@@ -2,110 +2,98 @@
 <html lang="pt-br">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Serviços de IPTU | Prefeitura de Juiz de Fora</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>2ª Via de IPTU - Prefeitura de Juiz de Fora</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
   <style>
     body {
       background-color: #f8f9fa;
     }
-
     .breadcrumb {
       font-size: 0.85rem;
-      background: none;
-      padding-left: 0;
     }
-
-    .service-card {
-      border: 1px solid #dee2e6;
+    .card {
       border-radius: 10px;
-      transition: all 0.3s ease;
-      cursor: pointer;
     }
-
-    .service-card:hover {
-      background-color: #e9f5ff;
-      box-shadow: 0 0 0 2px #0d6efd33;
+    .form-label {
+      font-weight: 600;
     }
-
-    .accessibility-bar {
-      display: flex;
-      justify-content: flex-end;
-      gap: 10px;
-      padding: 0.5rem;
-      background: #fff;
-    }
-
-    .btn-accessibility {
-      font-size: 0.9rem;
-      padding: 0.25rem 0.5rem;
+    .acessibilidade {
+      position: absolute;
+      right: 1rem;
+      top: 1rem;
     }
   </style>
 </head>
 
 <body>
-  <header class="accessibility-bar">
-    <button class="btn btn-sm btn-outline-dark btn-accessibility">A+</button>
-    <button class="btn btn-sm btn-outline-dark btn-accessibility">A-</button>
-    <button class="btn btn-sm btn-outline-dark btn-accessibility">Contraste</button>
-  </header>
+  <nav class="navbar navbar-light bg-white shadow-sm px-3">
+    <a class="navbar-brand" href="#">Prefeitura de Juiz de Fora</a>
+    <div class="acessibilidade">
+      <button class="btn btn-sm btn-outline-dark">A+</button>
+      <button class="btn btn-sm btn-outline-dark">A-</button>
+      <button class="btn btn-sm btn-outline-dark">Contraste</button>
+    </div>
+  </nav>
 
-  <div class="container mt-3">
+  <div class="container mt-4">
     <nav aria-label="breadcrumb">
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="#">Início</a></li>
-        <li class="breadcrumb-item"><a href="#">Serviços</a></li>
-        <li class="breadcrumb-item active" aria-current="page">IPTU</li>
+        <li class="breadcrumb-item"><a href="#">IPTU</a></li>
+        <li class="breadcrumb-item active" aria-current="page">2ª Via de IPTU</li>
       </ol>
     </nav>
 
-    <h4 class="mb-4">Serviços de IPTU</h4>
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title">Emissão da 2ª Via do IPTU</h5>
+        <p class="card-text">Informe o número de inscrição do seu imóvel para emitir a segunda via do IPTU.</p>
 
-    <div class="row g-3">
-      <div class="col-md-4">
-        <div class="p-3 service-card h-100">
-          <h6>2ª Via de IPTU</h6>
-          <p class="mb-1">Emita a segunda via do seu carnê de IPTU.</p>
-          <a href="#" class="btn btn-sm btn-primary mt-2">Acessar serviço</a>
-        </div>
-      </div>
+        <form id="form-iptu">
+          <div class="mb-3">
+            <label for="inscricao" class="form-label">Nº de Inscrição</label>
+            <input type="text" class="form-control" id="inscricao" placeholder="000.000/000" required>
+          </div>
+          <div class="mb-3">
+            <label for="captcha" class="form-label">Digite os caracteres da imagem abaixo:</label>
+            <div class="d-flex align-items-center mb-2">
+              <img src="https://dummyimage.com/120x40/cccccc/000000&text=AB12C" alt="Captcha" class="me-2"/>
+              <input type="text" class="form-control w-25" id="captcha" required>
+            </div>
+          </div>
 
-      <div class="col-md-4">
-        <div class="p-3 service-card h-100">
-          <h6>Espelho do IPTU</h6>
-          <p class="mb-1">Consulte os dados do imóvel conforme o cadastro fiscal.</p>
-          <a href="#" class="btn btn-sm btn-primary mt-2">Acessar serviço</a>
-        </div>
-      </div>
+          <button type="submit" class="btn btn-primary">Buscar</button>
+          <button type="reset" class="btn btn-secondary ms-2">Limpar</button>
+        </form>
 
-      <div class="col-md-4">
-        <div class="p-3 service-card h-100">
-          <h6>Certidão de Remissão</h6>
-          <p class="mb-1">Solicite a certidão de remissão do IPTU.</p>
-          <a href="#" class="btn btn-sm btn-primary mt-2">Acessar serviço</a>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="p-3 service-card h-100">
-          <h6>Cadastramento de Imóvel</h6>
-          <p class="mb-1">Cadastre seu imóvel junto à prefeitura.</p>
-          <a href="#" class="btn btn-sm btn-primary mt-2">Acessar serviço</a>
-        </div>
-      </div>
-
-      <div class="col-md-4">
-        <div class="p-3 service-card h-100">
-          <h6>Alteração de Titularidade</h6>
-          <p class="mb-1">Atualize o proprietário do imóvel cadastrado.</p>
-          <a href="#" class="btn btn-sm btn-primary mt-2">Acessar serviço</a>
-        </div>
+        <div id="resultado" class="mt-4"></div>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#inscricao').mask('000.000/000');
+
+      $('#form-iptu').on('submit', function (e) {
+        e.preventDefault();
+        const inscricao = $('#inscricao').val();
+        const captcha = $('#captcha').val();
+
+        // Valida simples de captcha e simula uma resposta
+        if (captcha.toUpperCase() === 'AB12C') {
+          $('#resultado').html('<div class="alert alert-success">IPTU localizado para inscrição ' + inscricao + '. <a href="#">Clique aqui para emitir a 2ª via</a>.</div>');
+        } else {
+          $('#resultado').html('<div class="alert alert-danger">Captcha inválido. Tente novamente.</div>');
+        }
+      });
+    });
+  </script>
 </body>
 
 </html>
