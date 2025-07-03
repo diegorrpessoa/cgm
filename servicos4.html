@@ -30,30 +30,45 @@
       padding: 0.25rem 0.5rem;
     }
 
-    h5 {
-      border-bottom: 2px solid #dee2e6;
-      padding-bottom: 5px;
-      margin-top: 1.5rem;
-      margin-bottom: 0.5rem;
+    .accordion-button::after {
+      content: "+";
+      font-size: 1rem;
+      margin-left: auto;
     }
 
-    .info-section p {
+    .accordion-button.collapsed::after {
+      content: "+";
+    }
+
+    .accordion-button:not(.collapsed)::after {
+      content: "-";
+    }
+
+    .accordion-button {
+      font-size: 1rem;
+      padding: 0.5rem 1rem;
+    }
+
+    .accordion-body {
       font-size: 0.9rem;
     }
 
-    .info-section ul {
-      font-size: 0.9rem;
-      padding-left: 1rem;
+    .accordion {
+      --bs-accordion-bg: #fff;
+      --bs-accordion-border-color: #dee2e6;
     }
   </style>
 </head>
 
 <body>
-  <header class="accessibility-bar">
-    <button class="btn btn-sm btn-outline-dark btn-accessibility">A+</button>
-    <button class="btn btn-sm btn-outline-dark btn-accessibility">A-</button>
-    <button class="btn btn-sm btn-outline-dark btn-accessibility">Contraste</button>
-  </header>
+  <nav class="navbar navbar-light bg-white shadow-sm px-3">
+    <a class="navbar-brand" href="#">Prefeitura de Juiz de Fora</a>
+    <div class="acessibilidade">
+      <button class="btn btn-sm btn-outline-dark">A+</button>
+      <button class="btn btn-sm btn-outline-dark">A-</button>
+      <button class="btn btn-sm btn-outline-dark">Contraste</button>
+    </div>
+  </nav>
 
   <div class="container mt-3">
     <nav aria-label="breadcrumb">
@@ -67,41 +82,133 @@
 
     <h4 class="mb-3">2ª Via de IPTU 2025</h4>
 
-    <div class="info-section">
-      <h5>O que é?</h5>
-      <p>Emissão da segunda via do carnê do IPTU 2025 para contribuintes do município de Juiz de Fora. O serviço permite a impressão da guia de pagamento atualizada com valores e vencimentos vigentes.</p>
+    <div class="accordion" id="acordeonServico">
 
-      <h5>Quem pode utilizar?</h5>
-      <p>Proprietários, responsáveis ou procuradores de imóveis cadastrados no município de Juiz de Fora.</p>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#oQueE">
+            O que é?
+          </button>
+        </h5>
+        <div id="oQueE" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            Emissão da segunda via do carnê do IPTU 2025 para contribuintes do município de Juiz de Fora. O serviço permite a impressão da guia de pagamento atualizada com valores e vencimentos vigentes.
+          </div>
+        </div>
+      </div>
 
-      <h5>Requisitos e documentos necessários</h5>
-      <ul>
-        <li>Número de inscrição imobiliária ou número do CPF/CNPJ do contribuinte;</li>
-        <li>Em caso de representação, procuração válida.</li>
-      </ul>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#quemPode">
+            Quem pode utilizar?
+          </button>
+        </h5>
+        <div id="quemPode" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            Proprietários, responsáveis ou procuradores de imóveis cadastrados no município de Juiz de Fora.
+          </div>
+        </div>
+      </div>
 
-      <h5>Etapas para a realização do serviço</h5>
-      <ul>
-        <li>Acessar o sistema online através do botão "Acessar serviço";</li>
-        <li>Informar os dados solicitados para localização do imóvel;</li>
-        <li>Selecionar a guia de pagamento desejada;</li>
-        <li>Emitir e efetuar o pagamento nas redes credenciadas.</li>
-      </ul>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#documentos">
+            Requisitos e documentos necessários
+          </button>
+        </h5>
+        <div id="documentos" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <ul>
+              <li>Número de inscrição imobiliária ou número do CPF/CNPJ do contribuinte;</li>
+              <li>Em caso de representação, procuração válida.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
-      <h5>Prazo para a realização</h5>
-      <p>Imediato (disponível para download logo após o preenchimento dos dados).</p>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#etapas">
+            Etapas para a realização do serviço
+          </button>
+        </h5>
+        <div id="etapas" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <ul>
+              <li>Acessar o sistema online através do botão "Acessar serviço";</li>
+              <li>Informar os dados solicitados para localização do imóvel;</li>
+              <li>Selecionar a guia de pagamento desejada;</li>
+              <li>Emitir e efetuar o pagamento nas redes credenciadas.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
-      <h5>Forma de atendimento</h5>
-      <p>100% Digital.</p>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#prazo">
+            Prazo para a realização
+          </button>
+        </h5>
+        <div id="prazo" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            Imediato (disponível para download logo após o preenchimento dos dados).
+          </div>
+        </div>
+      </div>
 
-      <h5>Valor</h5>
-      <p>Serviço gratuito. O pagamento será referente apenas ao valor do tributo.</p>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#atendimento">
+            Forma de atendimento
+          </button>
+        </h5>
+        <div id="atendimento" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            100% Digital.
+          </div>
+        </div>
+      </div>
 
-      <h5>Canal de acesso</h5>
-      <a href="https://diegorrpessoa.github.io/cgm/servicos3.html" class="btn btn-sm btn-primary mt-2">Acessar serviço</a>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#valor">
+            Valor
+          </button>
+        </h5>
+        <div id="valor" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            Serviço gratuito. O pagamento será referente apenas ao valor do tributo.
+          </div>
+        </div>
+      </div>
 
-      <h5 class="mt-4">Informações adicionais</h5>
-      <p>Em caso de dúvidas ou dificuldades, entre em contato com a Central de Atendimento Tributário pelo telefone (32) 3690-7500 ou presencialmente na sede da Prefeitura de Juiz de Fora.</p>
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#canal">
+            Canal de acesso
+          </button>
+        </h5>
+        <div id="canal" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <a href="https://diegorrpessoa.github.io/cgm/servicos3.html" class="btn btn-sm btn-primary">Acessar serviço</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <h5 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#infoAdicional">
+            Informações adicionais
+          </button>
+        </h5>
+        <div id="infoAdicional" class="accordion-collapse collapse">
+          <div class="accordion-body">
+            Em caso de dúvidas ou dificuldades, entre em contato com a Central de Atendimento Tributário pelo telefone (32) 3690-7500 ou presencialmente na sede da Prefeitura de Juiz de Fora.
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 
