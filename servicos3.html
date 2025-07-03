@@ -1,143 +1,83 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>2ª Via de IPTU - Prefeitura de Juiz de Fora</title>
+  <title>Consulta 2ª Via IPTU – PJF</title>
+  <!-- CSS Bootstrap 5.3 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.7/dist/jquery.inputmask.min.js"></script>
   <style>
-    body {
-      background-color: #f4f6f9;
-    }
-    .card {
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .captcha {
-      font-family: 'Courier New', Courier, monospace;
-      font-weight: bold;
-      letter-spacing: 2px;
-      background-color: #e0e0e0;
-      padding: 5px 10px;
-      display: inline-block;
-      border-radius: 5px;
-      font-size: 20px;
-      user-select: none;
-    }
-    .breadcrumb {
-      font-size: 0.85rem;
-      background-color: transparent;
-      padding-left: 0;
-    }
-    .resultado {
-      margin-top: 20px;
-      display: none;
-    }
+    body { background: #f8f9fa; }
+    .container { max-width: 480px; margin-top: 6rem; }
+    .captcha-img { height: 50px; }
+    .breadcrumb { background: none; }
+    label { font-weight: 600; }
   </style>
 </head>
 <body>
+  <div class="container bg-white p-4 shadow">
+    <!-- Migalhas (breadcrumb) -->
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb px-0">
+        <li class="breadcrumb-item"><a href="#" onclick="voltar(); return false;">Início</a></li>
+        <li class="breadcrumb-item">IPTU</li>
+        <li class="breadcrumb-item active" aria-current="page">2ª Via</li>
+      </ol>
+    </nav>
 
-<div class="container py-4">
-  <!-- Breadcrumb -->
-  <nav aria-label="breadcrumb">
-    <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="#">Início</a></li>
-      <li class="breadcrumb-item"><a href="#">IPTU</a></li>
-      <li class="breadcrumb-item active" aria-current="page">2ª via de IPTU</li>
-    </ol>
-  </nav>
+    <h5 class="mb-4">Emitir 2ª via do IPTU</h5>
 
-  <!-- Formulário -->
-  <div class="card p-4">
-    <h5 class="mb-4">Emissão de 2ª via do IPTU</h5>
-
-    <form id="iptuForm">
+    <form id="formIPTU">
       <div class="mb-3">
-        <label for="inscricao" class="form-label">Nº de Inscrição do Imóvel</label>
-        <input type="text" class="form-control" id="inscricao" required placeholder="000.000/000">
+        <label for="inscricao" class="form-label">Número de Inscrição</label>
+        <input type="text" class="form-control" id="inscricao" placeholder="000.000/000" maxlength="12"
+          oninput="this.value = this.value
+            .replace(/\D/g, '')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2/$3');" required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Captcha:</label>
-        <div class="d-flex align-items-center gap-3">
-          <span class="captcha" id="captchaText">A1B2C</span>
-          <input type="text" class="form-control" id="captchaInput" placeholder="Digite o captcha" required>
-          <button type="button" class="btn btn-sm btn-outline-secondary" id="refreshCaptcha">↻</button>
+        <label class="form-label">Digite o código de segurança</label>
+        <div class="input-group">
+          <img src="https://via.placeholder.com/150x50?text=CAPTCHA" alt="captcha" class="captcha-img me-2">
+          <button type="button" class="btn btn-outline-secondary btn-sm" onclick="refreshCaptcha()">⟳</button>
         </div>
+        <input type="text" class="form-control mt-2" id="captcha" placeholder="Código do captcha" maxlength="6" required>
       </div>
 
-      <div class="d-flex gap-2">
+      <div class="d-flex justify-content-between">
+        <button type="reset" class="btn btn-outline-secondary">Limpar</button>
         <button type="submit" class="btn btn-primary">Buscar</button>
-        <button type="reset" class="btn btn-outline-secondary" id="limparBtn">Limpar</button>
       </div>
     </form>
-
-    <!-- Resultado simulado -->
-    <div class="alert alert-success resultado" id="resultado">
-      <h6>Guia de Pagamento Encontrada</h6>
-      <p>Imóvel: <strong>Rua Exemplo, 123 - Centro</strong></p>
-      <p>Valor Total: <strong>R$ 1.234,56</strong></p>
-      <a href="#" class="btn btn-success btn-sm">Baixar Guia (PDF)</a>
-    </div>
   </div>
-</div>
 
-<script>
-  function gerarCaptcha() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let codigo = '';
-    for (let i = 0; i < 5; i++) {
-      codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+  <!-- JS Bootstrap e jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    // Voltar para a tela anterior
+    function voltar() {
+      window.history.back();
     }
-    return codigo;
-  }
 
-  function atualizarCaptcha() {
-    const captcha = gerarCaptcha();
-    $('#captchaText').text(captcha);
-    $('#captchaText').data('captcha', captcha.toUpperCase());
-  }
+    // Refrescar o captcha (exemplo)
+    function refreshCaptcha() {
+      const img = document.querySelector('.captcha-img');
+      img.src = `https://via.placeholder.com/150x50?text=CAPTCHA&${Date.now()}`;
+    }
 
-  $(document).ready(function() {
-    $('#inscricao').inputmask('999.999/999');
-    atualizarCaptcha();
-
-    $('#refreshCaptcha').click(() => atualizarCaptcha());
-
-    $('#iptuForm').on('submit', function(e) {
+    // Submissão simulada
+    $('#formIPTU').on('submit', function(e) {
       e.preventDefault();
-      const captchaDigitado = $('#captchaInput').val().trim().toUpperCase();
-      const captchaCorreto = $('#captchaText').data('captcha');
-      const inscricao = $('#inscricao').val().trim();
-
-      if (!inscricao || !captchaDigitado) {
-        alert('Preencha todos os campos.');
-        return;
-      }
-
-      if (captchaDigitado !== captchaCorreto) {
-        alert('Captcha incorreto. Tente novamente.');
-        atualizarCaptcha();
-        $('#captchaInput').val('');
-        return;
-      }
-
-      if (inscricao !== "123.456/789") {
-        alert('Inscrição não encontrada.');
-        return;
-      }
-
-      $('#resultado').fadeIn();
+      const inscr = $('#inscricao').val();
+      const captcha = $('#captcha').val();
+      if (!inscr || !captcha) return alert('Preencha todos os campos.');
+      alert(`Buscando 2ª via para inscrição ${inscr}`);
+      // Aqui você chamaria API do tributos4.pjf.mg.gov.br/iptu
     });
-
-    $('#limparBtn').on('click', function() {
-      $('#resultado').hide();
-      atualizarCaptcha();
-    });
-  });
-</script>
-
+  </script>
 </body>
 </html>
