@@ -75,14 +75,19 @@
 </head>
 
 <body>
-  <div class="accessibility-bar">
+  <nav class="navbar navbar-light bg-white shadow-sm px-3">
+    <a class="navbar-brand" href="#">Prefeitura de Juiz de Fora</a>
+    <div class="accessibility-bar">
     <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(1)">A+</button>
+    <button class="btn btn-outline-secondary btn-sm" onclick="resetFontSize()">A</button>
     <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(-1)">A-</button>
     <button class="btn btn-outline-secondary btn-sm" onclick="toggleContrast()">Contraste</button>
   </div>
+  </nav>
+  
 
   <div class="container py-4">
-    <h2 class="mb-3">Portal de Serviços ao Cidadão</h2>
+    <h2 class="mb-3">Portal de Serviços PJF</h2>
     <div class="mb-3">
       <input type="text" id="searchInput" class="form-control" placeholder="Buscar serviço..." onkeyup="filterServices()">
     </div>
@@ -208,20 +213,24 @@
     </div>
   </div>
 
-  <script>
-    // Aumentar/DIMINUIR FONTE
-    let currentSize = 0.9;
-    function changeFontSize(change) {
-      currentSize += change * 0.1;
-      document.body.style.fontSize = `${currentSize}rem`;
+  
+   <script>
+    let baseSize = 0.9;
+
+    function changeFontSize(delta) {
+      baseSize += delta * 0.1;
+      document.documentElement.style.setProperty('--font-base-size', `${baseSize}rem`);
     }
 
-    // Contraste
+    function resetFontSize() {
+      baseSize = 0.9;
+      document.documentElement.style.setProperty('--font-base-size', `0.9rem`);
+    }
+
     function toggleContrast() {
       document.body.classList.toggle("high-contrast");
     }
 
-    // Busca
     function filterServices() {
       const input = document.getElementById("searchInput").value.toLowerCase();
       const items = document.querySelectorAll(".service-item");
