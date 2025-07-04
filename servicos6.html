@@ -39,9 +39,12 @@
       color: white;
     }
 
+    /* A lista de protocolos ocupa toda a largura e altura limitada */
     .protocol-list {
       max-height: 280px;
       overflow-y: auto;
+      width: 100%;
+      margin-bottom: 1rem;
     }
 
     .timeline {
@@ -49,7 +52,7 @@
       padding-left: 0;
       border-left: 3px solid #0d6efd;
       margin-left: 1rem;
-      max-height: 300px;
+      max-height: 280px;
       overflow-y: auto;
     }
 
@@ -144,20 +147,15 @@
 
     /* Messages container */
     #messagesContent {
-      max-height: 350px;
+      max-height: 280px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-    }
-
-    @media (max-width: 576px) {
-      .protocol-list {
-        max-height: 200px;
-      }
-
-      .timeline {
-        max-height: 200px;
-      }
+      border: 1px solid #ced4da;
+      padding: 0.5rem;
+      border-radius: 5px;
+      background: white;
+      margin-bottom: 1rem;
     }
   </style>
 </head>
@@ -170,47 +168,33 @@
   <main class="container">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <h2>Central do Usuário</h2>
-      <div>
-        <button class="btn btn-edit btn-sm me-2" id="btnEditUser"><i class="fa fa-user-edit me-1"></i>Editar Dados Cadastrais</button>
-        <button class="btn btn-primary btn-sm" id="btnViewMessages" disabled><i class="fa fa-comments me-1"></i>Ver Mensagens</button>
-      </div>
+      <button class="btn btn-edit btn-sm" id="btnEditUser"><i class="fa fa-user-edit me-1"></i>Editar Dados Cadastrais</button>
     </div>
 
     <section class="mb-4">
-      <div class="card">
-        <div class="card-header">Meus Dados Cadastrais</div>
-        <div class="card-body" id="userData">
-          <p><strong>Nome:</strong> João da Silva</p>
-          <p><strong>CPF:</strong> 123.456.789-00</p>
-          <p><strong>E-mail:</strong> joao.silva@email.com</p>
-          <p><strong>Telefone:</strong> (32) 99999-9999</p>
-        </div>
-      </div>
-    </section>
-
-    <section>
       <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
           <span>Meus Protocolos</span>
           <input type="text" class="form-control form-control-sm w-auto" id="searchProtocol" placeholder="Buscar protocolo..." title="Buscar por título, ID ou status" />
         </div>
-        <div class="card-body d-flex flex-column flex-md-row gap-4">
-          <div class="protocol-list flex-fill border rounded p-2 d-flex flex-column">
-            <ul class="list-group flex-fill" id="protocolList" style="overflow-y:auto;">
-              <!-- Protocolos dinâmicos -->
+        <div class="card-body">
+          <ul class="list-group protocol-list" id="protocolList">
+            <!-- Protocolos dinâmicos -->
+          </ul>
+          <nav>
+            <ul class="pagination pagination-sm justify-content-center mt-2 mb-0" id="pagination">
+              <!-- Paginação -->
             </ul>
-            <nav>
-              <ul class="pagination pagination-sm justify-content-center mt-2 mb-0" id="pagination">
-                <!-- Paginação -->
-              </ul>
-            </nav>
+          </nav>
+
+          <!-- Detalhamento do protocolo e linha do tempo -->
+          <div id="protocolDetails" class="mt-4" style="background: white; border: 1px solid #ced4da; border-radius: 6px; padding: 1rem;">
+            <p>Selecione um protocolo para ver os detalhes da linha do tempo e interagir.</p>
           </div>
-          <div class="flex-fill border rounded p-3 bg-white d-flex flex-column" style="min-height:280px;">
-            <h4>Detalhes do Protocolo</h4>
-            <div id="protocolDetails" style="font-size: 0.9rem; color:#333; flex-grow:1; overflow-y:auto; margin-bottom:1rem;">
-              <p>Selecione um protocolo para ver os detalhes da linha do tempo.</p>
-            </div>
-            <button class="btn btn-primary btn-sm mt-auto" id="btnOpenMessages" disabled><i class="fa fa-comments me-1"></i>Interagir com Protocolo</button>
+
+          <!-- Botão para abrir o modal de mensagens -->
+          <div class="mt-3 text-end">
+            <button class="btn btn-primary btn-sm" id="btnOpenMessages" disabled><i class="fa fa-comments me-1"></i>Interagir com Protocolo</button>
           </div>
         </div>
       </div>
@@ -325,7 +309,6 @@
           { from: 'prefeitura', text: 'Previsão até o final da semana.', datetime: '2025-07-03 09:00' }
         ]
       },
-      // Mais protocolos para teste paginação
       {
         id: '202401111',
         titulo: 'Pedido de Alvará Comercial',
@@ -367,7 +350,6 @@
     const protocolListEl = document.getElementById('protocolList');
     const protocolDetailsEl = document.getElementById('protocolDetails');
     const btnEditUser = document.getElementById('btnEditUser');
-    const btnViewMessages = document.getElementById('btnViewMessages');
     const btnOpenMessages = document.getElementById('btnOpenMessages');
     const searchInput = document.getElementById('searchProtocol');
     const paginationEl = document.getElementById('pagination');
@@ -411,6 +393,9 @@
 
       if (pageProtocols.length === 0) {
         protocolListEl.innerHTML = '<li class="list-group-item">Nenhum protocolo encontrado.</li>';
+        selectedProtocolIndex = null;
+        renderProtocolDetails();
+        btnOpenMessages.disabled = true;
         return;
       }
 
@@ -437,7 +422,6 @@
           selectedProtocolIndex = globalIndex;
           renderProtocolList();
           renderProtocolDetails();
-          btnViewMessages.disabled = false;
           btnOpenMessages.disabled = false;
         };
 
@@ -465,6 +449,10 @@
           e.preventDefault();
           currentPage = page;
           renderProtocolList();
+          // Reset seleção ao mudar página
+          selectedProtocolIndex = null;
+          renderProtocolDetails();
+          btnOpenMessages.disabled = true;
         };
         li.appendChild(a);
         return li;
@@ -482,6 +470,9 @@
         if (currentPage > 1) {
           currentPage--;
           renderProtocolList();
+          selectedProtocolIndex = null;
+          renderProtocolDetails();
+          btnOpenMessages.disabled = true;
         }
       };
       prevLi.appendChild(prevA);
@@ -504,6 +495,9 @@
         if (currentPage < totalPages) {
           currentPage++;
           renderProtocolList();
+          selectedProtocolIndex = null;
+          renderProtocolDetails();
+          btnOpenMessages.disabled = true;
         }
       };
       nextLi.appendChild(nextA);
@@ -513,8 +507,7 @@
     // Renderiza detalhes do protocolo selecionado e timeline (Z-A)
     function renderProtocolDetails() {
       if (selectedProtocolIndex === null || !filteredProtocols[selectedProtocolIndex]) {
-        protocolDetailsEl.innerHTML = '<p>Selecione um protocolo para ver os detalhes da linha do tempo.</p>';
-        btnViewMessages.disabled = true;
+        protocolDetailsEl.innerHTML = '<p>Selecione um protocolo para ver os detalhes da linha do tempo e interagir.</p>';
         btnOpenMessages.disabled = true;
         return;
       }
@@ -532,12 +525,14 @@
         <p><strong>ID do Protocolo:</strong> ${p.id}</p>
         <p><strong>Status atual:</strong> <span class="${statusClass(p.status)}">${p.status}</span></p>
         <hr />
+        <strong>Linha do tempo:</strong>
         <ul class="timeline">${timelineHtml}</ul>
       `;
+      btnOpenMessages.disabled = false;
     }
 
     // Filtrar protocolos pela busca
-    function filterProtocols() {
+    searchInput.addEventListener('input', () => {
       const keyword = searchInput.value.trim().toLowerCase();
       filteredProtocols = protocolos.filter(p => {
         return (
@@ -547,26 +542,20 @@
         );
       });
       currentPage = 1;
-      selectedProtocolIndex = filteredProtocols.length ? 0 : null;
+      selectedProtocolIndex = null;
       renderProtocolList();
       renderProtocolDetails();
-      if (selectedProtocolIndex !== null) {
-        btnViewMessages.disabled = false;
-        btnOpenMessages.disabled = false;
-      } else {
-        btnViewMessages.disabled = true;
-        btnOpenMessages.disabled = true;
-      }
-    }
+      btnOpenMessages.disabled = true;
+    });
 
     // Botão Editar usuário
     btnEditUser.addEventListener('click', () => {
       // Popular dados atuais no formulário
       const userData = document.getElementById('userData');
-      document.getElementById('inputNome').value = userData.querySelector('p:nth-child(1)').textContent.replace('Nome:', '').trim();
-      document.getElementById('inputCPF').value = userData.querySelector('p:nth-child(2)').textContent.replace('CPF:', '').trim();
-      document.getElementById('inputEmail').value = userData.querySelector('p:nth-child(3)').textContent.replace('E-mail:', '').trim();
-      document.getElementById('inputTelefone').value = userData.querySelector('p:nth-child(4)').textContent.replace('Telefone:', '').trim();
+      document.getElementById('inputNome').value = userData ? userData.querySelector('p:nth-child(1)').textContent.replace('Nome:', '').trim() : '';
+      document.getElementById('inputCPF').value = userData ? userData.querySelector('p:nth-child(2)').textContent.replace('CPF:', '').trim() : '';
+      document.getElementById('inputEmail').value = userData ? userData.querySelector('p:nth-child(3)').textContent.replace('E-mail:', '').trim() : '';
+      document.getElementById('inputTelefone').value = userData ? userData.querySelector('p:nth-child(4)').textContent.replace('Telefone:', '').trim() : '';
       modalEditUser.show();
     });
 
@@ -579,7 +568,14 @@
       const email = document.getElementById('inputEmail').value;
       const tel = document.getElementById('inputTelefone').value;
 
-      document.getElementById('userData').innerHTML = `
+      // Atualiza container (criando se não existir)
+      let userData = document.getElementById('userData');
+      if (!userData) {
+        userData = document.createElement('div');
+        userData.id = 'userData';
+        document.querySelector('main.container').prepend(userData);
+      }
+      userData.innerHTML = `
         <p><strong>Nome:</strong> ${nome}</p>
         <p><strong>CPF:</strong> ${cpf}</p>
         <p><strong>E-mail:</strong> ${email}</p>
@@ -589,11 +585,7 @@
       alert('Dados cadastrais atualizados com sucesso!');
     });
 
-    // Abrir modal mensagens ao clicar em botão principal
-    btnViewMessages.addEventListener('click', () => {
-      openMessagesModal();
-    });
-
+    // Abrir modal mensagens ao clicar no botão
     btnOpenMessages.addEventListener('click', () => {
       openMessagesModal();
     });
@@ -685,8 +677,8 @@
     });
 
     // Inicializa
-    filterProtocols();
-
+    renderProtocolList();
+    renderProtocolDetails();
   </script>
 </body>
 
