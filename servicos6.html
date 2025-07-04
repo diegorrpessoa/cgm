@@ -1,162 +1,181 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Detalhamento de Protocolo | Central do Usuário</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Central do Usuário | Prefeitura de Juiz de Fora</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
   <style>
     body {
       background-color: #f8f9fa;
       font-size: 0.95rem;
+      transition: 0.3s ease;
     }
-
-    .protocol-header {
-      padding: 1rem;
-      background-color: #ffffff;
-      border-bottom: 1px solid #dee2e6;
-    }
-
-    .status-badge {
-      font-size: 0.85rem;
-    }
-
-    .attachment-area {
+    .header-bar {
       background-color: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
       padding: 1rem;
-      border-radius: 0.5rem;
-      border: 1px solid #dee2e6;
     }
-
-    .upload-btn-wrapper {
+    .dashboard-cards .card {
+      border: none;
+      box-shadow: 0 0 8px rgba(0,0,0,0.05);
+      transition: 0.3s;
+    }
+    .dashboard-cards .card:hover {
+      transform: scale(1.01);
+    }
+    .table-responsive {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+    .timeline {
+      list-style: none;
+      padding-left: 0;
+    }
+    .timeline li {
       position: relative;
-      overflow: hidden;
-      display: inline-block;
+      padding-left: 25px;
+      margin-bottom: 15px;
     }
-
-    .upload-btn-wrapper input[type="file"] {
-      font-size: 100px;
+    .timeline li::before {
+      content: '';
       position: absolute;
       left: 0;
-      top: 0;
-      opacity: 0;
-    }
-
-    .timeline {
-      border-left: 3px solid #0d6efd;
-      padding-left: 1rem;
-      margin-top: 1rem;
-    }
-
-    .timeline-item {
-      margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .timeline-item::before {
-      content: "";
-      position: absolute;
-      left: -10px;
-      top: 4px;
-      background: #0d6efd;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      background-color: #0d6efd;
       border-radius: 50%;
-      width: 10px;
-      height: 10px;
     }
-
-    .notification-dot {
-      width: 10px;
-      height: 10px;
-      background-color: red;
-      border-radius: 50%;
-      display: inline-block;
-      margin-left: 5px;
+    .high-contrast {
+      background-color: #000;
+      color: #fff;
     }
-
-    @media (max-width: 768px) {
-      .protocol-header h4 {
-        font-size: 1.2rem;
-      }
+    .high-contrast .card, 
+    .high-contrast .table, 
+    .high-contrast .timeline, 
+    .high-contrast input, 
+    .high-contrast textarea {
+      background-color: #111 !important;
+      color: #fff !important;
+      border-color: #fff;
     }
   </style>
 </head>
 
 <body>
-  <nav class="navbar navbar-light bg-white shadow-sm px-3 mb-3">
-    <a class="navbar-brand" href="#">Central do Usuário</a>
-    <button class="btn btn-sm btn-primary">Voltar</button>
-  </nav>
-
-  <div class="container">
-
-    <div class="protocol-header d-flex justify-content-between align-items-center">
-      <div>
-        <h4 class="mb-1">Protocolo #20240612345</h4>
-        <span class="badge bg-primary status-badge">Em análise</span>
-      </div>
-      <div>
-        <button class="btn btn-sm btn-primary"><i class="fas fa-plus-circle"></i> Novo Protocolo</button>
-      </div>
+  <div class="header-bar d-flex justify-content-between align-items-center">
+    <h5 class="m-0">Central do Usuário</h5>
+    <div>
+      <button class="btn btn-sm btn-outline-secondary" onclick="changeFontSize(1)">A+</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="resetFontSize()">A</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="changeFontSize(-1)">A-</button>
+      <button class="btn btn-sm btn-outline-secondary" onclick="toggleContrast()">Contraste</button>
     </div>
-
-    <div class="row mt-4 g-3">
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header bg-white fw-bold">Dados do Usuário</div>
-          <div class="card-body">
-            <p><strong>Nome:</strong> João da Silva</p>
-            <p><strong>CPF:</strong> 123.456.789-00</p>
-            <p><strong>Email:</strong> joao@email.com</p>
-            <p><strong>Telefone:</strong> (32) 99999-0000</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="card">
-          <div class="card-header bg-white fw-bold">Detalhes do Protocolo</div>
-          <div class="card-body">
-            <p><strong>Data:</strong> 12/06/2025</p>
-            <p><strong>Assunto:</strong> Solicitação de Isenção IPTU</p>
-            <p><strong>Status:</strong> Em análise</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <h5>Anexos enviados</h5>
-      <div class="attachment-area">
-        <ul class="mb-2">
-          <li>comprovante_renda.pdf</li>
-          <li>documento_identidade.jpg</li>
-        </ul>
-        <div class="upload-btn-wrapper">
-          <button class="btn btn-outline-primary btn-sm"><i class="fas fa-upload"></i> Enviar novo documento</button>
-          <input type="file" name="file" />
-        </div>
-      </div>
-    </div>
-
-    <div class="mt-4">
-      <h5>Atualizações e Comentários <span class="notification-dot" title="Nova mensagem"></span></h5>
-      <div class="timeline">
-        <div class="timeline-item">
-          <small class="text-muted">12/06/2025 - 15:00</small>
-          <p>Protocolo recebido e em análise pelo setor responsável.</p>
-        </div>
-        <div class="timeline-item">
-          <small class="text-muted">13/06/2025 - 10:45</small>
-          <p><strong>Comentário da Prefeitura:</strong> Favor anexar comprovante de endereço atualizado.</p>
-        </div>
-      </div>
-    </div>
-
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
+  <div class="container py-4">
+    <div class="row dashboard-cards g-3 mb-4">
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6>Meus Protocolos</h6>
+          <p class="text-muted mb-0">Total: <strong>12</strong></p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6>Em Análise</h6>
+          <p class="text-muted mb-0">Em andamento: <strong>4</strong></p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6>Finalizados</h6>
+          <p class="text-muted mb-0">Concluídos: <strong>7</strong></p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card p-3">
+          <h6>Meus Dados</h6>
+          <p class="text-muted mb-0"><a href="#" class="text-decoration-none">Atualizar cadastro</a></p>
+        </div>
+      </div>
+    </div>
 
+    <div class="table-responsive mb-4">
+      <h6>Protocolos Recentes</h6>
+      <input type="text" class="form-control form-control-sm mb-2" placeholder="Buscar por número ou serviço..." onkeyup="filterTable(this)">
+      <table class="table table-hover table-sm" id="protocolTable">
+        <thead>
+          <tr>
+            <th>Nº</th>
+            <th>Serviço</th>
+            <th>Data</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>#2025-00123</td>
+            <td>2ª Via de IPTU</td>
+            <td>02/07/2025</td>
+            <td><span class="badge bg-warning text-dark">Em Análise</span></td>
+            <td><a href="#detalhes" class="btn btn-sm btn-outline-primary">Ver detalhes</a></td>
+          </tr>
+          <tr>
+            <td>#2025-00110</td>
+            <td>Passe Livre</td>
+            <td>28/06/2025</td>
+            <td><span class="badge bg-success">Concluído</span></td>
+            <td><a href="#detalhes" class="btn btn-sm btn-outline-primary">Ver detalhes</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="detalhes" class="mb-5">
+      <h6 class="mb-3">Detalhamento do Protocolo #2025-00123</h6>
+      <ul class="timeline">
+        <li>02/07/2025 - Protocolo aberto</li>
+        <li>03/07/2025 - Encaminhado ao setor responsável</li>
+        <li>04/07/2025 - Em análise</li>
+      </ul>
+
+      <h6 class="mt-4">Adicionar Comentário</h6>
+      <textarea class="form-control mb-2" rows="3" placeholder="Digite sua mensagem..."></textarea>
+      <input type="file" class="form-control mb-2" />
+      <button class="btn btn-sm btn-primary">Enviar</button>
+    </div>
+  </div>
+
+  <script>
+    let fontSize = 0.95;
+
+    function changeFontSize(delta) {
+      fontSize += delta * 0.05;
+      document.body.style.fontSize = `${fontSize}rem`;
+    }
+
+    function resetFontSize() {
+      fontSize = 0.95;
+      document.body.style.fontSize = `${fontSize}rem`;
+    }
+
+    function toggleContrast() {
+      document.body.classList.toggle("high-contrast");
+    }
+
+    function filterTable(input) {
+      const filter = input.value.toLowerCase();
+      const rows = document.querySelectorAll("#protocolTable tbody tr");
+      rows.forEach(row => {
+        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+      });
+    }
+  </script>
+</body>
 </html>
