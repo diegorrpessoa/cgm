@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,9 +7,13 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <style>
+    :root {
+      --font-base-size: 0.9rem;
+    }
+
     body {
       background-color: #f8f9fa;
-      font-size: 0.9rem;
+      font-size: var(--font-base-size);
       transition: background 0.3s, color 0.3s;
     }
 
@@ -18,7 +21,7 @@
       background: transparent;
       padding: 0;
       margin-bottom: 1rem;
-      font-size: 0.85rem;
+      font-size: inherit;
     }
 
     .service-tile {
@@ -29,6 +32,7 @@
       background-color: white;
       transition: 0.3s ease;
       height: 100%;
+      font-size: inherit;
     }
 
     .service-tile:hover {
@@ -45,14 +49,14 @@
     .accessibility-bar {
       background-color: #e9ecef;
       padding: 0.5rem 1rem;
-      font-size: 0.8rem;
+      font-size: inherit;
       display: flex;
       justify-content: end;
       gap: 10px;
     }
 
     .accessibility-bar button {
-      font-size: 0.8rem;
+      font-size: inherit;
     }
 
     .high-contrast {
@@ -73,16 +77,19 @@
     }
   </style>
 </head>
-
 <body>
-  <div class="accessibility-bar">
-    <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(1)">A+</button>
-    <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(-1)">A-</button>
-    <button class="btn btn-outline-secondary btn-sm" onclick="toggleContrast()">Contraste</button>
-  </div>
+  <nav class="navbar navbar-light bg-white shadow-sm px-3">
+    <a class="navbar-brand" href="#">Prefeitura de Juiz de Fora</a>
+    <div class="accessibility-bar">
+      <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(1)">A+</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="resetFontSize()">A</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(-1)">A-</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="toggleContrast()">Contraste</button>
+    </div>
+  </nav>
 
   <div class="container py-4">
-    <h2 class="mb-3">Portal de Serviços ao Cidadão</h2>
+    <h2 class="mb-3">Portal de Serviços PJF</h2>
     <div class="mb-3">
       <input type="text" id="searchInput" class="form-control" placeholder="Buscar serviço..." onkeyup="filterServices()">
     </div>
@@ -94,7 +101,7 @@
     </nav>
 
     <div class="row g-3" id="serviceGrid">
-      <!-- Serviços -->
+      <!-- Todos os serviços -->
       <div class="col-md-3 service-item">
         <a href="https://diegorrpessoa.github.io/cgm/servicos2.html" class="text-decoration-none">
           <div class="service-tile h-100">
@@ -135,7 +142,6 @@
         </a>
       </div>
 
-      <!-- Novos serviços -->
       <div class="col-md-3 service-item">
         <a href="lei-transacao.html" class="text-decoration-none">
           <div class="service-tile h-100">
@@ -209,19 +215,23 @@
   </div>
 
   <script>
-    // Aumentar/DIMINUIR FONTE
-    let currentSize = 0.9;
-    function changeFontSize(change) {
-      currentSize += change * 0.1;
-      document.body.style.fontSize = `${currentSize}rem`;
+    let baseSize = 0.9;
+
+    function changeFontSize(delta) {
+      baseSize += delta * 0.1;
+      baseSize = Math.max(0.6, Math.min(baseSize, 1.5));
+      document.documentElement.style.setProperty('--font-base-size', `${baseSize}rem`);
     }
 
-    // Contraste
+    function resetFontSize() {
+      baseSize = 0.9;
+      document.documentElement.style.setProperty('--font-base-size', `0.9rem`);
+    }
+
     function toggleContrast() {
       document.body.classList.toggle("high-contrast");
     }
 
-    // Busca
     function filterServices() {
       const input = document.getElementById("searchInput").value.toLowerCase();
       const items = document.querySelectorAll(".service-item");
@@ -233,5 +243,4 @@
     }
   </script>
 </body>
-
 </html>
