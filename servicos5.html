@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Central do Usuário - Prefeitura de Juiz de Fora</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+  <style>
+    :root {
+      --font-base-size: 0.9rem;
+    }
+
+    body {
+      background-color: #f8f9fa;
+      font-size: var(--font-base-size);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .card {
+      font-size: inherit;
+    }
+
+    .dashboard-icon {
+      font-size: 1.8rem;
+      color: #0d6efd;
+      margin-right: 10px;
+    }
+
+    .high-contrast {
+      background-color: #000 !important;
+      color: #fff !important;
+    }
+
+    .high-contrast .card {
+      background-color: #000 !important;
+      border-color: #fff !important;
+    }
+
+    .high-contrast .dashboard-icon,
+    .high-contrast h6,
+    .high-contrast p,
+    .high-contrast a,
+    .high-contrast td,
+    .high-contrast th {
+      color: #fff !important;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-light bg-white shadow-sm px-3">
+    <a class="navbar-brand" href="#">Prefeitura de Juiz de Fora</a>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(1)">A+</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="resetFontSize()">A</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(-1)">A-</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="toggleContrast()">Contraste</button>
+    </div>
+  </nav>
+
+  <div class="container py-4">
+    <h2 class="mb-4">Central do Usuário</h2>
+
+    <!-- Dados Cadastrais -->
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <i class="fas fa-user dashboard-icon"></i> Dados Cadastrais
+      </div>
+      <div class="card-body">
+        <p><strong>Nome:</strong> João da Silva</p>
+        <p><strong>CPF:</strong> 123.456.789-00</p>
+        <p><strong>Email:</strong> joao@email.com</p>
+        <p><strong>Telefone:</strong> (32) 99999-8888</p>
+      </div>
+    </div>
+
+    <!-- Protocolos -->
+    <div class="card mb-4">
+      <div class="card-header bg-success text-white">
+        <i class="fas fa-folder-open dashboard-icon"></i> Meus Protocolos
+      </div>
+      <div class="card-body table-responsive">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Nº Protocolo</th>
+              <th>Serviço</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2025001234</td>
+              <td>IPTU - 2ª via</td>
+              <td>10/06/2025</td>
+              <td><span class="badge bg-warning text-dark">Em Análise</span></td>
+              <td><a href="#" class="btn btn-sm btn-primary">Ver Detalhes</a></td>
+            </tr>
+            <tr>
+              <td>2025000987</td>
+              <td>Alvará de Funcionamento</td>
+              <td>05/06/2025</td>
+              <td><span class="badge bg-success">Concluído</span></td>
+              <td><a href="#" class="btn btn-sm btn-primary">Ver Detalhes</a></td>
+            </tr>
+            <tr>
+              <td>2025000765</td>
+              <td>Ouvidoria</td>
+              <td>01/06/2025</td>
+              <td><span class="badge bg-danger">Recusado</span></td>
+              <td><a href="#" class="btn btn-sm btn-primary">Ver Detalhes</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Abrir novo protocolo -->
+    <div class="text-end">
+      <a href="abrir-protocolo.html" class="btn btn-success">
+        <i class="fas fa-plus-circle"></i> Abrir Novo Protocolo
+      </a>
+    </div>
+  </div>
+
+  <script>
+    let baseSize = 0.9;
+
+    function changeFontSize(delta) {
+      baseSize += delta * 0.1;
+      baseSize = Math.max(0.6, Math.min(baseSize, 1.5));
+      document.documentElement.style.setProperty('--font-base-size', `${baseSize}rem`);
+    }
+
+    function resetFontSize() {
+      baseSize = 0.9;
+      document.documentElement.style.setProperty('--font-base-size', `0.9rem`);
+    }
+
+    function toggleContrast() {
+      document.body.classList.toggle("high-contrast");
+    }
+  </script>
+</body>
+</html>
