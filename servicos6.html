@@ -12,41 +12,51 @@
       background-color: #f8f9fa;
       font-size: 0.9rem;
     }
+
     .container {
       max-width: 960px;
     }
-    h2, h4 {
+
+    h2,
+    h4 {
       color: #0d6efd;
     }
+
     .card-header {
       background-color: #e9f0ff;
       font-weight: 600;
       font-size: 1.1rem;
     }
+
     .btn-edit {
       background-color: #0d6efd;
       color: white;
       border: none;
     }
+
     .btn-edit:hover {
       background-color: #0848c2;
       color: white;
     }
+
     .protocol-list {
       max-height: 280px;
       overflow-y: auto;
     }
+
     .timeline {
       list-style: none;
       padding-left: 0;
       border-left: 3px solid #0d6efd;
       margin-left: 1rem;
     }
+
     .timeline-item {
       position: relative;
       margin-bottom: 1.5rem;
       padding-left: 1rem;
     }
+
     .timeline-item::before {
       content: "";
       position: absolute;
@@ -59,14 +69,17 @@
       border: 3px solid white;
       box-shadow: 0 0 0 2px #0d6efd;
     }
+
     .timeline-item .time {
       font-size: 0.85rem;
       color: #666;
     }
+
     .timeline-item .desc {
       margin-top: 0.25rem;
       font-size: 0.95rem;
     }
+
     @media (max-width: 576px) {
       .protocol-list {
         max-height: 200px;
@@ -81,15 +94,18 @@
   </nav>
 
   <main class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
       <h2>Central do Usuário</h2>
-      <button class="btn btn-edit btn-sm" id="btnEditUser">Editar Dados Cadastrais <i class="fa fa-user-edit ms-1"></i></button>
+      <div>
+        <button class="btn btn-edit btn-sm me-2" id="btnEditUser"><i class="fa fa-user-edit me-1"></i>Editar Dados Cadastrais</button>
+        <button class="btn btn-primary btn-sm" id="btnViewMessages" disabled><i class="fa fa-comments me-1"></i>Ver Mensagens</button>
+      </div>
     </div>
 
     <section class="mb-4">
       <div class="card">
         <div class="card-header">Meus Dados Cadastrais</div>
-        <div class="card-body">
+        <div class="card-body" id="userData">
           <p><strong>Nome:</strong> João da Silva</p>
           <p><strong>CPF:</strong> 123.456.789-00</p>
           <p><strong>E-mail:</strong> joao.silva@email.com</p>
@@ -118,51 +134,128 @@
     </section>
   </main>
 
+  <!-- Modal Editar Dados -->
+  <div class="modal fade" id="modalEditUser" tabindex="-1" aria-labelledby="modalEditUserLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <form id="formEditUser" class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalEditUserLabel">Editar Dados Cadastrais</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="inputNome" class="form-label">Nome</label>
+            <input type="text" class="form-control" id="inputNome" required />
+          </div>
+          <div class="mb-3">
+            <label for="inputCPF" class="form-label">CPF</label>
+            <input type="text" class="form-control" id="inputCPF" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" placeholder="000.000.000-00" />
+          </div>
+          <div class="mb-3">
+            <label for="inputEmail" class="form-label">E-mail</label>
+            <input type="email" class="form-control" id="inputEmail" required />
+          </div>
+          <div class="mb-3">
+            <label for="inputTelefone" class="form-label">Telefone</label>
+            <input type="tel" class="form-control" id="inputTelefone" required placeholder="(00) 00000-0000" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Salvar</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Mensagens Protocolo -->
+  <div class="modal fade" id="modalMessages" tabindex="-1" aria-labelledby="modalMessagesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalMessagesLabel">Mensagens do Protocolo</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+        </div>
+        <div class="modal-body" id="messagesContent" style="max-height:400px; overflow-y:auto;">
+          <!-- Mensagens dinâmicas -->
+        </div>
+        <div class="modal-footer">
+          <textarea class="form-control" id="messageInput" placeholder="Digite sua mensagem..." rows="3"></textarea>
+          <button type="button" class="btn btn-primary" id="btnSendMessage"><i class="fa fa-paper-plane"></i> Enviar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
-    // Dados de exemplo do usuário e protocolos
     const protocolos = [
       {
         id: '202500123',
         titulo: 'Solicitação de Reparos Urbanos',
         status: 'Em andamento',
         timeline: [
-          { data: '2025-07-01 14:20', status: 'Protocolo aberto' },
-          { data: '2025-07-02 09:15', status: 'Avaliação inicial concluída' },
-          { data: '2025-07-03 16:00', status: 'Equipe designada' },
           { data: '2025-07-05 11:30', status: 'Trabalho em execução' },
+          { data: '2025-07-03 16:00', status: 'Equipe designada' },
+          { data: '2025-07-02 09:15', status: 'Avaliação inicial concluída' },
+          { data: '2025-07-01 14:20', status: 'Protocolo aberto' }
         ],
+        messages: [
+          { from: 'prefeitura', text: 'Recebemos sua solicitação e iniciamos o processo.', datetime: '2025-07-01 14:30' },
+          { from: 'usuario', text: 'Obrigado pela confirmação.', datetime: '2025-07-01 15:00' },
+          { from: 'prefeitura', text: 'Equipe está a caminho para avaliação.', datetime: '2025-07-03 10:00' }
+        ]
       },
       {
         id: '202400456',
         titulo: 'Cadastro Escolar - Creche',
         status: 'Concluído',
         timeline: [
-          { data: '2024-12-10 10:00', status: 'Protocolo aberto' },
-          { data: '2024-12-12 08:30', status: 'Documentação enviada' },
-          { data: '2024-12-15 15:45', status: 'Aprovação finalizada' },
           { data: '2024-12-20 10:00', status: 'Cadastro concluído' },
+          { data: '2024-12-15 15:45', status: 'Aprovação finalizada' },
+          { data: '2024-12-12 08:30', status: 'Documentação enviada' },
+          { data: '2024-12-10 10:00', status: 'Protocolo aberto' }
         ],
+        messages: [
+          { from: 'prefeitura', text: 'Documentação recebida e em análise.', datetime: '2024-12-11 09:00' },
+          { from: 'usuario', text: 'Posso atualizar meus documentos?', datetime: '2024-12-12 12:30' },
+          { from: 'prefeitura', text: 'Sim, até o dia 15.', datetime: '2024-12-13 14:00' }
+        ]
       },
       {
         id: '202500789',
         titulo: 'Passe Livre - Renovação',
         status: 'Pendente',
         timeline: [
-          { data: '2025-07-02 08:00', status: 'Protocolo aberto' },
+          { data: '2025-07-02 08:00', status: 'Protocolo aberto' }
         ],
+        messages: [
+          { from: 'usuario', text: 'Quando será a análise?', datetime: '2025-07-02 10:00' },
+          { from: 'prefeitura', text: 'Previsão até o final da semana.', datetime: '2025-07-03 09:00' }
+        ]
       }
     ];
 
     const protocolListEl = document.getElementById('protocolList');
     const protocolDetailsEl = document.getElementById('protocolDetails');
+    const btnEditUser = document.getElementById('btnEditUser');
+    const btnViewMessages = document.getElementById('btnViewMessages');
+    let selectedProtocolIndex = null;
 
-    // Função para formatar data no formato dd/mm/yyyy hh:mm
+    // Form modal refs
+    const modalEditUser = new bootstrap.Modal(document.getElementById('modalEditUser'));
+    const modalMessages = new bootstrap.Modal(document.getElementById('modalMessages'));
+
+    // Formatar data
     function formatDate(datetime) {
       const d = new Date(datetime);
-      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     }
 
-    // Renderiza lista de protocolos
+    // Render lista protocolos
     function renderProtocolList() {
       protocolListEl.innerHTML = '';
       protocolos.forEach((p, index) => {
@@ -170,24 +263,25 @@
         li.className = 'list-group-item list-group-item-action';
         li.textContent = `${p.titulo} (#${p.id}) - ${p.status}`;
         li.style.cursor = 'pointer';
-        li.onclick = () => showProtocolDetails(index);
+        li.onclick = () => selectProtocol(index);
+        if (index === selectedProtocolIndex) {
+          li.classList.add('active');
+        }
         protocolListEl.appendChild(li);
       });
     }
 
-    // Mostra detalhes e timeline do protocolo selecionado
-    function showProtocolDetails(index) {
+    // Exibe detalhes do protocolo e timeline
+    function selectProtocol(index) {
+      selectedProtocolIndex = index;
+      renderProtocolList();
       const p = protocolos[index];
-      // timeline invertida (mais recente primeiro)
-      const timelineHtml = p.timeline
-        .slice().reverse()
-        .map(
-          (ev) =>
-            `<li class="timeline-item">
-              <div class="time">${formatDate(ev.data)}</div>
-              <div class="desc">${ev.status}</div>
-            </li>`
-        ).join('');
+      const timelineHtml = p.timeline.map(ev => `
+        <li class="timeline-item">
+          <div class="time">${formatDate(ev.data)}</div>
+          <div class="desc">${ev.status}</div>
+        </li>
+      `).join('');
       protocolDetailsEl.innerHTML = `
         <h5>${p.titulo}</h5>
         <p><strong>ID do Protocolo:</strong> ${p.id}</p>
@@ -195,18 +289,88 @@
         <hr />
         <ul class="timeline">${timelineHtml}</ul>
       `;
+      btnViewMessages.disabled = false;
     }
 
-    // Botão editar dados cadastrais
-    document.getElementById('btnEditUser').addEventListener('click', () => {
-      alert('Funcionalidade de editar dados cadastrais será implementada.');
+    // Abrir modal edição usuário
+    btnEditUser.addEventListener('click', () => {
+      // Popular dados atuais no formulário
+      document.getElementById('inputNome').value = document.querySelector('#userData p strong').nextSibling.textContent.trim() || "João da Silva";
+      document.getElementById('inputCPF').value = '123.456.789-00';
+      document.getElementById('inputEmail').value = 'joao.silva@email.com';
+      document.getElementById('inputTelefone').value = '(32) 99999-9999';
+      modalEditUser.show();
     });
 
-    // Inicializa lista na carga da página
+    // Salvar dados usuário (simulação)
+    document.getElementById('formEditUser').addEventListener('submit', (e) => {
+      e.preventDefault();
+      // Atualiza dados na tela
+      const nome = document.getElementById('inputNome').value;
+      const cpf = document.getElementById('inputCPF').value;
+      const email = document.getElementById('inputEmail').value;
+      const tel = document.getElementById('inputTelefone').value;
+
+      document.getElementById('userData').innerHTML = `
+        <p><strong>Nome:</strong> ${nome}</p>
+        <p><strong>CPF:</strong> ${cpf}</p>
+        <p><strong>E-mail:</strong> ${email}</p>
+        <p><strong>Telefone:</strong> ${tel}</p>
+      `;
+      modalEditUser.hide();
+      alert('Dados cadastrais atualizados com sucesso!');
+    });
+
+    // Abrir modal mensagens do protocolo
+    btnViewMessages.addEventListener('click', () => {
+      if (selectedProtocolIndex === null) return;
+      const protocol = protocolos[selectedProtocolIndex];
+      const container = document.getElementById('messagesContent');
+      if (!protocol.messages || protocol.messages.length === 0) {
+        container.innerHTML = '<p>Nenhuma mensagem disponível para este protocolo.</p>';
+      } else {
+        // ordenar por datetime asc para leitura cronológica
+        const msgsSorted = protocol.messages.slice().sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+        container.innerHTML = msgsSorted.map(m => `
+          <div class="mb-3">
+            <small class="text-muted">${formatDate(m.datetime)} - ${m.from === 'usuario' ? 'Você' : 'Prefeitura'}</small>
+            <div class="border rounded p-2 ${m.from === 'usuario' ? 'bg-primary text-white' : 'bg-light'}" style="max-width: 90%;">
+              ${m.text}
+            </div>
+          </div>
+        `).join('');
+        // Scroll para o fim
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight;
+        }, 100);
+      }
+      modalMessages.show();
+    });
+
+    // Enviar nova mensagem
+    document.getElementById('btnSendMessage').addEventListener('click', () => {
+      const input = document.getElementById('messageInput');
+      const text = input.value.trim();
+      if (!text) return alert('Digite uma mensagem antes de enviar.');
+      if (selectedProtocolIndex === null) return alert('Selecione um protocolo antes.');
+
+      // Adiciona mensagem ao array e atualiza a tela
+      protocolos[selectedProtocolIndex].messages.push({
+        from: 'usuario',
+        text,
+        datetime: new Date().toISOString()
+      });
+
+      // Atualiza lista de mensagens
+      btnViewMessages.click(); // reabre modal para atualização (simples hack)
+
+      // Limpa input
+      input.value = '';
+    });
+
+    // Inicializa lista
     renderProtocolList();
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
