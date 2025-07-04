@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,260 +9,120 @@
   <style>
     body {
       background-color: #f8f9fa;
-      font-size: 0.9rem;
+      font-size: 0.92rem;
     }
 
-    .container {
-      max-width: 960px;
+    .status {
+      padding: 3px 8px;
+      border-radius: 10px;
+      font-weight: bold;
+      font-size: 0.8rem;
+      display: inline-block;
     }
 
-    h2,
-    h4 {
-      color: #0d6efd;
+    .status-pendente {
+      background-color: #fff3cd;
+      color: #856404;
     }
 
-    .card-header {
-      background-color: #e9f0ff;
-      font-weight: 600;
-      font-size: 1.1rem;
+    .status-andamento {
+      background-color: #cce5ff;
+      color: #004085;
     }
 
-    .btn-edit {
-      background-color: #0d6efd;
-      color: white;
-      border: none;
-    }
-
-    .btn-edit:hover {
-      background-color: #0848c2;
-      color: white;
-    }
-
-    /* A lista de protocolos ocupa toda a largura e altura limitada */
-    .protocol-list {
-      max-height: 280px;
-      overflow-y: auto;
-      width: 100%;
-      margin-bottom: 1rem;
+    .status-concluido {
+      background-color: #d4edda;
+      color: #155724;
     }
 
     .timeline {
       list-style: none;
-      padding-left: 0;
+      padding-left: 1rem;
       border-left: 3px solid #0d6efd;
-      margin-left: 1rem;
-      max-height: 280px;
-      overflow-y: auto;
     }
 
     .timeline-item {
       position: relative;
-      margin-bottom: 1.5rem;
-      padding-left: 1rem;
+      margin-bottom: 1rem;
     }
 
     .timeline-item::before {
       content: "";
       position: absolute;
-      left: -11px;
+      left: -12px;
       top: 0;
       width: 20px;
       height: 20px;
       background-color: #0d6efd;
       border-radius: 50%;
       border: 3px solid white;
-      box-shadow: 0 0 0 2px #0d6efd;
     }
 
     .timeline-item .time {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: #666;
     }
 
     .timeline-item .desc {
+      font-size: 0.9rem;
       margin-top: 0.25rem;
-      font-size: 0.95rem;
     }
 
-    /* Status color coding */
-    .status-pendente {
-      color: #856404;
-      background-color: #fff3cd;
+    .editor {
+      border: 1px solid #ced4da;
       border-radius: 5px;
-      padding: 0 6px;
-      font-weight: 600;
+      padding: 8px;
+      min-height: 100px;
+      background-color: white;
     }
 
-    .status-em-andamento {
-      color: #084298;
-      background-color: #cfe2ff;
-      border-radius: 5px;
-      padding: 0 6px;
-      font-weight: 600;
+    .editor-toolbar {
+      margin-bottom: 6px;
     }
 
-    .status-concluido {
-      color: #0f5132;
-      background-color: #d1e7dd;
-      border-radius: 5px;
-      padding: 0 6px;
-      font-weight: 600;
-    }
-
-    /* Protocol list item styles */
-    .list-group-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* Editor toolbar */
     .editor-toolbar button {
       margin-right: 5px;
     }
 
-    /* Message bubbles */
-    .msg-prefeitura {
-      background-color: #e9ecef;
-      color: #212529;
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      max-width: 80%;
-      align-self: flex-start;
-      white-space: pre-wrap;
-    }
-
-    .msg-usuario {
-      background-color: #0d6efd;
-      color: white;
-      border-radius: 10px;
-      padding: 8px 12px;
-      margin-bottom: 10px;
-      max-width: 80%;
-      align-self: flex-end;
-      white-space: pre-wrap;
-    }
-
-    /* Messages container */
-    #messagesContent {
-      max-height: 280px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      border: 1px solid #ced4da;
-      padding: 0.5rem;
-      border-radius: 5px;
-      background: white;
-      margin-bottom: 1rem;
+    .attachment-area {
+      margin-top: 10px;
     }
   </style>
 </head>
-
 <body>
-  <nav class="navbar navbar-light bg-white shadow-sm px-3 mb-4">
+  <nav class="navbar navbar-light bg-white shadow-sm px-3 mb-3">
     <a class="navbar-brand fw-bold" href="#">Prefeitura de Juiz de Fora</a>
   </nav>
 
-  <main class="container">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-      <h2>Central do Usuário</h2>
-      <button class="btn btn-edit btn-sm" id="btnEditUser"><i class="fa fa-user-edit me-1"></i>Editar Dados Cadastrais</button>
+  <div class="container">
+    <h2 class="mb-4 text-primary">Central do Usuário</h2>
+
+    <!-- Busca -->
+    <div class="mb-3">
+      <input type="text" id="searchInput" class="form-control" placeholder="Buscar protocolo por título, ID ou status...">
     </div>
 
-    <section class="mb-4">
-      <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <span>Meus Protocolos</span>
-          <input type="text" class="form-control form-control-sm w-auto" id="searchProtocol" placeholder="Buscar protocolo..." title="Buscar por título, ID ou status" />
-        </div>
-        <div class="card-body">
-          <ul class="list-group protocol-list" id="protocolList">
-            <!-- Protocolos dinâmicos -->
-          </ul>
-          <nav>
-            <ul class="pagination pagination-sm justify-content-center mt-2 mb-0" id="pagination">
-              <!-- Paginação -->
-            </ul>
-          </nav>
-
-          <!-- Detalhamento do protocolo e linha do tempo -->
-          <div id="protocolDetails" class="mt-4" style="background: white; border: 1px solid #ced4da; border-radius: 6px; padding: 1rem;">
-            <p>Selecione um protocolo para ver os detalhes da linha do tempo e interagir.</p>
-          </div>
-
-          <!-- Botão para abrir o modal de mensagens -->
-          <div class="mt-3 text-end">
-            <button class="btn btn-primary btn-sm" id="btnOpenMessages" disabled><i class="fa fa-comments me-1"></i>Interagir com Protocolo</button>
-          </div>
-        </div>
+    <!-- Lista de Protocolos -->
+    <div class="card mb-4">
+      <div class="card-header bg-light fw-semibold">Meus Protocolos</div>
+      <div class="card-body p-2">
+        <ul class="list-group" id="protocolList">
+          <!-- Protocolos dinâmicos -->
+        </ul>
       </div>
-    </section>
-  </main>
-
-  <!-- Modal Editar Dados -->
-  <div class="modal fade" id="modalEditUser" tabindex="-1" aria-labelledby="modalEditUserLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <form id="formEditUser" class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalEditUserLabel">Editar Dados Cadastrais</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="inputNome" class="form-label">Nome</label>
-            <input type="text" class="form-control" id="inputNome" required />
-          </div>
-          <div class="mb-3">
-            <label for="inputCPF" class="form-label">CPF</label>
-            <input type="text" class="form-control" id="inputCPF" required pattern="\d{3}\.\d{3}\.\d{3}-\d{2}" placeholder="000.000.000-00" />
-          </div>
-          <div class="mb-3">
-            <label for="inputEmail" class="form-label">E-mail</label>
-            <input type="email" class="form-control" id="inputEmail" required />
-          </div>
-          <div class="mb-3">
-            <label for="inputTelefone" class="form-label">Telefone</label>
-            <input type="tel" class="form-control" id="inputTelefone" required placeholder="(00) 00000-0000" />
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Salvar</button>
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        </div>
-      </form>
     </div>
-  </div>
 
-  <!-- Modal Mensagens Protocolo -->
-  <div class="modal fade" id="modalMessages" tabindex="-1" aria-labelledby="modalMessagesLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable d-flex flex-column">
-      <div class="modal-content d-flex flex-column" style="height: 90vh;">
-        <div class="modal-header">
-          <h5 class="modal-title" id="modalMessagesLabel">Mensagens do Protocolo</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-        </div>
-        <div class="modal-body d-flex flex-column" id="messagesContent" style="overflow-y:auto; flex-grow:1;">
-          <!-- Mensagens dinâmicas -->
-        </div>
-        <div class="modal-footer flex-column gap-2">
-          <div class="editor-toolbar btn-group mb-2" role="group" aria-label="Editor de mensagens">
-            <button type="button" class="btn btn-outline-secondary btn-sm" title="Negrito" onclick="formatText('bold')"><i class="fa fa-bold"></i></button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" title="Itálico" onclick="formatText('italic')"><i class="fa fa-italic"></i></button>
-            <button type="button" class="btn btn-outline-secondary btn-sm" title="Lista" onclick="formatText('insertUnorderedList')"><i class="fa fa-list-ul"></i></button>
-          </div>
-          <textarea class="form-control" id="messageInput" placeholder="Digite sua mensagem..." rows="4" style="resize:none;"></textarea>
-          <input type="file" id="fileInput" multiple class="form-control form-control-sm" />
-          <div id="fileList" style="font-size: 0.85rem; color: #666;"></div>
-          <button type="button" class="btn btn-primary w-100" id="btnSendMessage"><i class="fa fa-paper-plane me-1"></i>Enviar</button>
-        </div>
+    <!-- Detalhes do Protocolo -->
+    <div class="card mb-4">
+      <div class="card-header bg-light fw-semibold">Detalhamento</div>
+      <div class="card-body" id="protocolDetails">
+        <p class="text-muted">Selecione um protocolo para visualizar os detalhes.</p>
       </div>
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- JavaScript -->
   <script>
-    // Dados simulados
     const protocolos = [
       {
         id: '202500123',
@@ -272,13 +131,8 @@
         timeline: [
           { data: '2025-07-05 11:30', status: 'Trabalho em execução' },
           { data: '2025-07-03 16:00', status: 'Equipe designada' },
-          { data: '2025-07-02 09:15', status: 'Avaliação inicial concluída' },
+          { data: '2025-07-02 09:15', status: 'Avaliação inicial' },
           { data: '2025-07-01 14:20', status: 'Protocolo aberto' }
-        ],
-        messages: [
-          { from: 'prefeitura', text: 'Recebemos sua solicitação e iniciamos o processo.', datetime: '2025-07-01 14:30' },
-          { from: 'usuario', text: 'Obrigado pela confirmação.', datetime: '2025-07-01 15:00' },
-          { from: 'prefeitura', text: 'Equipe está a caminho para avaliação.', datetime: '2025-07-03 10:00' }
         ]
       },
       {
@@ -290,11 +144,6 @@
           { data: '2024-12-15 15:45', status: 'Aprovação finalizada' },
           { data: '2024-12-12 08:30', status: 'Documentação enviada' },
           { data: '2024-12-10 10:00', status: 'Protocolo aberto' }
-        ],
-        messages: [
-          { from: 'prefeitura', text: 'Documentação recebida e em análise.', datetime: '2024-12-11 09:00' },
-          { from: 'usuario', text: 'Posso atualizar meus documentos?', datetime: '2024-12-12 12:30' },
-          { from: 'prefeitura', text: 'Sim, até o dia 15.', datetime: '2024-12-13 14:00' }
         ]
       },
       {
@@ -303,383 +152,94 @@
         status: 'Pendente',
         timeline: [
           { data: '2025-07-02 08:00', status: 'Protocolo aberto' }
-        ],
-        messages: [
-          { from: 'usuario', text: 'Quando será a análise?', datetime: '2025-07-02 10:00' },
-          { from: 'prefeitura', text: 'Previsão até o final da semana.', datetime: '2025-07-03 09:00' }
         ]
-      },
-      {
-        id: '202401111',
-        titulo: 'Pedido de Alvará Comercial',
-        status: 'Concluído',
-        timeline: [
-          { data: '2024-11-05 14:00', status: 'Alvará emitido' },
-          { data: '2024-11-01 09:30', status: 'Documentação aprovada' },
-          { data: '2024-10-28 08:00', status: 'Protocolo aberto' }
-        ],
-        messages: []
-      },
-      {
-        id: '202502222',
-        titulo: 'Solicitação de Certidão Negativa',
-        status: 'Em andamento',
-        timeline: [
-          { data: '2025-06-20 10:30', status: 'Análise em progresso' },
-          { data: '2025-06-18 15:45', status: 'Protocolo aberto' }
-        ],
-        messages: []
-      },
-      {
-        id: '202503333',
-        titulo: 'Requerimento de Passe Livre',
-        status: 'Pendente',
-        timeline: [
-          { data: '2025-07-01 11:15', status: 'Protocolo aberto' }
-        ],
-        messages: []
       }
     ];
 
-    // Estados e refs
-    let selectedProtocolIndex = null;
-    const protocolsPerPage = 5;
-    let currentPage = 1;
-    let filteredProtocols = [...protocolos];
-
     const protocolListEl = document.getElementById('protocolList');
     const protocolDetailsEl = document.getElementById('protocolDetails');
-    const btnEditUser = document.getElementById('btnEditUser');
-    const btnOpenMessages = document.getElementById('btnOpenMessages');
-    const searchInput = document.getElementById('searchProtocol');
-    const paginationEl = document.getElementById('pagination');
-    const modalEditUser = new bootstrap.Modal(document.getElementById('modalEditUser'));
-    const modalMessages = new bootstrap.Modal(document.getElementById('modalMessages'));
-    const messageInput = document.getElementById('messageInput');
-    const messagesContent = document.getElementById('messagesContent');
-    const fileInput = document.getElementById('fileInput');
-    const fileList = document.getElementById('fileList');
+    const searchInput = document.getElementById('searchInput');
 
-    // Função para formatar data para pt-BR
-    function formatDate(datetime) {
-      const d = new Date(datetime);
-      return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
-
-    // Mapear status para classes de estilo
     function statusClass(status) {
       switch (status.toLowerCase()) {
-        case 'pendente':
-          return 'status-pendente';
-        case 'em andamento':
-          return 'status-em-andamento';
-        case 'concluído':
-          return 'status-concluido';
-        default:
-          return '';
+        case 'pendente': return 'status-pendente';
+        case 'concluído': return 'status-concluido';
+        case 'em andamento': return 'status-andamento';
+        default: return '';
       }
     }
 
-    // Renderiza lista de protocolos da página atual
-    function renderProtocolList() {
+    function renderProtocolList(filter = '') {
       protocolListEl.innerHTML = '';
+      const filtered = protocolos.filter(p =>
+        p.titulo.toLowerCase().includes(filter.toLowerCase()) ||
+        p.status.toLowerCase().includes(filter.toLowerCase()) ||
+        p.id.includes(filter)
+      );
 
-      const start = (currentPage - 1) * protocolsPerPage;
-      const end = start + protocolsPerPage;
-      const pageProtocols = filteredProtocols.slice(start, end);
-
-      if (pageProtocols.length === 0) {
-        protocolListEl.innerHTML = '<li class="list-group-item">Nenhum protocolo encontrado.</li>';
-        selectedProtocolIndex = null;
-        renderProtocolDetails();
-        btnOpenMessages.disabled = true;
-        return;
-      }
-
-      pageProtocols.forEach((p, index) => {
-        const globalIndex = start + index;
+      filtered.forEach((p, index) => {
         const li = document.createElement('li');
-        li.className = 'list-group-item list-group-item-action d-flex justify-content-between align-items-center';
-        if (globalIndex === selectedProtocolIndex) li.classList.add('active');
-        li.style.cursor = 'pointer';
-
-        // Título + ID
-        const titleSpan = document.createElement('span');
-        titleSpan.textContent = `${p.titulo} (#${p.id})`;
-
-        // Status colorido
-        const statusSpan = document.createElement('span');
-        statusSpan.className = statusClass(p.status);
-        statusSpan.textContent = p.status;
-
-        li.appendChild(titleSpan);
-        li.appendChild(statusSpan);
-
-        li.onclick = () => {
-          selectedProtocolIndex = globalIndex;
-          renderProtocolList();
-          renderProtocolDetails();
-          btnOpenMessages.disabled = false;
-        };
-
+        li.className = 'list-group-item d-flex justify-content-between align-items-center';
+        li.innerHTML = `
+          <div>
+            <strong>${p.titulo}</strong><br>
+            <small>ID: ${p.id}</small> |
+            <span class="status ${statusClass(p.status)}">${p.status}</span>
+          </div>
+          <button class="btn btn-outline-primary btn-sm" onclick="showDetails(${index})">Detalhar</button>
+        `;
         protocolListEl.appendChild(li);
       });
 
-      renderPagination();
+      if (filtered.length === 0) {
+        protocolListEl.innerHTML = '<li class="list-group-item text-muted">Nenhum protocolo encontrado.</li>';
+      }
     }
 
-    // Renderiza paginação
-    function renderPagination() {
-      paginationEl.innerHTML = '';
+    function showDetails(index) {
+      const p = protocolos[index];
+      const timeline = p.timeline.slice().sort((a, b) => new Date(b.data) - new Date(a.data));
 
-      const totalPages = Math.ceil(filteredProtocols.length / protocolsPerPage);
-      if (totalPages <= 1) return; // sem paginação se só 1 página
-
-      function createPageItem(page) {
-        const li = document.createElement('li');
-        li.className = 'page-item' + (page === currentPage ? ' active' : '');
-        const a = document.createElement('a');
-        a.className = 'page-link';
-        a.href = '#';
-        a.textContent = page;
-        a.onclick = (e) => {
-          e.preventDefault();
-          currentPage = page;
-          renderProtocolList();
-          // Reset seleção ao mudar página
-          selectedProtocolIndex = null;
-          renderProtocolDetails();
-          btnOpenMessages.disabled = true;
-        };
-        li.appendChild(a);
-        return li;
-      }
-
-      // Botão anterior
-      const prevLi = document.createElement('li');
-      prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
-      const prevA = document.createElement('a');
-      prevA.className = 'page-link';
-      prevA.href = '#';
-      prevA.textContent = '«';
-      prevA.onclick = (e) => {
-        e.preventDefault();
-        if (currentPage > 1) {
-          currentPage--;
-          renderProtocolList();
-          selectedProtocolIndex = null;
-          renderProtocolDetails();
-          btnOpenMessages.disabled = true;
-        }
-      };
-      prevLi.appendChild(prevA);
-      paginationEl.appendChild(prevLi);
-
-      // Páginas
-      for (let i = 1; i <= totalPages; i++) {
-        paginationEl.appendChild(createPageItem(i));
-      }
-
-      // Botão próximo
-      const nextLi = document.createElement('li');
-      nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
-      const nextA = document.createElement('a');
-      nextA.className = 'page-link';
-      nextA.href = '#';
-      nextA.textContent = '»';
-      nextA.onclick = (e) => {
-        e.preventDefault();
-        if (currentPage < totalPages) {
-          currentPage++;
-          renderProtocolList();
-          selectedProtocolIndex = null;
-          renderProtocolDetails();
-          btnOpenMessages.disabled = true;
-        }
-      };
-      nextLi.appendChild(nextA);
-      paginationEl.appendChild(nextLi);
-    }
-
-    // Renderiza detalhes do protocolo selecionado e timeline (Z-A)
-    function renderProtocolDetails() {
-      if (selectedProtocolIndex === null || !filteredProtocols[selectedProtocolIndex]) {
-        protocolDetailsEl.innerHTML = '<p>Selecione um protocolo para ver os detalhes da linha do tempo e interagir.</p>';
-        btnOpenMessages.disabled = true;
-        return;
-      }
-      const p = filteredProtocols[selectedProtocolIndex];
-      // Timeline Z-A (mais recente primeiro)
-      const timelineSorted = p.timeline.slice().sort((a, b) => new Date(b.data) - new Date(a.data));
-      const timelineHtml = timelineSorted.map(ev => `
-        <li class="timeline-item">
-          <div class="time">${formatDate(ev.data)}</div>
-          <div class="desc">${ev.status}</div>
-        </li>
-      `).join('');
       protocolDetailsEl.innerHTML = `
         <h5>${p.titulo}</h5>
-        <p><strong>ID do Protocolo:</strong> ${p.id}</p>
-        <p><strong>Status atual:</strong> <span class="${statusClass(p.status)}">${p.status}</span></p>
+        <p><strong>ID:</strong> ${p.id}</p>
+        <p><strong>Status:</strong> <span class="status ${statusClass(p.status)}">${p.status}</span></p>
         <hr />
-        <strong>Linha do tempo:</strong>
-        <ul class="timeline">${timelineHtml}</ul>
+        <h6>Histórico:</h6>
+        <ul class="timeline">
+          ${timeline.map(ev => `
+            <li class="timeline-item">
+              <div class="time">${formatDate(ev.data)}</div>
+              <div class="desc">${ev.status}</div>
+            </li>`).join('')}
+        </ul>
+        <hr />
+        <h6>Enviar Mensagem:</h6>
+        <div class="editor-toolbar">
+          <button onclick="execCmd('bold')" class="btn btn-sm btn-light"><b>B</b></button>
+          <button onclick="execCmd('italic')" class="btn btn-sm btn-light"><i>I</i></button>
+          <button onclick="execCmd('underline')" class="btn btn-sm btn-light"><u>U</u></button>
+        </div>
+        <div id="messageEditor" class="editor" contenteditable="true"></div>
+        <div class="attachment-area">
+          <label for="fileAttach" class="form-label mt-2">Anexar Arquivo:</label>
+          <input type="file" class="form-control" id="fileAttach">
+        </div>
+        <button class="btn btn-primary mt-3"><i class="fa fa-paper-plane"></i> Enviar</button>
       `;
-      btnOpenMessages.disabled = false;
     }
 
-    // Filtrar protocolos pela busca
-    searchInput.addEventListener('input', () => {
-      const keyword = searchInput.value.trim().toLowerCase();
-      filteredProtocols = protocolos.filter(p => {
-        return (
-          p.titulo.toLowerCase().includes(keyword) ||
-          p.id.toLowerCase().includes(keyword) ||
-          p.status.toLowerCase().includes(keyword)
-        );
-      });
-      currentPage = 1;
-      selectedProtocolIndex = null;
-      renderProtocolList();
-      renderProtocolDetails();
-      btnOpenMessages.disabled = true;
-    });
-
-    // Botão Editar usuário
-    btnEditUser.addEventListener('click', () => {
-      // Popular dados atuais no formulário
-      const userData = document.getElementById('userData');
-      document.getElementById('inputNome').value = userData ? userData.querySelector('p:nth-child(1)').textContent.replace('Nome:', '').trim() : '';
-      document.getElementById('inputCPF').value = userData ? userData.querySelector('p:nth-child(2)').textContent.replace('CPF:', '').trim() : '';
-      document.getElementById('inputEmail').value = userData ? userData.querySelector('p:nth-child(3)').textContent.replace('E-mail:', '').trim() : '';
-      document.getElementById('inputTelefone').value = userData ? userData.querySelector('p:nth-child(4)').textContent.replace('Telefone:', '').trim() : '';
-      modalEditUser.show();
-    });
-
-    // Salvar dados usuário (simulação)
-    document.getElementById('formEditUser').addEventListener('submit', (e) => {
-      e.preventDefault();
-      // Atualiza dados na tela
-      const nome = document.getElementById('inputNome').value;
-      const cpf = document.getElementById('inputCPF').value;
-      const email = document.getElementById('inputEmail').value;
-      const tel = document.getElementById('inputTelefone').value;
-
-      // Atualiza container (criando se não existir)
-      let userData = document.getElementById('userData');
-      if (!userData) {
-        userData = document.createElement('div');
-        userData.id = 'userData';
-        document.querySelector('main.container').prepend(userData);
-      }
-      userData.innerHTML = `
-        <p><strong>Nome:</strong> ${nome}</p>
-        <p><strong>CPF:</strong> ${cpf}</p>
-        <p><strong>E-mail:</strong> ${email}</p>
-        <p><strong>Telefone:</strong> ${tel}</p>
-      `;
-      modalEditUser.hide();
-      alert('Dados cadastrais atualizados com sucesso!');
-    });
-
-    // Abrir modal mensagens ao clicar no botão
-    btnOpenMessages.addEventListener('click', () => {
-      openMessagesModal();
-    });
-
-    // Função para abrir modal mensagens
-    function openMessagesModal() {
-      if (selectedProtocolIndex === null) return;
-      const protocol = filteredProtocols[selectedProtocolIndex];
-      renderMessages(protocol);
-      modalMessages.show();
+    function formatDate(datetime) {
+      const d = new Date(datetime);
+      return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
     }
 
-    // Renderiza mensagens no modal (cronológico)
-    function renderMessages(protocol) {
-      if (!protocol.messages || protocol.messages.length === 0) {
-        messagesContent.innerHTML = '<p>Nenhuma mensagem disponível para este protocolo.</p>';
-        return;
-      }
-      // Ordena por datetime asc para leitura cronológica
-      const msgsSorted = protocol.messages.slice().sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
-      messagesContent.innerHTML = '';
-      msgsSorted.forEach(m => {
-        const div = document.createElement('div');
-        div.className = m.from === 'usuario' ? 'msg-usuario' : 'msg-prefeitura';
-        div.innerHTML = `<small class="text-muted">${formatDate(m.datetime)} - ${m.from === 'usuario' ? 'Você' : 'Prefeitura'}</small><br>${escapeHtml(m.text)}`;
-        messagesContent.appendChild(div);
-      });
-      messagesContent.scrollTop = messagesContent.scrollHeight;
+    function execCmd(cmd) {
+      document.execCommand(cmd, false, null);
     }
 
-    // Escape HTML para evitar XSS (simplificado)
-    function escapeHtml(text) {
-      return text.replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;")
-        .replace(/\n/g, '<br>');
-    }
-
-    // Função para formatar texto no textarea (simples usando execCommand)
-    function formatText(command) {
-      document.getElementById('messageInput').focus();
-      document.execCommand(command, false, null);
-    }
-
-    // Controle arquivos selecionados
-    let selectedFiles = [];
-
-    fileInput.addEventListener('change', (e) => {
-      selectedFiles = Array.from(e.target.files);
-      updateFileList();
-    });
-
-    function updateFileList() {
-      if (selectedFiles.length === 0) {
-        fileList.textContent = '';
-        return;
-      }
-      fileList.innerHTML = '<strong>Arquivos anexados:</strong><br>' +
-        selectedFiles.map(f => `<span>${f.name}</span>`).join('<br>');
-    }
-
-    // Enviar mensagem nova com anexos
-    document.getElementById('btnSendMessage').addEventListener('click', () => {
-      const textRaw = messageInput.value.trim();
-      if (!textRaw) return alert('Digite uma mensagem antes de enviar.');
-      if (selectedProtocolIndex === null) return alert('Selecione um protocolo antes.');
-
-      // Para simulação, salvar texto simples sem tags (limpa eventuais tags)
-      const text = textRaw.replace(/<\/?[^>]+(>|$)/g, "");
-
-      // Adiciona mensagem nova
-      filteredProtocols[selectedProtocolIndex].messages.push({
-        from: 'usuario',
-        text,
-        datetime: new Date().toISOString(),
-        files: selectedFiles.map(f => f.name) // só nomes por enquanto
-      });
-
-      // Atualiza mensagens
-      renderMessages(filteredProtocols[selectedProtocolIndex]);
-
-      // Limpa input e anexos
-      messageInput.value = '';
-      selectedFiles = [];
-      updateFileList();
-      fileInput.value = '';
-    });
-
-    // Inicializa
+    searchInput.addEventListener('input', () => renderProtocolList(searchInput.value));
     renderProtocolList();
-    renderProtocolDetails();
   </script>
 </body>
-
 </html>
