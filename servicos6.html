@@ -1,158 +1,162 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Central do Usuário - Prefeitura de Juiz de Fora</title>
+  <title>Detalhamento de Protocolo | Central do Usuário</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
   <style>
-    :root {
-      --font-base-size: 0.9rem;
-    }
-
     body {
       background-color: #f8f9fa;
-      font-size: var(--font-base-size);
-      transition: background 0.3s, color 0.3s;
+      font-size: 0.95rem;
     }
 
-    .card {
-      font-size: inherit;
+    .protocol-header {
+      padding: 1rem;
+      background-color: #ffffff;
+      border-bottom: 1px solid #dee2e6;
     }
 
-    .dashboard-icon {
-      font-size: 1.8rem;
-      color: #0d6efd;
-      margin-right: 10px;
+    .status-badge {
+      font-size: 0.85rem;
     }
 
-    .high-contrast {
-      background-color: #000 !important;
-      color: #fff !important;
+    .attachment-area {
+      background-color: #fff;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #dee2e6;
     }
 
-    .high-contrast .card {
-      background-color: #000 !important;
-      border-color: #fff !important;
+    .upload-btn-wrapper {
+      position: relative;
+      overflow: hidden;
+      display: inline-block;
     }
 
-    .high-contrast .dashboard-icon,
-    .high-contrast h6,
-    .high-contrast p,
-    .high-contrast a,
-    .high-contrast td,
-    .high-contrast th {
-      color: #fff !important;
+    .upload-btn-wrapper input[type="file"] {
+      font-size: 100px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      opacity: 0;
     }
 
-    .accessibility-bar {
-      display: flex;
-      justify-content: end;
-      gap: 10px;
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
-      background-color: #e9ecef;
+    .timeline {
+      border-left: 3px solid #0d6efd;
+      padding-left: 1rem;
+      margin-top: 1rem;
     }
 
-    .accessibility-bar button {
-      font-size: 0.8rem;
+    .timeline-item {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -10px;
+      top: 4px;
+      background: #0d6efd;
+      border-radius: 50%;
+      width: 10px;
+      height: 10px;
+    }
+
+    .notification-dot {
+      width: 10px;
+      height: 10px;
+      background-color: red;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 5px;
+    }
+
+    @media (max-width: 768px) {
+      .protocol-header h4 {
+        font-size: 1.2rem;
+      }
     }
   </style>
 </head>
 
 <body>
-  <nav class="navbar navbar-light bg-white shadow-sm px-3">
-    <a class="navbar-brand" href="#">Prefeitura de Juiz de Fora</a>
-    <div class="accessibility-bar">
-      <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(1)">A+</button>
-      <button class="btn btn-outline-secondary btn-sm" onclick="resetFontSize()">A</button>
-      <button class="btn btn-outline-secondary btn-sm" onclick="changeFontSize(-1)">A-</button>
-      <button class="btn btn-outline-secondary btn-sm" onclick="toggleContrast()">Contraste</button>
-    </div>
+  <nav class="navbar navbar-light bg-white shadow-sm px-3 mb-3">
+    <a class="navbar-brand" href="#">Central do Usuário</a>
+    <button class="btn btn-sm btn-primary">Voltar</button>
   </nav>
 
-  <div class="container py-4">
-    <h2 class="mb-4">Central do Usuário</h2>
+  <div class="container">
 
-    <div class="card mb-4">
-      <div class="card-header bg-primary text-white">
-        <i class="fas fa-user dashboard-icon"></i> Dados Cadastrais
+    <div class="protocol-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-1">Protocolo #20240612345</h4>
+        <span class="badge bg-primary status-badge">Em análise</span>
       </div>
-      <div class="card-body">
-        <p><strong>Nome:</strong> João da Silva</p>
-        <p><strong>CPF:</strong> 123.456.789-00</p>
-        <p><strong>Email:</strong> joao@email.com</p>
-        <p><strong>Telefone:</strong> (32) 99999-8888</p>
+      <div>
+        <button class="btn btn-sm btn-primary"><i class="fas fa-plus-circle"></i> Novo Protocolo</button>
       </div>
     </div>
 
-    <div class="card mb-4">
-      <div class="card-header bg-primary text-white">
-        <i class="fas fa-folder-open dashboard-icon"></i> Meus Protocolos
+    <div class="row mt-4 g-3">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-white fw-bold">Dados do Usuário</div>
+          <div class="card-body">
+            <p><strong>Nome:</strong> João da Silva</p>
+            <p><strong>CPF:</strong> 123.456.789-00</p>
+            <p><strong>Email:</strong> joao@email.com</p>
+            <p><strong>Telefone:</strong> (32) 99999-0000</p>
+          </div>
+        </div>
       </div>
-      <div class="card-body table-responsive">
-        <table class="table table-bordered align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Nº Protocolo</th>
-              <th>Serviço</th>
-              <th>Data</th>
-              <th>Status</th>
-              <th>Ação</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>2025001234</td>
-              <td>IPTU - 2ª via</td>
-              <td>10/06/2025</td>
-              <td><span class="badge bg-warning text-dark">Em Análise</span></td>
-              <td><a href="#" class="btn btn-sm btn-outline-primary">Ver Detalhes</a></td>
-            </tr>
-            <tr>
-              <td>2025000987</td>
-              <td>Alvará de Funcionamento</td>
-              <td>05/06/2025</td>
-              <td><span class="badge bg-success">Concluído</span></td>
-              <td><a href="#" class="btn btn-sm btn-outline-primary">Ver Detalhes</a></td>
-            </tr>
-            <tr>
-              <td>2025000765</td>
-              <td>Ouvidoria</td>
-              <td>01/06/2025</td>
-              <td><span class="badge bg-danger">Recusado</span></td>
-              <td><a href="#" class="btn btn-sm btn-outline-primary">Ver Detalhes</a></td>
-            </tr>
-          </tbody>
-        </table>
+
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-white fw-bold">Detalhes do Protocolo</div>
+          <div class="card-body">
+            <p><strong>Data:</strong> 12/06/2025</p>
+            <p><strong>Assunto:</strong> Solicitação de Isenção IPTU</p>
+            <p><strong>Status:</strong> Em análise</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="text-end">
-      <a href="abrir-protocolo.html" class="btn btn-primary">
-        <i class="fas fa-plus-circle"></i> Abrir Novo Protocolo
-      </a>
+    <div class="mt-4">
+      <h5>Anexos enviados</h5>
+      <div class="attachment-area">
+        <ul class="mb-2">
+          <li>comprovante_renda.pdf</li>
+          <li>documento_identidade.jpg</li>
+        </ul>
+        <div class="upload-btn-wrapper">
+          <button class="btn btn-outline-primary btn-sm"><i class="fas fa-upload"></i> Enviar novo documento</button>
+          <input type="file" name="file" />
+        </div>
+      </div>
     </div>
+
+    <div class="mt-4">
+      <h5>Atualizações e Comentários <span class="notification-dot" title="Nova mensagem"></span></h5>
+      <div class="timeline">
+        <div class="timeline-item">
+          <small class="text-muted">12/06/2025 - 15:00</small>
+          <p>Protocolo recebido e em análise pelo setor responsável.</p>
+        </div>
+        <div class="timeline-item">
+          <small class="text-muted">13/06/2025 - 10:45</small>
+          <p><strong>Comentário da Prefeitura:</strong> Favor anexar comprovante de endereço atualizado.</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  <script>
-    let baseSize = 0.9;
-
-    function changeFontSize(delta) {
-      baseSize += delta * 0.1;
-      baseSize = Math.max(0.6, Math.min(baseSize, 1.5));
-      document.documentElement.style.setProperty('--font-base-size', `${baseSize}rem`);
-    }
-
-    function resetFontSize() {
-      baseSize = 0.9;
-      document.documentElement.style.setProperty('--font-base-size', `0.9rem`);
-    }
-
-    function toggleContrast() {
-      document.body.classList.toggle("high-contrast");
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
