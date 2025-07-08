@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Organograma - Prefeitura de Juiz de Fora</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
   <style>
     .org-node {
       padding: 8px 12px;
@@ -18,11 +18,23 @@
       cursor: pointer;
       min-width: 160px;
     }
-    .root { border-color: #d67f0b; font-weight: bold; background-color: #fdf2e3; }
-    .amarelo { background-color: #fff8d4; }
-    .azul { background-color: #d4ecff; }
-    .laranja { background-color: #ffe1cc; }
-    .roxo { background-color: #e8d4ff; }
+    .root {
+      border-color: #d67f0b;
+      font-weight: bold;
+      background-color: #fdf2e3;
+    }
+    .amarelo {
+      background-color: #fff8d4;
+    }
+    .azul {
+      background-color: #d4ecff;
+    }
+    .laranja {
+      background-color: #ffe1cc;
+    }
+    .roxo {
+      background-color: #e8d4ff;
+    }
 
     .connector {
       width: 2px;
@@ -38,10 +50,11 @@
     .branch.show {
       display: flex;
     }
+    /* Aqui está a modificação: direção em coluna e alinhamento central */
     .child-branches {
       display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
+      flex-direction: column;
+      align-items: center;
       gap: 10px;
     }
     .text-center > .connector {
@@ -51,7 +64,7 @@
 </head>
 <body class="bg-light p-3">
   <div class="container text-center">
-    <div class="org-node root">Prefeitura de<br>Juiz de Fora</div>
+    <div class="org-node root">Prefeitura de<br />Juiz de Fora</div>
     <div class="connector" style="height: 30px;"></div>
 
     <div class="d-flex justify-content-center align-items-start gap-5 flex-wrap">
