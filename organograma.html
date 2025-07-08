@@ -3,194 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Organograma Moderno - Prefeitura de Juiz de Fora</title>
+  <title>Organograma Prefeitura de Juiz de Fora</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
       background-color: #f8f9fa;
     }
 
+    .org-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+      position: relative;
+    }
+
     .org-node {
       padding: 12px 20px;
-      border: none;
       border-radius: 12px;
       background-color: #ffffff;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border: 2px solid #000000;
       font-size: 0.95rem;
-      cursor: pointer;
       text-align: center;
-      min-width: 180px;
+      min-width: 200px;
       position: relative;
-      transition: all 0.3s ease;
-      z-index: 2;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .org-node:hover {
-      transform: scale(1.03);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
-    }
-
-    .root {
-      background-color: #fdf2e3;
+    .org-node.root {
       font-weight: bold;
-      color: #d67f0b;
+      border-color: #d67f0b;
+      background-color: #fdf2e3;
     }
 
-    .amarelo { background-color: #fff8d4; }
-    .azul { background-color: #d4ecff; }
-    .laranja { background-color: #ffe1cc; }
-    .roxo { background-color: #e8d4ff; }
+    .horizontal-line {
+      height: 2px;
+      background-color: #000;
+      width: 100%;
+      position: absolute;
+      top: 50%;
+      z-index: 0;
+    }
 
-    .branch {
-      display: none;
+    .vertical-line {
+      width: 2px;
+      background-color: #000;
+      height: 30px;
+      margin: 0 auto;
+    }
+
+    .children-row {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 60px;
+      position: relative;
+    }
+
+    .children-column {
+      display: flex;
+      flex-direction: column;
       align-items: center;
+      position: relative;
+    }
+
+    .subitems {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
       margin-top: 10px;
       position: relative;
     }
 
-    .branch.show {
-      display: flex;
-    }
-
-    .child-branches {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      position: relative;
-      margin-left: 30px;
-    }
-
-    .child-node {
-      position: relative;
-      margin: 20px 0;
-    }
-
-    .connector-line {
-      position: absolute;
-      width: 30px;
-      height: 2px;
-      background-color: #6c757d;
-      top: 50%;
-      left: -30px;
-      transform: translateY(-50%);
-    }
-
-    .vertical-line {
+    .subitems::before {
+      content: "";
       position: absolute;
       left: 0;
       top: 0;
+      bottom: 0;
       width: 2px;
-      height: 100%;
-      background-color: #6c757d;
+      background-color: #000;
     }
 
-    .horizontal-line-top {
-      position: absolute;
-      top: 50%;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background-color: #6c757d;
-      transform: translateY(-50%);
-      z-index: 1;
-    }
-
-    .top-connector {
-      width: 2px;
-      height: 30px;
-      background-color: #6c757d;
-      margin: 0 auto;
-    }
-
-    .mid-connectors {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      gap: 40px;
+    .sub-node {
+      margin: 10px 0 10px 20px;
       position: relative;
     }
 
-    .mid-connectors::before {
+    .sub-node::before {
       content: "";
       position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80%;
+      left: -20px;
+      top: 50%;
+      width: 20px;
       height: 2px;
-      background-color: #6c757d;
-      z-index: 0;
-    }
-
-    .mid-connectors > div::before {
-      content: "";
-      position: absolute;
-      top: -30px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 2px;
-      height: 30px;
-      background-color: #6c757d;
-      z-index: 0;
+      background-color: #000;
+      transform: translateY(-50%);
     }
   </style>
 </head>
 <body class="p-4">
-  <div class="container text-center position-relative">
-    <div class="org-node root mx-auto">Prefeitura de<br>Juiz de Fora</div>
-    <div class="top-connector"></div>
+  <div class="container">
+    <div class="org-container">
 
-    <div class="mid-connectors mt-3">
-      <div class="position-relative">
-        <div class="org-node" onclick="toggleBranch('prefeita')">Prefeita</div>
-      </div>
-      <div class="position-relative">
-        <div class="org-node" onclick="toggleBranch('vice')">Vice-Prefeito</div>
-      </div>
-      <div class="position-relative">
-        <div class="org-node" onclick="toggleBranch('admDireta')">Administração Direta</div>
-      </div>
-      <div class="position-relative">
-        <div class="org-node" onclick="toggleBranch('admIndireta')">Administração Indireta</div>
-      </div>
-    </div>
+      <!-- Prefeitura -->
+      <div class="org-node root">Prefeitura de<br>Juiz de Fora</div>
+      <div class="vertical-line"></div>
 
-    <div id="admDireta" class="branch flex-column align-items-start mt-3">
-      <div class="child-branches">
-        <div class="vertical-line"></div>
-        <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 1</div>
-        <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 2</div>
-        <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 3</div>
-        <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 4</div>
-        <div class="child-node org-node azul"><div class="connector-line"></div>Órgão 5</div>
-        <div class="child-node org-node azul"><div class="connector-line"></div>Órgão 6</div>
-        <div class="child-node org-node azul"><div class="connector-line"></div>Órgão 7</div>
-        <div class="child-node org-node laranja"><div class="connector-line"></div>Órgão 8</div>
-        <div class="child-node org-node laranja"><div class="connector-line"></div>Órgão 9</div>
-        <div class="child-node org-node laranja"><div class="connector-line"></div>Órgão 10</div>
+      <!-- Prefeita e Vice -->
+      <div class="children-row">
+        <div class="children-column">
+          <div class="org-node">Prefeita</div>
+        </div>
+        <div class="children-column">
+          <div class="org-node">Vice Prefeito</div>
+        </div>
       </div>
-    </div>
 
-    <div id="admIndireta" class="branch flex-column align-items-start mt-3">
-      <div class="child-branches">
-        <div class="vertical-line"></div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 1</div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 2</div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 3</div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 4</div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 5</div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 6</div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 7</div>
-        <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 8</div>
+      <div class="vertical-line"></div>
+
+      <!-- Administração Direta e Indireta -->
+      <div class="children-row">
+
+        <!-- Administração Direta -->
+        <div class="children-column">
+          <div class="org-node">Administração Direta</div>
+          <div class="subitems">
+            <div class="org-node sub-node">Administração Direta 1</div>
+            <div class="org-node sub-node">Administração Direta 2</div>
+            <div class="org-node sub-node">Administração Direta 3</div>
+            <div class="org-node sub-node">Administração Direta 4</div>
+          </div>
+        </div>
+
+        <!-- Administração Indireta -->
+        <div class="children-column">
+          <div class="org-node">Administração Indireta</div>
+          <div class="subitems">
+            <div class="org-node sub-node">Administração Indireta 1</div>
+            <div class="org-node sub-node">Administração Indireta 2</div>
+            <div class="org-node sub-node">Administração Indireta 3</div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
-
-  <script>
-    function toggleBranch(id) {
-      const branch = document.getElementById(id);
-      branch.classList.toggle('show');
-    }
-  </script>
 </body>
 </html>
