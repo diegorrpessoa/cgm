@@ -1,118 +1,154 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Organograma PJF</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Organograma - Prefeitura de Juiz de Fora</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
-    body {
-      background: #f4f4f4;
-      font-family: 'Segoe UI', sans-serif;
+    .organograma-container {
+      padding: 2rem;
     }
     .nivel {
-      margin-bottom: 40px;
+      margin-bottom: 2rem;
     }
     .nivel h4 {
+      margin-bottom: 1rem;
       border-left: 5px solid #0d6efd;
       padding-left: 10px;
-      margin-bottom: 20px;
-      background-color: #e9ecef;
-      padding: 10px;
-      font-size: 1.2rem;
+      font-weight: 600;
     }
-    .organograma-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .org-nivel {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-    .org-box {
-      background-color: #fff;
-      border: 2px solid #0d6efd;
-      border-radius: 6px;
-      padding: 10px 15px;
-      min-width: 200px;
+    .card-organograma {
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      background-color: #ffffff;
+      margin: 0.5rem;
       text-align: center;
-      font-size: 0.9rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .org-box.controle { border-color: #dc3545; }
-    .org-box.estrategico { border-color: #198754; }
-    .org-box.operacional { border-color: #6c757d; }
-    .org-box.indireta { border-color: #ffc107; }
+    .card-organograma a {
+      text-decoration: none;
+      color: #0d6efd;
+      font-weight: 500;
+    }
+    .card-organograma a:hover {
+      text-decoration: underline;
+    }
+    .card-organograma-title {
+      font-size: 0.95rem;
+    }
   </style>
 </head>
 <body>
-<div class="container py-4">
-  <h2 class="text-center mb-4">Organograma Institucional da Prefeitura de Juiz de Fora</h2>
-  <div class="organograma-container">
-
-    <!-- Nível de Governo e Controle -->
-    <div class="nivel">
-      <h4>Nível Estratégico de Governo e Controle</h4>
-      <div class="org-nivel">
-        <div class="org-box controle">Gabinete do Prefeito (GP)</div>
-        <div class="org-box controle">Gabinete do Vice-Prefeito (GVP)</div>
-        <div class="org-box controle">Procuradoria Geral do Município (PGM)</div>
-        <div class="org-box controle">Controladoria Geral do Município (CGM)</div>
-      </div>
-    </div>
+  <div class="container organograma-container">
+    <h2 class="mb-4 text-center">Organograma Institucional - Prefeitura de Juiz de Fora</h2>
 
     <!-- Nível Estratégico -->
     <div class="nivel">
-      <h4>Nível Estratégico e de Coordenação</h4>
-      <div class="org-nivel">
-        <div class="org-box estrategico">Secretaria da Fazenda (SF)</div>
-        <div class="org-box estrategico">Secretaria de Governo (SG)</div>
-        <div class="org-box estrategico">Secretaria de RH (SRH)</div>
-        <div class="org-box estrategico">Secretaria de Comunicação Pública (SECOM)</div>
-        <div class="org-box estrategico">Secretaria de Licitações e Contratos (SELICON)</div>
+      <h4>
+        <button class="btn btn-link p-0" data-bs-toggle="collapse" data-bs-target="#nivelEstrategico" aria-expanded="true" aria-controls="nivelEstrategico">
+          Nível Estratégico
+        </button>
+      </h4>
+      <div class="row collapse show" id="nivelEstrategico">
+        <div class="col-md-6">
+          <div class="card-organograma bg-light">
+            <div class="card-organograma-title text-dark">Gabinete da Prefeita</div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card-organograma bg-light">
+            <div class="card-organograma-title text-dark">Gabinete do Vice-Prefeito</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nível de Apoio / Órgãos Diretos -->
+    <div class="nivel">
+      <h4>
+        <button class="btn btn-link p-0" data-bs-toggle="collapse" data-bs-target="#nivelApoio" aria-expanded="true" aria-controls="nivelApoio">
+          Nível de Apoio (Secretarias e Órgãos Diretos)
+        </button>
+      </h4>
+      <div class="row collapse show" id="nivelApoio">
+        <div class="col-md-4">
+          <div class="card-organograma">
+            <a href="/secretaria-de-governo">Secretaria de Governo</a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-organograma">
+            <a href="/controladoria-geral">Controladoria Geral</a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-organograma">
+            <a href="/procuradoria-geral">Procuradoria Geral</a>
+          </div>
+        </div>
+        <!-- Adicione mais secretarias conforme necessário -->
       </div>
     </div>
 
     <!-- Nível Operacional -->
     <div class="nivel">
-      <h4>Nível de Execução de Políticas Públicas</h4>
-      <div class="org-nivel">
-        <div class="org-box operacional">Secretaria de Saúde (SS)</div>
-        <div class="org-box operacional">Secretaria de Educação (SE)</div>
-        <div class="org-box operacional">Secretaria de Obras (SO)</div>
-        <div class="org-box operacional">Secretaria de Mobilidade Urbana (SMU)</div>
-        <div class="org-box operacional">Secretaria de Esporte e Lazer (SEL)</div>
-        <div class="org-box operacional">Secretaria de Desenvolvimento Urbano (SEDUPP)</div>
-        <div class="org-box operacional">Secretaria de Assistência Social (SAS)</div>
-        <div class="org-box operacional">Secretaria de Segurança Urbana (SESUC)</div>
-        <div class="org-box operacional">Secretaria de Agricultura e Abastecimento (SEAPA)</div>
-        <div class="org-box operacional">Secretaria de Turismo (SETUR)</div>
-        <div class="org-box operacional">Secretaria de Direitos Humanos (SEDH)</div>
-        <div class="org-box operacional">Secretaria das Mulheres (MULHERES)</div>
+      <h4>
+        <button class="btn btn-link p-0" data-bs-toggle="collapse" data-bs-target="#nivelOperacional" aria-expanded="true" aria-controls="nivelOperacional">
+          Nível Operacional
+        </button>
+      </h4>
+      <div class="row collapse show" id="nivelOperacional">
+        <div class="col-md-3">
+          <div class="card-organograma">
+            <a href="/saude">Secretaria de Saúde</a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card-organograma">
+            <a href="/educacao">Secretaria de Educação</a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card-organograma">
+            <a href="/assistencia-social">Secretaria de Assistência Social</a>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card-organograma">
+            <a href="/obras">Secretaria de Obras</a>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Administração Indireta -->
+    <!-- Órgãos da Administração Indireta -->
     <div class="nivel">
-      <h4>Administração Indireta</h4>
-      <div class="org-nivel">
-        <div class="org-box indireta">DEMLURB</div>
-        <div class="org-box indireta">CESAMA</div>
-        <div class="org-box indireta">EMPAV</div>
-        <div class="org-box indireta">JFPREV</div>
-        <div class="org-box indireta">FUNALFA</div>
-        <div class="org-box indireta">MAPRO</div>
-        <div class="org-box indireta">EMCASA</div>
-        <div class="org-box indireta">PROCON</div>
+      <h4>
+        <button class="btn btn-link p-0" data-bs-toggle="collapse" data-bs-target="#nivelIndireto" aria-expanded="true" aria-controls="nivelIndireto">
+          Administração Indireta
+        </button>
+      </h4>
+      <div class="row collapse show" id="nivelIndireto">
+        <div class="col-md-4">
+          <div class="card-organograma">
+            <a href="/cesama">CESAMA</a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-organograma">
+            <a href="/empav">EMPAV</a>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card-organograma">
+            <a href="/emcasa">EMCASA</a>
+          </div>
+        </div>
       </div>
     </div>
-
   </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
