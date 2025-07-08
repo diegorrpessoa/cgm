@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
@@ -31,7 +30,6 @@
       min-width: 200px;
       position: relative;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
     }
 
     .org-node.root {
@@ -42,39 +40,27 @@
 
     .connector-line {
       width: 2px;
-      height: 30px;
+      height: 20px;
       background-color: #000;
-      margin: 0;
-      align-self: center;
     }
 
     .horizontal-connector {
       display: flex;
-      justify-content: center;
       align-items: center;
-      margin-bottom: 30px;
-      width: 420px;
-      position: relative;
-      height: 30px;
-    }
-
-    .horizontal-connector::before,
-    .horizontal-connector::after {
-      content: "";
       height: 2px;
       background-color: #000;
-      width: 50%;
-      display: block;
-      margin: 0;
+      position: relative;
+      margin-bottom: 0;
+      width: 100%;
     }
 
     .horizontal-connector .center-line {
-      width: 2px;
-      height: 30px;
-      background-color: #000;
       position: absolute;
+      top: -20px;
       left: 50%;
-      top: 0;
+      width: 2px;
+      height: 20px;
+      background-color: #000;
       transform: translateX(-50%);
     }
 
@@ -83,7 +69,8 @@
       justify-content: center;
       align-items: flex-start;
       gap: 60px;
-      margin-bottom: 30px;
+      margin-top: 0;
+      position: relative;
     }
 
     .children-column {
@@ -93,13 +80,23 @@
       position: relative;
     }
 
+    .main-connector {
+      width: 2px;
+      height: 20px;
+      background-color: #000;
+      margin-top: 0;
+    }
+
     .subitems {
       overflow: hidden;
       max-height: 0;
       opacity: 0;
       transition: max-height 0.4s ease, opacity 0.3s ease;
-      margin-top: 20px;
       position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 0;
     }
 
     .subitems.show {
@@ -110,7 +107,7 @@
     .subitems::before {
       content: "";
       position: absolute;
-      left: 0;
+      left: -40px;
       top: 0;
       height: 100%;
       width: 2px;
@@ -121,7 +118,6 @@
       display: flex;
       align-items: center;
       margin: 10px 0;
-      position: relative;
     }
 
     .sub-node::before {
@@ -129,24 +125,14 @@
       width: 40px;
       height: 2px;
       background-color: #000;
-      margin: 0 8px 0 0;
-    }
-
-    .main-connector {
-      position: absolute;
-      width: 2px;
-      height: 40px;
-      background-color: #000;
-      left: 50%;
-      top: 100%;
-      transform: translateX(-50%);
+      margin-right: 0;
     }
 
     .toggle-btn {
       position: absolute;
-      top: 6px;
-      right: 10px;
-      font-size: 18px;
+      top: 5px;
+      right: 8px;
+      font-size: 16px;
       font-weight: bold;
       background: none;
       border: none;
@@ -172,12 +158,12 @@
       <div class="connector-line"></div>
 
       <!-- Conector central -->
-      <div class="horizontal-connector">
+      <div class="horizontal-connector" style="width: 380px;">
         <div class="center-line"></div>
       </div>
 
       <!-- Prefeita e Vice -->
-      <div class="children-row">
+      <div class="children-row mb-4">
         <div class="children-column">
           <div class="org-node">Prefeita</div>
         </div>
@@ -195,7 +181,7 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subDireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div id="subDireta" class="subitems">
+          <div id="subDireta" class="subitems" style="margin-left: 40px;">
             <div class="sub-node"><div class="org-node">Administração Direta 1</div></div>
             <div class="sub-node"><div class="org-node">Administração Direta 2</div></div>
             <div class="sub-node"><div class="org-node">Administração Direta 3</div></div>
@@ -210,7 +196,7 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subIndireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div id="subIndireta" class="subitems">
+          <div id="subIndireta" class="subitems" style="margin-left: 40px;">
             <div class="sub-node"><div class="org-node">Administração Indireta 1</div></div>
             <div class="sub-node"><div class="org-node">Administração Indireta 2</div></div>
             <div class="sub-node"><div class="org-node">Administração Indireta 3</div></div>
