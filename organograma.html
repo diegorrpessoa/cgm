@@ -3,37 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Organograma com Conectores Avançados</title>
+  <title>Organograma Moderno - Prefeitura de Juiz de Fora</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
     .org-node {
-      padding: 8px 12px;
-      border: 2px solid #000;
-      border-radius: 6px;
-      background-color: #fff;
-      font-size: 0.85rem;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 12px;
+      background-color: #ffffff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      font-size: 0.95rem;
       cursor: pointer;
       text-align: center;
-      min-width: 160px;
+      min-width: 180px;
       position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .org-node:hover {
+      transform: scale(1.03);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
     }
 
     .root {
-      border-color: #d67f0b;
-      font-weight: bold;
       background-color: #fdf2e3;
+      font-weight: bold;
+      color: #d67f0b;
     }
 
     .amarelo { background-color: #fff8d4; }
     .azul { background-color: #d4ecff; }
     .laranja { background-color: #ffe1cc; }
     .roxo { background-color: #e8d4ff; }
-
-    .connector {
-      width: 2px;
-      background-color: #000;
-      margin: 0 auto;
-    }
 
     .branch {
       display: none;
@@ -52,13 +57,30 @@
       position: relative;
     }
 
+    .child-node {
+      position: relative;
+      margin-top: 40px;
+      z-index: 1;
+    }
+
+    .connector-line {
+      position: absolute;
+      width: 2px;
+      height: 30px;
+      background-color: #6c757d;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 0;
+    }
+
     .svg-connector {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      overflow: visible;
+      pointer-events: none;
       z-index: 0;
     }
 
@@ -67,17 +89,18 @@
       height: 100%;
     }
 
-    .child-node {
-      position: relative;
-      margin-top: 30px;
-      z-index: 1;
+    .svg-connector path {
+      stroke: #6c757d;
+      stroke-width: 2;
+      fill: none;
+      stroke-linecap: round;
     }
   </style>
 </head>
-<body class="bg-light p-3">
+<body class="p-4">
   <div class="container text-center position-relative">
     <div class="org-node root mx-auto">Prefeitura de<br>Juiz de Fora</div>
-    <div class="connector" style="height: 30px;"></div>
+    <div style="height: 30px;"></div>
 
     <div class="d-flex justify-content-center gap-5 flex-wrap">
       <div class="text-center">
@@ -88,30 +111,30 @@
       </div>
     </div>
 
-    <div class="connector" style="height: 30px;"></div>
+    <div style="height: 30px;"></div>
 
     <div class="d-flex justify-content-center gap-5 flex-wrap">
       <!-- Administração Direta -->
       <div class="text-center position-relative">
         <div class="org-node" onclick="toggleBranch('admDireta')">Administração Direta</div>
-        <div class="connector" style="height: 20px;"></div>
+        <div style="height: 20px;"></div>
         <div id="admDireta" class="branch flex-column">
           <div class="child-branches">
             <div class="svg-connector">
               <svg>
-                <path d="M50 0 V15 M50 15 H50" stroke="#000" stroke-width="2" fill="none"/>
+                <path d="M50 0 V20" />
               </svg>
             </div>
-            <div class="child-node org-node amarelo">Órgão 1</div>
-            <div class="child-node org-node amarelo">Órgão 2</div>
-            <div class="child-node org-node amarelo">Órgão 3</div>
-            <div class="child-node org-node amarelo">Órgão 4</div>
-            <div class="child-node org-node azul">Órgão 5</div>
-            <div class="child-node org-node azul">Órgão 6</div>
-            <div class="child-node org-node azul">Órgão 7</div>
-            <div class="child-node org-node laranja">Órgão 8</div>
-            <div class="child-node org-node laranja">Órgão 9</div>
-            <div class="child-node org-node laranja">Órgão 10</div>
+            <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 1</div>
+            <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 2</div>
+            <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 3</div>
+            <div class="child-node org-node amarelo"><div class="connector-line"></div>Órgão 4</div>
+            <div class="child-node org-node azul"><div class="connector-line"></div>Órgão 5</div>
+            <div class="child-node org-node azul"><div class="connector-line"></div>Órgão 6</div>
+            <div class="child-node org-node azul"><div class="connector-line"></div>Órgão 7</div>
+            <div class="child-node org-node laranja"><div class="connector-line"></div>Órgão 8</div>
+            <div class="child-node org-node laranja"><div class="connector-line"></div>Órgão 9</div>
+            <div class="child-node org-node laranja"><div class="connector-line"></div>Órgão 10</div>
           </div>
         </div>
       </div>
@@ -119,22 +142,22 @@
       <!-- Administração Indireta -->
       <div class="text-center position-relative">
         <div class="org-node" onclick="toggleBranch('admIndireta')">Administração Indireta</div>
-        <div class="connector" style="height: 20px;"></div>
+        <div style="height: 20px;"></div>
         <div id="admIndireta" class="branch flex-column">
           <div class="child-branches">
             <div class="svg-connector">
               <svg>
-                <path d="M50 0 V15 M50 15 H50" stroke="#000" stroke-width="2" fill="none"/>
+                <path d="M50 0 V20" />
               </svg>
             </div>
-            <div class="child-node org-node roxo">Entidade 1</div>
-            <div class="child-node org-node roxo">Entidade 2</div>
-            <div class="child-node org-node roxo">Entidade 3</div>
-            <div class="child-node org-node roxo">Entidade 4</div>
-            <div class="child-node org-node roxo">Entidade 5</div>
-            <div class="child-node org-node roxo">Entidade 6</div>
-            <div class="child-node org-node roxo">Entidade 7</div>
-            <div class="child-node org-node roxo">Entidade 8</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 1</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 2</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 3</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 4</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 5</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 6</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 7</div>
+            <div class="child-node org-node roxo"><div class="connector-line"></div>Entidade 8</div>
           </div>
         </div>
       </div>
@@ -145,100 +168,6 @@
     function toggleBranch(id) {
       document.getElementById(id).classList.toggle('show');
     }
-  </script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Organograma - Prefeitura de Juiz de Fora</title>
-
-  <!-- Treant.js e Raphael -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/treant-js@1.0/Treant.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/treant-js@1.0/Treant.min.js"></script>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f9fa;
-    }
-    #organograma {
-      width: 100%;
-      margin: 20px auto;
-    }
-    .root { background-color: #fdf2e3; border: 2px solid #d67f0b; }
-    .prefeita { background-color: #fff8d4; }
-    .vice { background-color: #d4ecff; }
-    .direta { background-color: #ffe1cc; }
-    .indireta { background-color: #e8d4ff; }
-
-    /* Estilo básico dos nós */
-    .Treant > .node {
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 0.9rem;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-    }
-  </style>
-</head>
-<body>
-
-  <h2 style="text-align:center; color:#333;">Organograma - Prefeitura de Juiz de Fora</h2>
-  <div id="organograma"></div>
-
-  <script>
-    // Função para criar nós filhos verticais
-    function verticalChildren(count, prefix, cssClass) {
-      let arr = [];
-      for (let i = 1; i <= count; i++) {
-        arr.push({
-          text: { name: `${prefix} ${i}` },
-          HTMLclass: cssClass,
-          stackChildren: true  // empilha verticalmente
-        });
-      }
-      return arr;
-    }
-
-    const config = {
-      chart: {
-        container: "#organograma",
-        rootOrientation: "NORTH",
-        node: { collapsable: true },
-        connectors: { type: "step", style: { "stroke-width": 2, stroke: "#555" } },
-        animation: {
-          nodeAnimation: "easeOutBounce",
-          connectorsAnimation: "bounce"
-        }
-      },
-      nodeStructure: {
-        text: { name: "Prefeitura de Juiz de Fora" },
-        HTMLclass: "root",
-        children: [
-          { text: { name: "Prefeita" }, HTMLclass: "prefeita" },
-          { text: { name: "Vice-Prefeito" }, HTMLclass: "vice" },
-          {
-            text: { name: "Administração Direta" },
-            HTMLclass: "direta",
-            stackChildren: true,
-            collapsed: true,
-            children: verticalChildren(23, "Órgão", "direta")
-          },
-          {
-            text: { name: "Administração Indireta" },
-            HTMLclass: "indireta",
-            stackChildren: true,
-            collapsed: true,
-            children: verticalChildren(8, "Entidade", "indireta")
-          }
-        ]
-      }
-    };
-
-    new Treant(config);
   </script>
 </body>
 </html>
