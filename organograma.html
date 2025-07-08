@@ -11,52 +11,84 @@
       border: 2px solid #000;
       border-radius: 6px;
       text-align: center;
-      display: inline-block;
       background-color: #fff;
       font-size: 0.85rem;
-      margin: 5px auto;
       cursor: pointer;
       min-width: 160px;
+      position: relative;
     }
+
     .root {
       border-color: #d67f0b;
       font-weight: bold;
       background-color: #fdf2e3;
     }
-    .amarelo {
-      background-color: #fff8d4;
-    }
-    .azul {
-      background-color: #d4ecff;
-    }
-    .laranja {
-      background-color: #ffe1cc;
-    }
-    .roxo {
-      background-color: #e8d4ff;
-    }
+
+    .amarelo { background-color: #fff8d4; }
+    .azul { background-color: #d4ecff; }
+    .laranja { background-color: #ffe1cc; }
+    .roxo { background-color: #e8d4ff; }
 
     .connector {
       width: 2px;
       background-color: #000;
       margin: 0 auto;
     }
+
     .branch {
       display: none;
       flex-direction: column;
       align-items: center;
       margin-top: 10px;
+      position: relative;
     }
+
     .branch.show {
       display: flex;
     }
-    /* Aqui está a modificação: direção em coluna e alinhamento central */
+
     .child-branches {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
+      position: relative;
+      margin-top: 20px;
     }
+
+    .child-branches::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      height: 20px;
+      width: 2px;
+      background-color: #000;
+    }
+
+    .vertical-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .vertical-list::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 2px;
+      height: 100%;
+      background-color: #000;
+      z-index: 0;
+    }
+
+    .vertical-list .org-node {
+      margin: 8px 0;
+      z-index: 1;
+      background-color: #fff;
+    }
+
     .text-center > .connector {
       height: 20px;
     }
@@ -84,29 +116,31 @@
         <div class="connector"></div>
         <div id="admDireta" class="branch">
           <div class="child-branches">
-            <div class="org-node amarelo">Órgão 1</div>
-            <div class="org-node amarelo">Órgão 2</div>
-            <div class="org-node amarelo">Órgão 3</div>
-            <div class="org-node amarelo">Órgão 4</div>
-            <div class="org-node azul">Órgão 5</div>
-            <div class="org-node azul">Órgão 6</div>
-            <div class="org-node azul">Órgão 7</div>
-            <div class="org-node laranja">Órgão 8</div>
-            <div class="org-node laranja">Órgão 9</div>
-            <div class="org-node laranja">Órgão 10</div>
-            <div class="org-node laranja">Órgão 11</div>
-            <div class="org-node laranja">Órgão 12</div>
-            <div class="org-node laranja">Órgão 13</div>
-            <div class="org-node laranja">Órgão 14</div>
-            <div class="org-node laranja">Órgão 15</div>
-            <div class="org-node laranja">Órgão 16</div>
-            <div class="org-node laranja">Órgão 17</div>
-            <div class="org-node laranja">Órgão 18</div>
-            <div class="org-node laranja">Órgão 19</div>
-            <div class="org-node laranja">Órgão 20</div>
-            <div class="org-node laranja">Órgão 21</div>
-            <div class="org-node laranja">Órgão 22</div>
-            <div class="org-node laranja">Órgão 23</div>
+            <div class="vertical-list">
+              <div class="org-node amarelo">Órgão 1</div>
+              <div class="org-node amarelo">Órgão 2</div>
+              <div class="org-node amarelo">Órgão 3</div>
+              <div class="org-node amarelo">Órgão 4</div>
+              <div class="org-node azul">Órgão 5</div>
+              <div class="org-node azul">Órgão 6</div>
+              <div class="org-node azul">Órgão 7</div>
+              <div class="org-node laranja">Órgão 8</div>
+              <div class="org-node laranja">Órgão 9</div>
+              <div class="org-node laranja">Órgão 10</div>
+              <div class="org-node laranja">Órgão 11</div>
+              <div class="org-node laranja">Órgão 12</div>
+              <div class="org-node laranja">Órgão 13</div>
+              <div class="org-node laranja">Órgão 14</div>
+              <div class="org-node laranja">Órgão 15</div>
+              <div class="org-node laranja">Órgão 16</div>
+              <div class="org-node laranja">Órgão 17</div>
+              <div class="org-node laranja">Órgão 18</div>
+              <div class="org-node laranja">Órgão 19</div>
+              <div class="org-node laranja">Órgão 20</div>
+              <div class="org-node laranja">Órgão 21</div>
+              <div class="org-node laranja">Órgão 22</div>
+              <div class="org-node laranja">Órgão 23</div>
+            </div>
           </div>
         </div>
       </div>
@@ -116,14 +150,16 @@
         <div class="connector"></div>
         <div id="admIndireta" class="branch">
           <div class="child-branches">
-            <div class="org-node roxo">Entidade 1</div>
-            <div class="org-node roxo">Entidade 2</div>
-            <div class="org-node roxo">Entidade 3</div>
-            <div class="org-node roxo">Entidade 4</div>
-            <div class="org-node roxo">Entidade 5</div>
-            <div class="org-node roxo">Entidade 6</div>
-            <div class="org-node roxo">Entidade 7</div>
-            <div class="org-node roxo">Entidade 8</div>
+            <div class="vertical-list">
+              <div class="org-node roxo">Entidade 1</div>
+              <div class="org-node roxo">Entidade 2</div>
+              <div class="org-node roxo">Entidade 3</div>
+              <div class="org-node roxo">Entidade 4</div>
+              <div class="org-node roxo">Entidade 5</div>
+              <div class="org-node roxo">Entidade 6</div>
+              <div class="org-node roxo">Entidade 7</div>
+              <div class="org-node roxo">Entidade 8</div>
+            </div>
           </div>
         </div>
       </div>
@@ -132,8 +168,4 @@
 
   <script>
     function toggleBranch(id) {
-      document.getElementById(id).classList.toggle('show');
-    }
-  </script>
-</body>
-</html>
+      document.getElementById(id).classList.toggle('s
