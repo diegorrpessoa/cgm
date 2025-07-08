@@ -5,27 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Organograma - Prefeitura de Juiz de Fora</title>
   <style>
-    * { box-sizing: border-box; }
     body {
       font-family: Arial, sans-serif;
-      background: #f8f9fa;
+      background: #f4f4f4;
+      margin: 0;
       padding: 20px;
-    }
-    .tree ul {
-      padding-top: 20px; position: relative;
-      transition: all 0.5s;
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-    .tree li {
-      list-style-type: none;
-      margin: 0 20px;
       text-align: center;
+    }
+
+    .tree ul {
+      padding-top: 20px;
+      position: relative;
+      display: table;
+      margin: auto;
+    }
+
+    .tree li {
+      float: left;
+      text-align: center;
+      list-style-type: none;
       position: relative;
       padding: 20px 5px 0 5px;
       transition: all 0.5s;
     }
+
     .tree li::before, .tree li::after {
       content: '';
       position: absolute;
@@ -35,95 +38,134 @@
       width: 50%;
       height: 20px;
     }
+
     .tree li::after {
-      right: auto; left: 50%; border-left: 2px solid #ccc;
+      right: auto;
+      left: 50%;
+      border-left: 2px solid #ccc;
     }
-    .tree li:only-child::before, .tree li:only-child::after {
+
+    .tree li:only-child::before,
+    .tree li:only-child::after {
       display: none;
     }
-    .tree li:only-child { padding-top: 0; }
-    .tree li:first-child::before, .tree li:last-child::after {
+
+    .tree li:only-child {
+      padding-top: 0;
+    }
+
+    .tree li:first-child::before,
+    .tree li:last-child::after {
       border: 0 none;
     }
+
     .tree li:last-child::before {
       border-right: 2px solid #ccc;
       border-radius: 0 5px 0 0;
     }
+
     .tree li:first-child::after {
       border-radius: 5px 0 0 0;
     }
+
     .tree .node {
-      border: 2px solid #000;
-      padding: 8px 15px;
       display: inline-block;
-      border-radius: 8px;
-      background: white;
-      font-size: 0.75rem;
-      min-width: 120px;
+      border: 2px solid #000;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      background: #fff;
+      position: relative;
+      transition: 0.3s;
+      cursor: pointer;
     }
-    .roxo { background-color: #e0d5f9; border-color: #8e44ad; }
-    .amarelo { background-color: #fff3cd; border-color: #ffc107; }
-    .azul { background-color: #cfe2ff; border-color: #0d6efd; }
-    .laranja { background-color: #ffe5b4; border-color: #fd7e14; }
+
+    .tree .node.purple { border-color: purple; }
+    .tree .node.yellow { border-color: #e8b400; background-color: #fffbe6; }
+    .tree .node.blue { border-color: #007bff; background-color: #e6f0ff; }
+    .tree .node.orange { border-color: #e67e22; background-color: #fff4e6; }
+    .tree .node.root { border: 2px solid #d2691e; background-color: #fff3e0; font-weight: bold; }
+
+    .collapse-toggle {
+      margin-top: 6px;
+      font-size: 0.8rem;
+      color: #007bff;
+      cursor: pointer;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center;">Organograma da Prefeitura de Juiz de Fora</h2>
+  <h2>Organograma da Prefeitura de Juiz de Fora</h2>
   <div class="tree">
     <ul>
       <li>
-        <div class="node" style="border: 2px solid #fd7e14; font-weight:bold;">Prefeitura de Juiz de Fora</div>
+        <div class="node root">Prefeitura de<br>Juiz de Fora</div>
         <ul>
-          <li>
-            <div class="node">Prefeita</div>
-          </li>
-          <li>
-            <div class="node">Vice Prefeito</div>
-          </li>
+          <li><div class="node">Prefeita</div></li>
+          <li><div class="node">Vice Prefeito</div></li>
           <li>
             <div class="node">Administração Indireta</div>
-            <ul>
-              <li><div class="node roxo">Indireta 1</div></li>
-              <li><div class="node roxo">Indireta 2</div></li>
-              <li><div class="node roxo">Indireta 3</div></li>
-              <li><div class="node roxo">Indireta 4</div></li>
-              <li><div class="node roxo">Indireta 5</div></li>
-              <li><div class="node roxo">Indireta 6</div></li>
-              <li><div class="node roxo">Indireta 7</div></li>
-              <li><div class="node roxo">Indireta 8</div></li>
+            <div class="collapse-toggle" onclick="toggle(this)">[+] Expandir</div>
+            <ul class="hidden">
+              <li><div class="node purple">Indireta 1</div></li>
+              <li><div class="node purple">Indireta 2</div></li>
+              <li><div class="node purple">Indireta 3</div></li>
+              <li><div class="node purple">Indireta 4</div></li>
+              <li><div class="node purple">Indireta 5</div></li>
+              <li><div class="node purple">Indireta 6</div></li>
+              <li><div class="node purple">Indireta 7</div></li>
+              <li><div class="node purple">Indireta 8</div></li>
             </ul>
           </li>
           <li>
             <div class="node">Administração Direta</div>
-            <ul>
-              <li><div class="node amarelo">Direta 1</div></li>
-              <li><div class="node amarelo">Direta 2</div></li>
-              <li><div class="node amarelo">Direta 3</div></li>
-              <li><div class="node amarelo">Direta 4</div></li>
-              <li><div class="node azul">Direta 5</div></li>
-              <li><div class="node azul">Direta 6</div></li>
-              <li><div class="node azul">Direta 7</div></li>
-              <li><div class="node laranja">Direta 8</div></li>
-              <li><div class="node laranja">Direta 9</div></li>
-              <li><div class="node laranja">Direta 10</div></li>
-              <li><div class="node laranja">Direta 11</div></li>
-              <li><div class="node laranja">Direta 12</div></li>
-              <li><div class="node laranja">Direta 13</div></li>
-              <li><div class="node laranja">Direta 14</div></li>
-              <li><div class="node laranja">Direta 15</div></li>
-              <li><div class="node laranja">Direta 16</div></li>
-              <li><div class="node laranja">Direta 17</div></li>
-              <li><div class="node laranja">Direta 18</div></li>
-              <li><div class="node laranja">Direta 19</div></li>
-              <li><div class="node laranja">Direta 20</div></li>
-              <li><div class="node laranja">Direta 21</div></li>
-              <li><div class="node laranja">Direta 22</div></li>
-              <li><div class="node laranja">Direta 23</div></li>
+            <div class="collapse-toggle" onclick="toggle(this)">[+] Expandir</div>
+            <ul class="hidden">
+              <li><div class="node yellow">Direta 1</div></li>
+              <li><div class="node yellow">Direta 2</div></li>
+              <li><div class="node yellow">Direta 3</div></li>
+              <li><div class="node yellow">Direta 4</div></li>
+              <li><div class="node blue">Direta 5</div></li>
+              <li><div class="node blue">Direta 6</div></li>
+              <li><div class="node blue">Direta 7</div></li>
+              <li><div class="node orange">Direta 8</div></li>
+              <li><div class="node orange">Direta 9</div></li>
+              <li><div class="node orange">Direta 10</div></li>
+              <li><div class="node orange">Direta 11</div></li>
+              <li><div class="node orange">Direta 12</div></li>
+              <li><div class="node orange">Direta 13</div></li>
+              <li><div class="node orange">Direta 14</div></li>
+              <li><div class="node orange">Direta 15</div></li>
+              <li><div class="node orange">Direta 16</div></li>
+              <li><div class="node orange">Direta 17</div></li>
+              <li><div class="node orange">Direta 18</div></li>
+              <li><div class="node orange">Direta 19</div></li>
+              <li><div class="node orange">Direta 20</div></li>
+              <li><div class="node orange">Direta 21</div></li>
+              <li><div class="node orange">Direta 22</div></li>
+              <li><div class="node orange">Direta 23</div></li>
             </ul>
           </li>
         </ul>
       </li>
     </ul>
   </div>
+
+  <script>
+    function toggle(el) {
+      const ul = el.nextElementSibling;
+      if (ul.classList.contains("hidden")) {
+        ul.classList.remove("hidden");
+        el.textContent = "[-] Recolher";
+      } else {
+        ul.classList.add("hidden");
+        el.textContent = "[+] Expandir";
+      }
+    }
+  </script>
 </body>
 </html>
