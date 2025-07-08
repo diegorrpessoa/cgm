@@ -2,223 +2,117 @@
 <html lang="pt-br">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Organograma da Prefeitura de Juiz de Fora</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organograma PJF</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
-      background-color: #f8f9fa;
+      background: #f4f4f4;
+      font-family: 'Segoe UI', sans-serif;
     }
-
     .nivel {
       margin-bottom: 40px;
     }
-
     .nivel h4 {
-      margin-bottom: 20px;
-      padding: 10px;
       border-left: 5px solid #0d6efd;
-      background-color: #e9ecef;
-    }
-
-    .card-org {
-      font-size: 0.9rem;
-      border-left: 4px solid #0d6efd;
-    }
-
-    .card-org.level-controle {
-      border-left-color: #dc3545;
-    }
-
-    .card-org.level-estrategico {
-      border-left-color: #198754;
-    }
-
-    .grupo {
+      padding-left: 10px;
       margin-bottom: 20px;
+      background-color: #e9ecef;
+      padding: 10px;
+      font-size: 1.2rem;
     }
+    .organograma-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .org-nivel {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    .org-box {
+      background-color: #fff;
+      border: 2px solid #0d6efd;
+      border-radius: 6px;
+      padding: 10px 15px;
+      min-width: 200px;
+      text-align: center;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .org-box.controle { border-color: #dc3545; }
+    .org-box.estrategico { border-color: #198754; }
+    .org-box.operacional { border-color: #6c757d; }
+    .org-box.indireta { border-color: #ffc107; }
   </style>
 </head>
 <body>
-
 <div class="container py-4">
-  <h2 class="text-center mb-4">Organograma Geral - Prefeitura de Juiz de Fora</h2>
+  <h2 class="text-center mb-4">Organograma Institucional da Prefeitura de Juiz de Fora</h2>
+  <div class="organograma-container">
 
-  <!-- Nível de Apoio à Formulação Política e de Controle -->
-  <div class="nivel">
-    <h4 class="text-primary">Nível de Apoio à Formulação Política e de Controle</h4>
-    <div class="row row-cols-1 row-cols-md-3 g-3">
-      <div class="col">
-        <div class="card card-org level-controle p-3">
-          <strong>Gabinete do Prefeito</strong><br>GP
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org level-controle p-3">
-          <strong>Gabinete do Vice-Prefeito</strong><br>GVP
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org level-controle p-3">
-          <strong>Controladoria Geral do Município</strong><br>CGM
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org level-controle p-3">
-          <strong>Procuradoria Geral do Município</strong><br>PGM
-        </div>
+    <!-- Nível de Governo e Controle -->
+    <div class="nivel">
+      <h4>Nível Estratégico de Governo e Controle</h4>
+      <div class="org-nivel">
+        <div class="org-box controle">Gabinete do Prefeito (GP)</div>
+        <div class="org-box controle">Gabinete do Vice-Prefeito (GVP)</div>
+        <div class="org-box controle">Procuradoria Geral do Município (PGM)</div>
+        <div class="org-box controle">Controladoria Geral do Município (CGM)</div>
       </div>
     </div>
-  </div>
 
-  <!-- Nível Estratégico e Institucional -->
-  <div class="nivel">
-    <h4 class="text-success">Nível de Gerenciamento Estratégico e Desenvolvimento Institucional</h4>
-    <div class="row row-cols-1 row-cols-md-3 g-3">
-      <div class="col">
-        <div class="card card-org level-estrategico p-3">
-          <strong>Secretaria da Fazenda</strong><br>SF
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org level-estrategico p-3">
-          <strong>Secretaria de Licitações e Gestão de Contratos</strong><br>SELICON
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org level-estrategico p-3">
-          <strong>Secretaria de Comunicação Pública</strong><br>SECOM
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org level-estrategico p-3">
-          <strong>Secretaria do Governo</strong><br>SG
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org level-estrategico p-3">
-          <strong>Secretaria de Recursos Humanos</strong><br>SRH
-        </div>
+    <!-- Nível Estratégico -->
+    <div class="nivel">
+      <h4>Nível Estratégico e de Coordenação</h4>
+      <div class="org-nivel">
+        <div class="org-box estrategico">Secretaria da Fazenda (SF)</div>
+        <div class="org-box estrategico">Secretaria de Governo (SG)</div>
+        <div class="org-box estrategico">Secretaria de RH (SRH)</div>
+        <div class="org-box estrategico">Secretaria de Comunicação Pública (SECOM)</div>
+        <div class="org-box estrategico">Secretaria de Licitações e Contratos (SELICON)</div>
       </div>
     </div>
-  </div>
 
-  <!-- Nível de Execução de Políticas Públicas -->
-  <div class="nivel">
-    <h4 class="text-secondary">Nível de Formulação, Execução e Avaliação de Políticas Públicas</h4>
-    <div class="row row-cols-1 row-cols-md-3 g-3">
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Saúde</strong><br>SS
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Educação</strong><br>SE
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Obras</strong><br>SO
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Mobilidade Urbana</strong><br>SMU
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Esporte e Lazer</strong><br>SEL
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Desenvolvimento Urbano com Participação Popular</strong><br>SEDUPP
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Assistência Social</strong><br>SAS
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Segurança Urbana e Cidadania</strong><br>SESUC
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Turismo</strong><br>SETUR
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Agricultura, Pecuária e Abastecimento</strong><br>SEAPA
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria Especial das Mulheres</strong><br>MULHERES
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          <strong>Secretaria de Direitos Humanos</strong><br>SEDH
-        </div>
+    <!-- Nível Operacional -->
+    <div class="nivel">
+      <h4>Nível de Execução de Políticas Públicas</h4>
+      <div class="org-nivel">
+        <div class="org-box operacional">Secretaria de Saúde (SS)</div>
+        <div class="org-box operacional">Secretaria de Educação (SE)</div>
+        <div class="org-box operacional">Secretaria de Obras (SO)</div>
+        <div class="org-box operacional">Secretaria de Mobilidade Urbana (SMU)</div>
+        <div class="org-box operacional">Secretaria de Esporte e Lazer (SEL)</div>
+        <div class="org-box operacional">Secretaria de Desenvolvimento Urbano (SEDUPP)</div>
+        <div class="org-box operacional">Secretaria de Assistência Social (SAS)</div>
+        <div class="org-box operacional">Secretaria de Segurança Urbana (SESUC)</div>
+        <div class="org-box operacional">Secretaria de Agricultura e Abastecimento (SEAPA)</div>
+        <div class="org-box operacional">Secretaria de Turismo (SETUR)</div>
+        <div class="org-box operacional">Secretaria de Direitos Humanos (SEDH)</div>
+        <div class="org-box operacional">Secretaria das Mulheres (MULHERES)</div>
       </div>
     </div>
-  </div>
 
-  <!-- Administração Indireta -->
-  <div class="nivel">
-    <h4 class="text-dark">Administração Indireta</h4>
-    <div class="row row-cols-1 row-cols-md-3 g-3">
-      <div class="col">
-        <div class="card card-org p-3">
-          DEMLURB
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          CESAMA
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          EMPAV
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          EMCASA
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          JFPREV
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          MAPRO
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          PROCON
-        </div>
-      </div>
-      <div class="col">
-        <div class="card card-org p-3">
-          FUNALFA
-        </div>
+    <!-- Administração Indireta -->
+    <div class="nivel">
+      <h4>Administração Indireta</h4>
+      <div class="org-nivel">
+        <div class="org-box indireta">DEMLURB</div>
+        <div class="org-box indireta">CESAMA</div>
+        <div class="org-box indireta">EMPAV</div>
+        <div class="org-box indireta">JFPREV</div>
+        <div class="org-box indireta">FUNALFA</div>
+        <div class="org-box indireta">MAPRO</div>
+        <div class="org-box indireta">EMCASA</div>
+        <div class="org-box indireta">PROCON</div>
       </div>
     </div>
-  </div>
 
+  </div>
 </div>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
