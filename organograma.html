@@ -4,168 +4,141 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Organograma - Prefeitura de Juiz de Fora</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      background: #f4f4f4;
+      background: #f8f9fa;
       margin: 0;
       padding: 20px;
+    }
+    .organograma {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      flex-direction: column;
+    }
+    .node {
+      border: 2px solid #000;
+      padding: 5px 10px;
+      border-radius: 5px;
+      display: inline-block;
+      margin: 10px auto;
+      background: #fff;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
       text-align: center;
     }
-
-    .tree ul {
-      padding-top: 20px;
-      position: relative;
-      display: table;
+    .node:hover {
+      opacity: 0.9;
+    }
+    .line {
+      width: 2px;
+      background: #000;
       margin: auto;
     }
-
-    .tree li {
-      float: left;
-      text-align: center;
-      list-style-type: none;
-      position: relative;
-      padding: 20px 5px 0 5px;
-      transition: all 0.5s;
-    }
-
-    .tree li::before, .tree li::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 50%;
-      border-top: 2px solid #ccc;
-      width: 50%;
-      height: 20px;
-    }
-
-    .tree li::after {
-      right: auto;
-      left: 50%;
-      border-left: 2px solid #ccc;
-    }
-
-    .tree li:only-child::before,
-    .tree li:only-child::after {
+    .children {
       display: none;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 10px;
     }
-
-    .tree li:only-child {
-      padding-top: 0;
+    .branch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
-
-    .tree li:first-child::before,
-    .tree li:last-child::after {
-      border: 0 none;
+    .subnodes {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
     }
-
-    .tree li:last-child::before {
-      border-right: 2px solid #ccc;
-      border-radius: 0 5px 0 0;
-    }
-
-    .tree li:first-child::after {
-      border-radius: 5px 0 0 0;
-    }
-
-    .tree .node {
-      display: inline-block;
-      border: 2px solid #000;
-      padding: 8px 14px;
-      border-radius: 6px;
-      font-size: 13px;
-      background: #fff;
-      position: relative;
-      transition: 0.3s;
-      cursor: pointer;
-    }
-
-    .tree .node.purple { border-color: purple; }
-    .tree .node.yellow { border-color: #e8b400; background-color: #fffbe6; }
-    .tree .node.blue { border-color: #007bff; background-color: #e6f0ff; }
-    .tree .node.orange { border-color: #e67e22; background-color: #fff4e6; }
-    .tree .node.root { border: 2px solid #d2691e; background-color: #fff3e0; font-weight: bold; }
-
-    .collapse-toggle {
-      margin-top: 6px;
-      font-size: 0.8rem;
-      color: #007bff;
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none;
+    .amarelo { background-color: #fff3cd; border-color: #ffc107; }
+    .azul    { background-color: #cce5ff; border-color: #007bff; }
+    .laranja { background-color: #ffe5b4; border-color: #fd7e14; }
+    .roxo    { background-color: #e0ccff; border-color: #6f42c1; }
+    .principal {
+      background-color: #fff;
+      border: 3px solid #fd7e14;
+      padding: 8px 12px;
+      margin: auto;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <h2>Organograma da Prefeitura de Juiz de Fora</h2>
-  <div class="tree">
-    <ul>
-      <li>
-        <div class="node root">Prefeitura de<br>Juiz de Fora</div>
-        <ul>
-          <li><div class="node">Prefeita</div></li>
-          <li><div class="node">Vice Prefeito</div></li>
-          <li>
-            <div class="node">Administração Indireta</div>
-            <div class="collapse-toggle" onclick="toggle(this)">[+] Expandir</div>
-            <ul class="hidden">
-              <li><div class="node purple">Indireta 1</div></li>
-              <li><div class="node purple">Indireta 2</div></li>
-              <li><div class="node purple">Indireta 3</div></li>
-              <li><div class="node purple">Indireta 4</div></li>
-              <li><div class="node purple">Indireta 5</div></li>
-              <li><div class="node purple">Indireta 6</div></li>
-              <li><div class="node purple">Indireta 7</div></li>
-              <li><div class="node purple">Indireta 8</div></li>
-            </ul>
-          </li>
-          <li>
-            <div class="node">Administração Direta</div>
-            <div class="collapse-toggle" onclick="toggle(this)">[+] Expandir</div>
-            <ul class="hidden">
-              <li><div class="node yellow">Direta 1</div></li>
-              <li><div class="node yellow">Direta 2</div></li>
-              <li><div class="node yellow">Direta 3</div></li>
-              <li><div class="node yellow">Direta 4</div></li>
-              <li><div class="node blue">Direta 5</div></li>
-              <li><div class="node blue">Direta 6</div></li>
-              <li><div class="node blue">Direta 7</div></li>
-              <li><div class="node orange">Direta 8</div></li>
-              <li><div class="node orange">Direta 9</div></li>
-              <li><div class="node orange">Direta 10</div></li>
-              <li><div class="node orange">Direta 11</div></li>
-              <li><div class="node orange">Direta 12</div></li>
-              <li><div class="node orange">Direta 13</div></li>
-              <li><div class="node orange">Direta 14</div></li>
-              <li><div class="node orange">Direta 15</div></li>
-              <li><div class="node orange">Direta 16</div></li>
-              <li><div class="node orange">Direta 17</div></li>
-              <li><div class="node orange">Direta 18</div></li>
-              <li><div class="node orange">Direta 19</div></li>
-              <li><div class="node orange">Direta 20</div></li>
-              <li><div class="node orange">Direta 21</div></li>
-              <li><div class="node orange">Direta 22</div></li>
-              <li><div class="node orange">Direta 23</div></li>
-            </ul>
-          </li>
-        </ul>
-      </li>
-    </ul>
-  </div>
 
-  <script>
-    function toggle(el) {
-      const ul = el.nextElementSibling;
-      if (ul.classList.contains("hidden")) {
-        ul.classList.remove("hidden");
-        el.textContent = "[-] Recolher";
-      } else {
-        ul.classList.add("hidden");
-        el.textContent = "[+] Expandir";
-      }
-    }
-  </script>
+<div class="organograma">
+  <div class="node principal">Prefeitura<br>de Juiz de Fora</div>
+
+  <div class="branch">
+    <div class="subnodes">
+      <div class="node" onclick="toggleChildren(this)">Prefeita</div>
+      <div class="node" onclick="toggleChildren(this)">Vice Prefeito</div>
+    </div>
+
+    <div class="subnodes">
+      <div class="node" onclick="toggleChildren(this)">Administração indireta</div>
+      <div class="children">
+        <div class="subnodes">
+          <div class="node roxo">Fundação A</div>
+          <div class="node roxo">Empresa Pública B</div>
+          <div class="node roxo">Autarquia C</div>
+          <div class="node roxo">Autarquia D</div>
+          <div class="node roxo">Empresa Pública E</div>
+          <div class="node roxo">Fundação F</div>
+          <div class="node roxo">Empresa Pública G</div>
+          <div class="node roxo">Empresa Pública H</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="subnodes">
+      <div class="node" onclick="toggleChildren(this)">Administração Direta</div>
+      <div class="children">
+        <div class="subnodes">
+          <div class="node amarelo">Gabinete da Prefeita</div>
+          <div class="node amarelo">Procuradoria Geral</div>
+          <div class="node amarelo">Controladoria Geral</div>
+          <div class="node amarelo">Ouvidoria Geral</div>
+
+          <div class="node azul">Secretaria de Saúde</div>
+          <div class="node azul">Secretaria de Educação</div>
+          <div class="node azul">Secretaria de Fazenda</div>
+
+          <div class="node laranja">Secretaria de Obras</div>
+          <div class="node laranja">Secretaria de Cultura</div>
+          <div class="node laranja">Secretaria de Esporte</div>
+          <div class="node laranja">Secretaria de Turismo</div>
+          <div class="node laranja">Secretaria de Mobilidade</div>
+          <div class="node laranja">Secretaria de Desenvolvimento</div>
+          <div class="node laranja">Secretaria de Assistência Social</div>
+          <div class="node laranja">Secretaria de Meio Ambiente</div>
+          <div class="node laranja">Secretaria de Segurança Urbana</div>
+          <div class="node laranja">Secretaria de Agricultura</div>
+          <div class="node laranja">Secretaria da Mulher</div>
+          <div class="node laranja">Secretaria de Direitos Humanos</div>
+          <div class="node laranja">Secretaria de Juventude</div>
+          <div class="node laranja">Secretaria de Tecnologia</div>
+          <div class="node laranja">Secretaria de Governo</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function toggleChildren(element) {
+  const children = $(element).next('.children');
+  if (children.length) {
+    children.slideToggle(200);
+  }
+}
+</script>
+
 </body>
 </html>
