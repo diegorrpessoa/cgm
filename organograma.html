@@ -16,6 +16,7 @@
       cursor: pointer;
       min-width: 160px;
       position: relative;
+      margin: 0 auto;
     }
 
     .root {
@@ -40,7 +41,6 @@
       flex-direction: column;
       align-items: center;
       margin-top: 10px;
-      position: relative;
     }
 
     .branch.show {
@@ -51,42 +51,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 15px;
       position: relative;
-      margin-top: 20px;
     }
 
-    .child-branches::before {
+    .child-branches .org-node::before {
       content: "";
-      position: absolute;
-      top: 0;
+      width: 2px;
       height: 20px;
-      width: 2px;
       background-color: #000;
-    }
-
-    .vertical-list {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-
-    .vertical-list::before {
-      content: "";
       position: absolute;
-      top: 0;
+      top: -20px;
       left: 50%;
-      width: 2px;
-      height: 100%;
-      background-color: #000;
-      z-index: 0;
-    }
-
-    .vertical-list .org-node {
-      margin: 8px 0;
-      z-index: 1;
-      background-color: #fff;
+      transform: translateX(-50%);
     }
 
     .text-center > .connector {
@@ -111,55 +88,53 @@
     <div class="connector" style="height: 30px;"></div>
 
     <div class="d-flex justify-content-center gap-5 flex-wrap">
+      <!-- Administração Direta -->
       <div class="text-center">
         <div class="org-node" onclick="toggleBranch('admDireta')">Administração Direta</div>
-        <div class="connector"></div>
+        <div class="connector" style="height: 20px;"></div>
         <div id="admDireta" class="branch">
           <div class="child-branches">
-            <div class="vertical-list">
-              <div class="org-node amarelo">Órgão 1</div>
-              <div class="org-node amarelo">Órgão 2</div>
-              <div class="org-node amarelo">Órgão 3</div>
-              <div class="org-node amarelo">Órgão 4</div>
-              <div class="org-node azul">Órgão 5</div>
-              <div class="org-node azul">Órgão 6</div>
-              <div class="org-node azul">Órgão 7</div>
-              <div class="org-node laranja">Órgão 8</div>
-              <div class="org-node laranja">Órgão 9</div>
-              <div class="org-node laranja">Órgão 10</div>
-              <div class="org-node laranja">Órgão 11</div>
-              <div class="org-node laranja">Órgão 12</div>
-              <div class="org-node laranja">Órgão 13</div>
-              <div class="org-node laranja">Órgão 14</div>
-              <div class="org-node laranja">Órgão 15</div>
-              <div class="org-node laranja">Órgão 16</div>
-              <div class="org-node laranja">Órgão 17</div>
-              <div class="org-node laranja">Órgão 18</div>
-              <div class="org-node laranja">Órgão 19</div>
-              <div class="org-node laranja">Órgão 20</div>
-              <div class="org-node laranja">Órgão 21</div>
-              <div class="org-node laranja">Órgão 22</div>
-              <div class="org-node laranja">Órgão 23</div>
-            </div>
+            <div class="org-node amarelo">Órgão 1</div>
+            <div class="org-node amarelo">Órgão 2</div>
+            <div class="org-node amarelo">Órgão 3</div>
+            <div class="org-node amarelo">Órgão 4</div>
+            <div class="org-node azul">Órgão 5</div>
+            <div class="org-node azul">Órgão 6</div>
+            <div class="org-node azul">Órgão 7</div>
+            <div class="org-node laranja">Órgão 8</div>
+            <div class="org-node laranja">Órgão 9</div>
+            <div class="org-node laranja">Órgão 10</div>
+            <div class="org-node laranja">Órgão 11</div>
+            <div class="org-node laranja">Órgão 12</div>
+            <div class="org-node laranja">Órgão 13</div>
+            <div class="org-node laranja">Órgão 14</div>
+            <div class="org-node laranja">Órgão 15</div>
+            <div class="org-node laranja">Órgão 16</div>
+            <div class="org-node laranja">Órgão 17</div>
+            <div class="org-node laranja">Órgão 18</div>
+            <div class="org-node laranja">Órgão 19</div>
+            <div class="org-node laranja">Órgão 20</div>
+            <div class="org-node laranja">Órgão 21</div>
+            <div class="org-node laranja">Órgão 22</div>
+            <div class="org-node laranja">Órgão 23</div>
           </div>
         </div>
       </div>
 
+      <!-- Administração Indireta -->
       <div class="text-center">
         <div class="org-node" onclick="toggleBranch('admIndireta')">Administração Indireta</div>
-        <div class="connector"></div>
+        <div class="connector" style="height: 20px;"></div>
         <div id="admIndireta" class="branch">
           <div class="child-branches">
-            <div class="vertical-list">
-              <div class="org-node roxo">Entidade 1</div>
-              <div class="org-node roxo">Entidade 2</div>
-              <div class="org-node roxo">Entidade 3</div>
-              <div class="org-node roxo">Entidade 4</div>
-              <div class="org-node roxo">Entidade 5</div>
-              <div class="org-node roxo">Entidade 6</div>
-              <div class="org-node roxo">Entidade 7</div>
-              <div class="org-node roxo">Entidade 8</div>
-            </div>
+            <div class="org-node roxo">Entidade 1</div>
+            <div class="org-node roxo">Entidade 2</div>
+            <div class="org-node roxo">Entidade 3</div>
+            <div class="org-node roxo">Entidade 4</div>
+            <div class="org-node roxo">Entidade 5</div>
+            <div class="org-node roxo">Entidade 6</div>
+            <div class="org-node roxo">Entidade 7</div>
+            <div class="org-node roxo">Entidade 8</div>
           </div>
         </div>
       </div>
@@ -168,7 +143,8 @@
 
   <script>
     function toggleBranch(id) {
-      document.getElementById(id).classList.toggle('show');
+      const el = document.getElementById(id);
+      el.classList.toggle('show');
     }
   </script>
 </body>
