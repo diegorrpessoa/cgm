@@ -5,110 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Organograma - Prefeitura de Juiz de Fora</title>
 
-  <!-- Estilos e scripts do Treant.js -->
+  <!-- Treant.js e Raphael -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/treant-js@1.0/Treant.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/raphael/2.3.0/raphael.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/treant-js@1.0/Treant.min.js"></script>
 
   <style>
     body {
-      background-color: #f8f9fa;
       font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
     }
-
-    .root {
-      background-color: #fdf2e3;
-      border: 2px solid #d67f0b;
-    }
-
-    .prefeita {
-      background-color: #fff8d4;
-    }
-
-    .vice {
-      background-color: #d4ecff;
-    }
-
-    .direta {
-      background-color: #ffe1cc;
-    }
-
-    .indireta {
-      background-color: #e8d4ff;
-    }
-
-    .Treant > .node {
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      box-shadow: 1px 1px 4px rgba(0,0,0,0.2);
-    }
-
     #organograma {
       width: 100%;
-      height: auto;
-      margin-top: 20px;
+      margin: 20px auto;
+    }
+    .root { background-color: #fdf2e3; border: 2px solid #d67f0b; }
+    .prefeita { background-color: #fff8d4; }
+    .vice { background-color: #d4ecff; }
+    .direta { background-color: #ffe1cc; }
+    .indireta { background-color: #e8d4ff; }
+
+    /* Estilo básico dos nós */
+    .Treant > .node {
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
   </style>
 </head>
 <body>
 
-  <h2 class="text-center mt-4 text-primary" style="text-align:center;">Organograma da Prefeitura de Juiz de Fora</h2>
+  <h2 style="text-align:center; color:#333;">Organograma - Prefeitura de Juiz de Fora</h2>
   <div id="organograma"></div>
 
   <script>
-    const chart_config = {
+    // Função para criar nós filhos verticais
+    function verticalChildren(count, prefix, cssClass) {
+      let arr = [];
+      for (let i = 1; i <= count; i++) {
+        arr.push({
+          text: { name: `${prefix} ${i}` },
+          HTMLclass: cssClass,
+          stackChildren: true  // empilha verticalmente
+        });
+      }
+      return arr;
+    }
+
+    const config = {
       chart: {
         container: "#organograma",
         rootOrientation: "NORTH",
-        node: {
-          collapsable: true
-        },
+        node: { collapsable: true },
+        connectors: { type: "step", style: { "stroke-width": 2, stroke: "#555" } },
         animation: {
           nodeAnimation: "easeOutBounce",
-          nodeSpeed: 700,
-          connectorsAnimation: "bounce",
-          connectorsSpeed: 700
-        },
-        connectors: {
-          type: "step"
+          connectorsAnimation: "bounce"
         }
       },
       nodeStructure: {
         text: { name: "Prefeitura de Juiz de Fora" },
         HTMLclass: "root",
         children: [
-          {
-            text: { name: "Prefeita" },
-            HTMLclass: "prefeita"
-          },
-          {
-            text: { name: "Vice-Prefeito" },
-            HTMLclass: "vice"
-          },
+          { text: { name: "Prefeita" }, HTMLclass: "prefeita" },
+          { text: { name: "Vice-Prefeito" }, HTMLclass: "vice" },
           {
             text: { name: "Administração Direta" },
             HTMLclass: "direta",
+            stackChildren: true,
             collapsed: true,
-            children: Array.from({ length: 23 }, (_, i) => ({
-              text: { name: `Órgão ${i + 1}` },
-              HTMLclass: "direta"
-            }))
+            children: verticalChildren(23, "Órgão", "direta")
           },
           {
             text: { name: "Administração Indireta" },
             HTMLclass: "indireta",
+            stackChildren: true,
             collapsed: true,
-            children: Array.from({ length: 8 }, (_, i) => ({
-              text: { name: `Entidade ${i + 1}` },
-              HTMLclass: "indireta"
-            }))
+            children: verticalChildren(8, "Entidade", "indireta")
           }
         ]
       }
     };
 
-    new Treant(chart_config);
+    new Treant(config);
   </script>
 </body>
 </html>
