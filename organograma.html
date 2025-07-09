@@ -17,6 +17,7 @@
       flex-direction: column;
       align-items: center;
       position: relative;
+      padding-bottom: 40px;
     }
 
     .org-node {
@@ -29,6 +30,7 @@
       min-width: 200px;
       position: relative;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
     }
 
     .org-node.root {
@@ -39,16 +41,20 @@
 
     .connector-line {
       width: 2px;
-      height: 20px;
+      height: 30px;
       background-color: #000;
-      margin-top: -2px;
+      margin: 0;
+      align-self: center;
     }
 
     .horizontal-connector {
       display: flex;
+      justify-content: center;
       align-items: center;
+      margin-bottom: 30px;
+      width: 420px;
       position: relative;
-      margin-bottom: 0;
+      height: 30px;
     }
 
     .horizontal-connector::before,
@@ -56,13 +62,19 @@
       content: "";
       height: 2px;
       background-color: #000;
-      flex: 1;
+      width: 50%;
+      display: block;
+      margin: 0;
     }
 
     .horizontal-connector .center-line {
       width: 2px;
-      height: 20px;
+      height: 30px;
       background-color: #000;
+      position: absolute;
+      left: 50%;
+      top: 0;
+      transform: translateX(-50%);
     }
 
     .children-row {
@@ -70,7 +82,7 @@
       justify-content: center;
       align-items: flex-start;
       gap: 60px;
-      position: relative;
+      margin-bottom: 30px;
     }
 
     .children-column {
@@ -80,22 +92,12 @@
       position: relative;
     }
 
-    .main-connector {
-      width: 2px;
-      height: 20px;
-      background-color: #000;
-      margin-top: 0;
-    }
-
     .subitems {
       overflow: hidden;
       max-height: 0;
       opacity: 0;
       transition: max-height 0.4s ease, opacity 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      margin-top: 0;
+      margin-top: 20px;
       position: relative;
     }
 
@@ -107,7 +109,7 @@
     .subitems::before {
       content: "";
       position: absolute;
-      left: -40px;
+      left: 0;
       top: 0;
       height: 100%;
       width: 2px;
@@ -118,6 +120,7 @@
       display: flex;
       align-items: center;
       margin: 10px 0;
+      position: relative;
     }
 
     .sub-node::before {
@@ -125,19 +128,30 @@
       width: 40px;
       height: 2px;
       background-color: #000;
-      margin-right: 0;
+      margin: 0 8px 0 0;
+    }
+
+    .main-connector {
+      position: absolute;
+      width: 2px;
+      height: 40px;
+      background-color: #000;
+      left: 50%;
+      top: 100%;
+      transform: translateX(-50%);
     }
 
     .toggle-btn {
       position: absolute;
-      top: 4px;
-      right: 8px;
-      font-size: 16px;
+      top: 6px;
+      right: 10px;
+      font-size: 18px;
       font-weight: bold;
       background: none;
       border: none;
       cursor: pointer;
       color: #333;
+      z-index: 2;
     }
 
     .toggle-btn:hover {
@@ -157,12 +171,12 @@
       <div class="connector-line"></div>
 
       <!-- Conector central -->
-      <div class="horizontal-connector" style="width: 420px; margin-bottom: 30px;">
+      <div class="horizontal-connector">
         <div class="center-line"></div>
       </div>
 
       <!-- Prefeita e Vice -->
-      <div class="children-row mb-4">
+      <div class="children-row">
         <div class="children-column">
           <div class="org-node">Prefeita</div>
         </div>
@@ -180,7 +194,7 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subDireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div id="subDireta" class="subitems" style="margin-left: 40px;">
+          <div id="subDireta" class="subitems">
             <div class="sub-node"><div class="org-node">Administração Direta 1</div></div>
             <div class="sub-node"><div class="org-node">Administração Direta 2</div></div>
             <div class="sub-node"><div class="org-node">Administração Direta 3</div></div>
@@ -195,7 +209,7 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subIndireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div id="subIndireta" class="subitems" style="margin-left: 40px;">
+          <div id="subIndireta" class="subitems">
             <div class="sub-node"><div class="org-node">Administração Indireta 1</div></div>
             <div class="sub-node"><div class="org-node">Administração Indireta 2</div></div>
             <div class="sub-node"><div class="org-node">Administração Indireta 3</div></div>
@@ -236,5 +250,4 @@
     }
   </script>
 </body>
-</html>
 </html>
