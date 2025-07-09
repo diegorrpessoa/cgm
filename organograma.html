@@ -92,14 +92,40 @@
       position: relative;
     }
 
+    .main-connector {
+      position: absolute;
+      width: 2px;
+      height: 40px;
+      background-color: #000;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .branch-bend {
+      display: flex;
+      align-items: flex-start;
+      position: relative;
+      margin-left: 60px;
+    }
+
+    .branch-bend::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -60px;
+      width: 60px;
+      height: 2px;
+      background-color: #000;
+    }
+
     .subitems {
       overflow: hidden;
       max-height: 0;
       opacity: 0;
       transition: max-height 0.4s ease, opacity 0.3s ease;
-      margin-top: 0;
-      margin-left: 60px; /* Deslocamento lateral de ~25% */
       position: relative;
+      margin-top: 0;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
@@ -133,15 +159,6 @@
       height: 2px;
       background-color: #000;
       margin-right: 0;
-    }
-
-    .main-connector {
-      position: absolute;
-      width: 2px;
-      height: 40px;
-      background-color: #000;
-      left: calc(50% + 60px); /* 50% da caixa pai + deslocamento lateral */
-      top: 100%;
     }
 
     .toggle-btn {
@@ -197,11 +214,13 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subDireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div id="subDireta" class="subitems">
-            <div class="sub-node"><div class="org-node">Administração Direta 1</div></div>
-            <div class="sub-node"><div class="org-node">Administração Direta 2</div></div>
-            <div class="sub-node"><div class="org-node">Administração Direta 3</div></div>
-            <div class="sub-node"><div class="org-node">Administração Direta 4</div></div>
+          <div class="branch-bend">
+            <div id="subDireta" class="subitems">
+              <div class="sub-node"><div class="org-node">Administração Direta 1</div></div>
+              <div class="sub-node"><div class="org-node">Administração Direta 2</div></div>
+              <div class="sub-node"><div class="org-node">Administração Direta 3</div></div>
+              <div class="sub-node"><div class="org-node">Administração Direta 4</div></div>
+            </div>
           </div>
         </div>
 
@@ -212,10 +231,12 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subIndireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div id="subIndireta" class="subitems">
-            <div class="sub-node"><div class="org-node">Administração Indireta 1</div></div>
-            <div class="sub-node"><div class="org-node">Administração Indireta 2</div></div>
-            <div class="sub-node"><div class="org-node">Administração Indireta 3</div></div>
+          <div class="branch-bend">
+            <div id="subIndireta" class="subitems">
+              <div class="sub-node"><div class="org-node">Administração Indireta 1</div></div>
+              <div class="sub-node"><div class="org-node">Administração Indireta 2</div></div>
+              <div class="sub-node"><div class="org-node">Administração Indireta 3</div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -227,7 +248,6 @@
       event.stopPropagation();
       const sub = document.getElementById(id);
       const btn = event.currentTarget;
-
       sub.classList.toggle('show');
       btn.textContent = sub.classList.contains('show') ? '−' : '+';
     }
