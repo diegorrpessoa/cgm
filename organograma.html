@@ -6,337 +6,369 @@
     <title>Organograma da Prefeitura de Juiz de Fora</title>
     <!-- Link para o CSS do Bootstrap 5.3.3 (CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OerWCx+0Zl5uPzQ10SjF1uDkySgM+0Z+p2P+b2Fp2x+0zOq8vN+zQ" crossorigin="anonymous">
-  
-
     <!-- Link para a fonte Inter (Google Fonts) para um visual moderno -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-      <!-- CSS personalizado -->
+
+    <!-- CSS EMBUTIDO -->
     <style>
         /* Estilos gerais para o corpo da página */
-body {
-    font-family: 'Inter', sans-serif; /* Fonte mais moderna e limpa */
-    display: flex; /* Usa Flexbox para centralizar o organograma */
-    justify-content: center; /* Centraliza horizontalmente */
-    align-items: flex-start; /* Alinha ao topo verticalmente */
-    min-height: 100vh; /* Garante que o corpo ocupe a altura total da viewport */
-    margin: 0;
-    padding: 20px;
-    background-color: #f8f9fa; /* Fundo mais claro e limpo */
-    overflow-x: auto; /* Permite rolagem horizontal se o conteúdo for muito largo */
-}
+        body {
+            font-family: 'Inter', sans-serif; /* Fonte mais moderna e limpa */
+            display: flex; /* Usa Flexbox para centralizar o organograma */
+            justify-content: center; /* Centraliza horizontalmente */
+            align-items: flex-start; /* Alinha ao topo verticalmente */
+            min-height: 100vh; /* Garante que o corpo ocupe a altura total da viewport */
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa; /* Fundo mais claro e limpo */
+            overflow-x: auto; /* Permite rolagem horizontal se o conteúdo for muito largo */
+        }
 
-/* Contêiner principal do organograma */
-.organograma-container {
-    display: flex; /* Flexbox para organizar os elementos verticalmente */
-    flex-direction: column;
-    align-items: center; /* Centraliza os itens filhos */
-    padding-bottom: 50px; /* Espaço extra na parte inferior para as linhas */
-    background-color: #ffffff; /* Fundo branco para o container do organograma */
-    border-radius: 12px; /* Cantos mais arredondados para um visual moderno */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Sombra mais suave e arrojada */
-    padding: 30px; /* Mais padding interno */
-}
+        /* Contêiner principal do organograma */
+        .organograma-container {
+            display: flex; /* Flexbox para organizar os elementos verticalmente */
+            flex-direction: column;
+            align-items: center; /* Centraliza os itens filhos */
+            padding-bottom: 50px; /* Espaço extra na parte inferior para as linhas */
+            background-color: #ffffff; /* Fundo branco para o container do organograma */
+            border-radius: 12px; /* Cantos mais arredondados para um visual moderno */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Sombra mais suave e arrojada */
+            padding: 30px; /* Mais padding interno */
+        }
 
-/* Estilo base para todos os nós (caixas) do organograma */
-.node {
-    background-color: #e9ecef; /* Fundo cinza claro para os nós */
-    border: 1px solid #ced4da; /* Borda mais fina e suave */
-    padding: 12px 20px; /* Padding ligeiramente maior */
-    border-radius: 8px; /* Cantos arredondados */
-    text-align: center;
-    white-space: nowrap; /* Impede que o texto quebre linha */
-    position: relative; /* Necessário para posicionar pseudo-elementos */
-    z-index: 10; /* Garante que o nó fique acima das linhas de conexão */
-    margin: 15px; /* Espaçamento ligeiramente maior entre os nós */
-    min-width: 180px; /* Largura mínima para os nós */
-    display: flex; /* Flexbox para centralizar o texto dentro do nó */
-    justify-content: center;
-    align-items: center;
-    font-size: 0.95rem; /* Tamanho de fonte ligeiramente menor para um visual mais limpo */
-    color: #343a40; /* Cor do texto mais escura */
-    transition: all 0.3s ease; /* Transição suave para todas as propriedades */
-}
+        /* Estilo base para todos os nós (caixas) do organograma */
+        .node {
+            background-color: #e9ecef; /* Fundo cinza claro para os nós */
+            border: 1px solid #ced4da; /* Borda mais fina e suave */
+            padding: 12px 20px; /* Padding ligeiramente maior */
+            border-radius: 8px; /* Cantos arredondados */
+            text-align: center;
+            white-space: nowrap; /* Impede que o texto quebre linha */
+            position: relative; /* Necessário para posicionar pseudo-elementos */
+            z-index: 10; /* Garante que o nó fique acima das linhas de conexão */
+            margin: 15px; /* Espaçamento ligeiramente maior entre os nós */
+            min-width: 180px; /* Largura mínima para os nós */
+            display: flex; /* Flexbox para centralizar o texto dentro do nó */
+            justify-content: center;
+            align-items: center;
+            font-size: 0.95rem; /* Tamanho de fonte ligeiramente menor para um visual mais limpo */
+            color: #343a40; /* Cor do texto mais escura */
+            transition: all 0.3s ease; /* Transição suave para todas as propriedades */
+        }
 
-/* Estilo específico para o nó superior ("Prefeitura de Juiz de Fora") */
-.top-node {
-    background-color: #fff3cd; /* Cor de fundo amarela clara */
-    border-color: #ffc107; /* Borda amarela */
-    color: #856404; /* Cor do texto mais escura para contraste */
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2); /* Sombra sutil para destaque */
-}
+        /* Estilo específico para o nó superior ("Prefeitura de Juiz de Fora") */
+        .top-node {
+            background-color: #fff3cd; /* Cor de fundo amarela clara */
+            border-color: #ffc107; /* Borda amarela */
+            color: #856404; /* Cor do texto mais escura para contraste */
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.2); /* Sombra sutil para destaque */
+        }
 
-/* Estilo para nós clicáveis (com funcionalidade de colapsar) */
-.clickable {
-    cursor: pointer; /* Muda o cursor para indicar clicável */
-    transition: all 0.3s ease; /* Transição suave para o hover */
-}
+        /* Estilo para nós clicáveis (com funcionalidade de colapsar) */
+        .clickable {
+            cursor: pointer; /* Muda o cursor para indicar clicável */
+            transition: all 0.3s ease; /* Transição suave para o hover */
+        }
 
-.clickable:hover {
-    background-color: #dee2e6; /* Cor de fundo ao passar o mouse */
-    transform: translateY(-2px); /* Efeito sutil de elevação */
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Sombra mais pronunciada no hover */
-}
+        .clickable:hover {
+            background-color: #dee2e6; /* Cor de fundo ao passar o mouse */
+            transform: translateY(-2px); /* Efeito sutil de elevação */
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); /* Sombra mais pronunciada no hover */
+        }
 
-.top-node.clickable:hover {
-    background-color: #ffe08a; /* Cor de fundo ao passar o mouse no nó superior */
-    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
-}
+        .top-node.clickable:hover {
+            background-color: #ffe08a; /* Cor de fundo ao passar o mouse no nó superior */
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.3);
+        }
 
-/* Contêiner para os ramos do organograma (onde as linhas se conectam) */
-.branch {
-    position: relative; /* Necessário para posicionar pseudo-elementos */
-    display: flex; /* Usa Flexbox para organizar os filhos */
-    justify-content: center; /* Centraliza os filhos horizontalmente */
-    align-items: flex-start; /* Alinha os filhos ao topo verticalmente */
-    margin-top: 25px; /* Espaço acima do ramo */
-    padding-top: 25px; /* Espaço para a linha vertical que desce do pai */
-}
+        /* Contêiner para os ramos do organograma (onde as linhas se conectam) */
+        .branch {
+            position: relative; /* Necessário para posicionar pseudo-elementos */
+            display: flex; /* Usa Flexbox para organizar os filhos */
+            justify-content: center; /* Centraliza os filhos horizontalmente */
+            align-items: flex-start; /* Alinha os filhos ao topo verticalmente */
+            margin-top: 25px; /* Espaço acima do ramo */
+            padding-top: 25px; /* Espaço para a linha vertical que desce do pai */
+        }
 
-/* Linha vertical que desce do nó pai para o ramo */
-.branch::before {
-    content: '';
-    position: absolute;
-    top: 0; /* Começa no topo do branch */
-    left: 50%; /* Centraliza horizontalmente */
-    transform: translateX(-50%); /* Ajuste fino para centralização */
-    width: 2px; /* Espessura da linha */
-    height: 25px; /* Comprimento da linha vertical */
-    background-color: #6c757d; /* Cor da linha mais suave */
-    z-index: 5; /* Abaixo dos nós, mas acima de outros elementos */
-}
+        /* Linha vertical que desce do nó pai para o ramo */
+        .branch::before {
+            content: '';
+            position: absolute;
+            top: 0; /* Começa no topo do branch */
+            left: 50%; /* Centraliza horizontalmente */
+            transform: translateX(-50%); /* Ajuste fino para centralização */
+            width: 2px; /* Espessura da linha */
+            height: 25px; /* Comprimento da linha vertical */
+            background-color: #6c757d; /* Cor da linha mais suave */
+            z-index: 5; /* Abaixo dos nós, mas acima de outros elementos */
+        }
 
-/* Wrapper para cada nó dentro de um ramo, para ajudar no posicionamento das linhas */
-.node-wrapper {
-    position: relative; /* Necessário para posicionar pseudo-elementos */
-    display: flex; /* Flexbox para organizar o nó e suas linhas */
-    flex-direction: column;
-    align-items: center; /* Centraliza o nó */
-    padding-top: 25px; /* Espaço para a linha vertical que desce para o nó */
-}
+        /* Wrapper para cada nó dentro de um ramo, para ajudar no posicionamento das linhas */
+        .node-wrapper {
+            position: relative; /* Necessário para posicionar pseudo-elementos */
+            display: flex; /* Flexbox para organizar o nó e suas linhas */
+            flex-direction: column;
+            align-items: center; /* Centraliza o nó */
+            padding-top: 25px; /* Espaço para a linha vertical que desce para o nó */
+        }
 
-/* Linha horizontal que conecta os nós irmãos (primeiro e último filho) */
-.node-wrapper:first-child::before,
-.node-wrapper:last-child::before {
-    content: '';
-    position: absolute;
-    top: 0; /* Alinha no topo do wrapper */
-    height: 2px; /* Espessura da linha */
-    background-color: #6c757d;
-    z-index: 5;
-}
+        /* Linha horizontal que conecta os nós irmãos (primeiro e último filho) */
+        .node-wrapper:first-child::before,
+        .node-wrapper:last-child::before {
+            content: '';
+            position: absolute;
+            top: 0; /* Alinha no topo do wrapper */
+            height: 2px; /* Espessura da linha */
+            background-color: #6c757d;
+            z-index: 5;
+        }
 
-/* Linha horizontal para o primeiro nó irmão */
-.node-wrapper:first-child::before {
-    left: 50%; /* Começa no centro do nó */
-    width: calc(50% + 50px); /* Extende para a esquerda para conectar */
-}
+        /* Linha horizontal para o primeiro nó irmão */
+        .node-wrapper:first-child::before {
+            left: 50%; /* Começa no centro do nó */
+            width: calc(50% + 50px); /* Extende para a esquerda para conectar */
+        }
 
-/* Linha horizontal para nós irmãos do meio (se houver mais de dois) */
-.node-wrapper:not(:first-child):not(:last-child)::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -50px; /* Começa antes do nó */
-    right: -50px; /* Termina depois do nó */
-    height: 2px;
-    background-color: #6c757d;
-    z-index: 5;
-}
+        /* Linha horizontal para nós irmãos do meio (se houver mais de dois) */
+        .node-wrapper:not(:first-child):not(:last-child)::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -50px; /* Começa antes do nó */
+            right: -50px; /* Termina depois do nó */
+            height: 2px;
+            background-color: #6c757d;
+            z-index: 5;
+        }
 
-/* Linha horizontal para o último nó irmão */
-.node-wrapper:last-child::before {
-    right: 50%; /* Termina no centro do nó */
-    width: calc(50% + 50px); /* Extende para a direita para conectar */
-}
+        /* Linha horizontal para o último nó irmão */
+        .node-wrapper:last-child::before {
+            right: 50%; /* Termina no centro do nó */
+            width: calc(50% + 50px); /* Extende para a direita para conectar */
+        }
 
-/* Linha vertical que desce do ramo horizontal para o nó filho */
-.node-wrapper::after {
-    content: '';
-    position: absolute;
-    top: 0; /* Começa no topo do wrapper */
-    left: 50%; /* Centraliza horizontalmente */
-    transform: translateX(-50%);
-    width: 2px;
-    height: 25px; /* Comprimento da linha vertical */
-    background-color: #6c757d;
-    z-index: 5;
-}
+        /* Linha vertical que desce do ramo horizontal para o nó filho */
+        .node-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0; /* Começa no topo do wrapper */
+            left: 50%; /* Centraliza horizontalmente */
+            transform: translateX(-50%);
+            width: 2px;
+            height: 25px; /* Comprimento da linha vertical */
+            background-color: #6c757d;
+            z-index: 5;
+        }
 
-/* --- Ajustes específicos para os diferentes tipos de ramos --- */
+        /* --- Ajustes específicos para os diferentes tipos de ramos --- */
 
-/* Ramo superior (Prefeitura -> Prefeita/Vice Prefeito) */
-.branch-top {
-    flex-direction: row; /* Organiza Prefeita e Vice horizontalmente */
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 0; /* A linha já vem do top-node */
-}
+        /* Ajustado .organograma-container > .node::after para linha vertical do top-node */
+        .organograma-container > .node::after {
+            content: '';
+            position: absolute;
+            bottom: -25px; /* Conecta ao topo do branch-top */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 25px;
+            background-color: #6c757d;
+            z-index: 5;
+        }
 
-/* Linha vertical do top-node até o ramo branch-top */
-.branch-top::before {
-    height: 25px;
-    top: -25px; /* Posição para conectar ao top-node */
-}
+        /* Ajustado .branch-top para lidar com suas próprias linhas */
+        .branch-top {
+            flex-direction: row;
+            justify-content: center;
+            align-items: flex-start;
+            margin-top: 25px; /* Espaço da linha vertical do top-node */
+            padding-top: 0;
+            position: relative;
+        }
 
-/* Linha horizontal que conecta os nós Prefeita e Vice Prefeito */
-.branch-top::after {
-    content: '';
-    position: absolute;
-    top: 0; /* Alinha com o topo do branch */
-    left: 50%;
-    width: calc(100% - 200px); /* Ajuste a largura conforme a distância entre os nós */
-    height: 2px;
-    background-color: #6c757d;
-    z-index: 5;
-    transform: translateX(-50%) translateY(25px); /* Move para baixo para alinhar com as linhas verticais */
-}
+        /* Linha vertical do top-node para o branch-top */
+        .branch-top::before {
+            content: '';
+            position: absolute;
+            top: -25px; /* Posição para conectar com a linha do top-node */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 25px; /* Altura desta linha vertical de conexão */
+            background-color: #6c757d;
+            z-index: 5;
+        }
 
-/* Linhas verticais que descem do ramo branch-top para Prefeita e Vice Prefeito */
-.branch-top .node-wrapper::after {
-    height: 25px;
-    top: 0;
-}
+        /* Linha horizontal principal conectando Prefeita e Vice Prefeito */
+        .branch-top::after {
+            content: '';
+            position: absolute;
+            top: 0; /* Posição no topo do branch-top (onde a linha vertical do pai conecta) */
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #6c757d;
+            z-index: 5;
+        }
 
-/* Ramo da esquerda (Prefeita -> Administração Direta) */
-.branch-left {
-    flex-direction: row; /* Organiza horizontalmente (Adm Direta) */
-    justify-content: center;
-    align-items: flex-start;
-}
+        /* Ajustado .branch-top .node-wrapper para posicionar nós e suas linhas verticais */
+        .branch-top .node-wrapper {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 25px; /* Espaço para a linha vertical que desce da linha horizontal */
+        }
 
-/* Linha vertical de Prefeita para Administração Direta */
-.branch-left::before {
-    height: 25px;
-    top: -25px;
-}
+        /* Linhas verticais da linha horizontal para os nós Prefeita/Vice Prefeito */
+        .branch-top .node-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0; /* Começa no topo do node-wrapper (onde a linha horizontal está) */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 25px; /* Altura da linha vertical até o nó */
+            background-color: #6c757d;
+            z-index: 5;
+        }
 
-/* Linha vertical de Administração Direta para o nó */
-.branch-left .node-wrapper::after {
-    height: 25px;
-    top: 0;
-}
+        /* Removendo pseudo-elementos conflitantes para garantir alinhamento */
+        .branch-top .node-wrapper::after {
+            content: none;
+        }
 
-/* Ramo da direita (Vice Prefeito -> Administração indireta) */
-.branch-right {
-    flex-direction: row; /* Organiza horizontalmente (Adm indireta) */
-    justify-content: center;
-    align-items: flex-start;
-}
+        /* Ramo da esquerda (Prefeita -> Administração Direta) */
+        .branch-left {
+            flex-direction: row; /* Organiza horizontalmente (Adm Direta) */
+            justify-content: center;
+            align-items: flex-start;
+        }
 
-/* Linha vertical de Vice Prefeito para Administração indireta */
-.branch-right::before {
-    height: 25px;
-    top: -25px;
-}
+        /* Linha vertical de Prefeita para Administração Direta */
+        .branch-left::before {
+            height: 25px;
+            top: -25px;
+        }
 
-/* Linha vertical de Administração indireta para o nó */
-.branch-right .node-wrapper::after {
-    height: 25px;
-    top: 0;
-}
+        /* Linha vertical de Administração Direta para o nó */
+        .branch-left .node-wrapper::after {
+            height: 25px;
+            top: 0;
+        }
 
-/* Ramos verticais (Administração Direta/Indireta -> Sub-departamentos) */
-.branch-vertical {
-    flex-direction: column; /* Organiza os sub-nós verticalmente */
-    align-items: flex-start; /* Alinha à esquerda, como na imagem */
-    justify-content: flex-start;
-    margin-left: 30px; /* Indentação para os sub-nós */
-    padding-top: 0; /* A linha já vem do nó pai */
-}
+        /* Ramo da direita (Vice Prefeito -> Administração indireta) */
+        .branch-right {
+            flex-direction: row; /* Organiza horizontalmente (Adm indireta) */
+            justify-content: center;
+            align-items: flex-start;
+        }
 
-/* Linha vertical principal para os sub-departamentos */
-.branch-vertical::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 25px; /* Posição da linha vertical */
-    width: 2px;
-    height: 100%; /* Abrange todos os filhos */
-    background-color: #6c757d;
-    z-index: 0; /* Abaixo dos nós e das linhas horizontais */
-    transform: none; /* Remove transform para posicionamento fixo */
-}
+        /* Linha vertical de Vice Prefeito para Administração indireta */
+        .branch-right::before {
+            height: 25px;
+            top: -25px;
+        }
 
-/* Ajustes para os wrappers dentro de ramos verticais */
-.branch-vertical .node-wrapper {
-    flex-direction: row; /* Para o nó e a linha horizontal */
-    align-items: center;
-    padding-top: 0; /* Sem padding vertical extra aqui */
-    margin-bottom: 15px; /* Espaçamento entre os nós verticais */
-}
+        /* Linha vertical de Administração indireta para o nó */
+        .branch-right .node-wrapper::after {
+            height: 25px;
+            top: 0;
+        }
 
-.branch-vertical .node-wrapper:last-child {
-    margin-bottom: 0; /* Remove margem do último item */
-}
+        /* Ramos verticais (Administração Direta/Indireta -> Sub-departamentos) */
+        .branch-vertical {
+            flex-direction: column; /* Organiza os sub-nós verticalmente */
+            align-items: flex-start; /* Alinha à esquerda, como na imagem */
+            justify-content: flex-start;
+            margin-left: 100px; /* Aumentado para deslocar os filhos ainda mais para a direita */
+            padding-top: 0; /* A linha já vem do nó pai */
+        }
 
-/* Linha horizontal para cada sub-departamento dentro de um ramo vertical */
-.branch-vertical .node-wrapper::before {
-    content: '';
-    position: absolute;
-    top: 50%; /* Centraliza verticalmente no nó */
-    left: 25px; /* Começa na linha vertical do branch-vertical */
-    width: 25px; /* Comprimento da linha horizontal */
-    height: 2px;
-    background-color: #6c757d;
-    z-index: 5;
-    transform: translateY(-50%); /* Ajuste fino para centralização */
-}
+        /* Linha vertical principal para os sub-departamentos */
+        .branch-vertical::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 25px; /* Posição da linha vertical (aproximadamente 25% da largura do nó pai) */
+            width: 2px;
+            height: 100%; /* Abrange todos os filhos */
+            background-color: #6c757d;
+            z-index: 0; /* Abaixo dos nós e das linhas horizontais */
+            transform: none; /* Remove transform para posicionamento fixo */
+        }
 
-/* Remove a linha vertical padrão para os filhos de ramos verticais */
-.branch-vertical .node-wrapper::after {
-    content: none;
-}
+        /* Ajustes para os wrappers dentro de ramos verticais */
+        .branch-vertical .node-wrapper {
+            flex-direction: row; /* Para o nó e a linha horizontal */
+            align-items: center;
+            padding-top: 0; /* Sem padding vertical extra aqui */
+            margin-bottom: 15px; /* Espaçamento entre os nós verticais */
+        }
 
-/* --- Estilos para a funcionalidade de colapsar --- */
+        .branch-vertical .node-wrapper:last-child {
+            margin-bottom: 0; /* Remove margem do último item */
+        }
 
-/* Esconde a linha vertical superior de um branch se ele estiver colapsado */
-.collapse:not(.show) + .branch::before {
-    display: none;
-}
+        /* Linha horizontal para cada sub-departamento dentro de um ramo vertical */
+        .branch-vertical .node-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 50%; /* Centraliza verticalmente no nó */
+            left: 25px; /* Começa na linha vertical do branch-vertical */
+            width: 60px; /* Comprimento da linha horizontal para conectar ao nó */
+            height: 2px;
+            background-color: #6c757d;
+            z-index: 5;
+            transform: translateY(-50%); /* Ajuste fino para centralização */
+        }
 
-/* Esconde as linhas horizontais e verticais dos node-wrappers quando o collapse pai não está visível */
-.collapse:not(.show) .node-wrapper::before,
-.collapse:not(.show) .node-wrapper::after {
-    display: none;
-}
+        /* Remove a linha vertical padrão para os filhos de ramos verticais */
+        .branch-vertical .node-wrapper::after {
+            content: none;
+        }
 
-/* Esconde a linha horizontal do branch-top quando colapsado */
-.collapse:not(.show) + .branch-top::after {
-    display: none;
-}
+        /* Desloca o nó filho para a direita para dar espaço à linha horizontal */
+        .branch-vertical .node-wrapper .node {
+            margin-left: 85px; /* Ajustado para alinhar perfeitamente (25px de left + 60px de width da linha) */
+        }
 
-/* Estilo para o nó quando ele está "clicado" (expandido) */
-.node.clicked {
-    box-shadow: 0 0 0 2px #6c757d, 0 0 0 5px #007bff; /* Anel azul vibrante para o nó clicado */
-}
+        /* --- Estilos para a funcionalidade de colapsar --- */
 
-/* Ajuste para a linha vertical que desce do nó principal */
-.organograma-container > .node::after {
-    content: '';
-    position: absolute;
-    bottom: -25px; /* Abaixo do nó */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 25px;
-    background-color: #6c757d;
-    z-index: 5;
-}
+        /* Esconde a linha vertical superior de um branch se ele estiver colapsado */
+        .collapse:not(.show) + .branch::before {
+            display: none;
+        }
 
-/* Ajuste para a linha vertical que conecta o nó principal ao ramo superior */
-.organograma-container > .collapse > .branch-top::before {
-    content: '';
-    position: absolute;
-    top: -25px; /* Acima do branch-top */
-    left: 50%;
-    transform: translateX(-50%);
-    width: 2px;
-    height: 25px;
-    background-color: #6c757d;
-    z-index: 5;
-}
+        /* Esconde as linhas horizontais e verticais dos node-wrappers quando o collapse pai não está visível */
+        .collapse:not(.show) .node-wrapper::before,
+        .collapse:not(.show) .node-wrapper::after {
+            display: none;
+        }
 
+        /* Esconde a linha horizontal do branch-top quando colapsado */
+        .collapse:not(.show) + .branch-top::after {
+            display: none;
+        }
+
+        /* Estilo para o nó quando ele está "clicado" (expandido) */
+        .node.clicked {
+            box-shadow: 0 0 0 2px #6c757d, 0 0 0 5px #007bff; /* Anel azul vibrante para o nó clicado */
+        }
+
+        /* Ajuste para a linha vertical que conecta o nó principal ao ramo superior */
+        .organograma-container > .collapse > .branch-top::before {
+            content: '';
+            position: absolute;
+            top: -25px; /* Acima do branch-top */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 25px;
+            background-color: #6c757d;
+            z-index: 5;
+        }
     </style>
 </head>
 <body>
@@ -404,43 +436,41 @@ body {
 
     <!-- Link para o JavaScript do Bootstrap (inclui Popper.js) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcO7r8d+sR2xJ9N+zQ" crossorigin="anonymous"></script>
-    <!-- Link para nosso JavaScript personalizado -->
+
+    <!-- JAVASCRIPT EMBUTIDO -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-    // Seleciona todos os nós que são clicáveis (têm a classe 'clickable')
-    const clickableNodes = document.querySelectorAll('.clickable');
+            // Seleciona todos os nós que são clicáveis (têm a classe 'clickable')
+            const clickableNodes = document.querySelectorAll('.clickable');
 
-    // Itera sobre cada nó clicável
-    clickableNodes.forEach(node => {
-        // Adiciona um listener para o evento de clique em cada nó
-        node.addEventListener('click', function() {
-            // Remove a classe 'clicked' de todos os nós para garantir que apenas um esteja "ativo"
-            // clickableNodes.forEach(n => n.classList.remove('clicked')); // Comentei para permitir múltiplos "ativos"
-            // Adiciona a classe 'clicked' ao nó que foi clicado
-            this.classList.toggle('clicked'); // Usa toggle para adicionar/remover ao clicar
+            // Itera sobre cada nó clicável
+            clickableNodes.forEach(node => {
+                // Adiciona um listener para o evento de clique em cada nó
+                node.addEventListener('click', function() {
+                    // Adiciona/remove a classe 'clicked' ao nó que foi clicado
+                    this.classList.toggle('clicked');
+                });
+
+                // Obtém o ID do elemento de colapso associado a este nó
+                const targetId = node.dataset.bsTarget;
+                if (targetId) {
+                    // Encontra o elemento de colapso no DOM
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        // Adiciona um listener para quando o elemento de colapso é totalmente escondido
+                        targetElement.addEventListener('hidden.bs.collapse', function () {
+                            // Remove a classe 'clicked' do nó pai quando seus filhos são colapsados
+                            node.classList.remove('clicked');
+                        });
+                        // Adiciona um listener para quando o elemento de colapso é totalmente mostrado
+                        targetElement.addEventListener('shown.bs.collapse', function () {
+                            // Adiciona a classe 'clicked' ao nó pai quando seus filhos são expandidos
+                            node.classList.add('clicked');
+                        });
+                    }
+                }
+            });
         });
-
-        // Obtém o ID do elemento de colapso associado a este nó
-        const targetId = node.dataset.bsTarget;
-        if (targetId) {
-            // Encontra o elemento de colapso no DOM
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                // Adiciona um listener para quando o elemento de colapso é totalmente escondido
-                targetElement.addEventListener('hidden.bs.collapse', function () {
-                    // Remove a classe 'clicked' do nó pai quando seus filhos são colapsados
-                    node.classList.remove('clicked');
-                });
-                // Adiciona um listener para quando o elemento de colapso é totalmente mostrado
-                targetElement.addEventListener('shown.bs.collapse', function () {
-                    // Adiciona a classe 'clicked' ao nó pai quando seus filhos são expandidos
-                    node.classList.add('clicked');
-                });
-            }
-        }
-    });
-});
-
     </script>
 </body>
 </html>
