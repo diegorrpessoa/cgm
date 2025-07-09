@@ -93,29 +93,37 @@
     }
 
     .main-connector {
-      position: absolute;
+      position: relative;
       width: 2px;
       height: 40px;
       background-color: #000;
-      top: 100%;
-      left: 50%;
-      transform: translateX(-50%);
+      margin-top: 10px;
     }
 
-    .branch-bend {
+    .branch-wrapper {
       display: flex;
+      flex-direction: column;
       align-items: flex-start;
+      margin-top: 0;
+      margin-left: 60px; /* deslocamento lateral dos subníveis */
       position: relative;
-      margin-left: 60px;
     }
 
-    .branch-bend::before {
-      content: "";
+    .branch-horizontal {
+      width: 60px;
+      height: 2px;
+      background-color: #000;
       position: absolute;
       top: 0;
       left: -60px;
-      width: 60px;
-      height: 2px;
+    }
+
+    .branch-vertical {
+      position: absolute;
+      top: 0;
+      left: -30px;
+      width: 2px;
+      height: 100%;
       background-color: #000;
     }
 
@@ -124,26 +132,15 @@
       max-height: 0;
       opacity: 0;
       transition: max-height 0.4s ease, opacity 0.3s ease;
-      position: relative;
-      margin-top: 0;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      margin-top: 10px;
+      position: relative;
     }
 
     .subitems.show {
       max-height: 1000px;
       opacity: 1;
-    }
-
-    .subitems::before {
-      content: "";
-      position: absolute;
-      left: -30px;
-      top: 0;
-      height: 100%;
-      width: 2px;
-      background-color: #000;
     }
 
     .sub-node {
@@ -158,7 +155,7 @@
       width: 40px;
       height: 2px;
       background-color: #000;
-      margin-right: 0;
+      margin-right: 10px;
     }
 
     .toggle-btn {
@@ -214,8 +211,10 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subDireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div class="branch-bend">
-            <div id="subDireta" class="subitems">
+          <div class="branch-wrapper">
+            <div class="branch-horizontal"></div>
+            <div class="subitems" id="subDireta">
+              <div class="branch-vertical"></div>
               <div class="sub-node"><div class="org-node">Administração Direta 1</div></div>
               <div class="sub-node"><div class="org-node">Administração Direta 2</div></div>
               <div class="sub-node"><div class="org-node">Administração Direta 3</div></div>
@@ -231,8 +230,10 @@
             <button class="toggle-btn" onclick="toggleSub(event, 'subIndireta')">+</button>
           </div>
           <div class="main-connector"></div>
-          <div class="branch-bend">
-            <div id="subIndireta" class="subitems">
+          <div class="branch-wrapper">
+            <div class="branch-horizontal"></div>
+            <div class="subitems" id="subIndireta">
+              <div class="branch-vertical"></div>
               <div class="sub-node"><div class="org-node">Administração Indireta 1</div></div>
               <div class="sub-node"><div class="org-node">Administração Indireta 2</div></div>
               <div class="sub-node"><div class="org-node">Administração Indireta 3</div></div>
