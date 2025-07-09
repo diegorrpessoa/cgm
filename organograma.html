@@ -1,277 +1,47 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Organograma Prefeitura de Juiz de Fora</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body {
-      background-color: #f8f9fa;
-    }
-
-    .org-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-      padding-bottom: 40px;
-    }
-
-    .org-node {
-      padding: 12px 20px;
-      border-radius: 12px;
-      background-color: #ffffff;
-      border: 2px solid #000000;
-      font-size: 0.95rem;
-      text-align: center;
-      min-width: 200px;
-      position: relative;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease;
-    }
-
-    .org-node.root {
-      font-weight: bold;
-      border-color: #d67f0b;
-      background-color: #fdf2e3;
-    }
-
-    .connector-line {
-      width: 2px;
-      height: 30px;
-      background-color: #000;
-      margin: 0;
-      align-self: center;
-    }
-
-    .horizontal-connector {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 30px;
-      width: 420px;
-      position: relative;
-      height: 30px;
-    }
-
-    .horizontal-connector::before,
-    .horizontal-connector::after {
-      content: "";
-      height: 2px;
-      background-color: #000;
-      width: 50%;
-      display: block;
-      margin: 0;
-    }
-
-    .horizontal-connector .center-line {
-      width: 2px;
-      height: 30px;
-      background-color: #000;
-      position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%);
-    }
-
-    .children-row {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      gap: 60px;
-      margin-bottom: 30px;
-    }
-
-    .children-column {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-
-    .main-connector {
-      position: relative;
-      width: 2px;
-      height: 40px;
-      background-color: #000;
-      margin-top: 10px;
-    }
-
-    .branch-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-      margin-top: 0;
-      margin-left: 60px; /* deslocamento lateral dos subníveis */
-      position: relative;
-    }
-
-    .branch-horizontal {
-      width: 60px;
-      height: 2px;
-      background-color: #000;
-      position: absolute;
-      top: 0;
-      left: -60px;
-    }
-
-    .branch-vertical {
-      position: absolute;
-      top: 0;
-      left: -30px;
-      width: 2px;
-      height: 100%;
-      background-color: #000;
-    }
-
-    .subitems {
-      overflow: hidden;
-      max-height: 0;
-      opacity: 0;
-      transition: max-height 0.4s ease, opacity 0.3s ease;
-      display: flex;
-      flex-direction: column;
-      margin-top: 10px;
-      position: relative;
-    }
-
-    .subitems.show {
-      max-height: 1000px;
-      opacity: 1;
-    }
-
-    .sub-node {
-      display: flex;
-      align-items: center;
-      margin: 10px 0;
-      position: relative;
-    }
-
-    .sub-node::before {
-      content: "";
-      width: 40px;
-      height: 2px;
-      background-color: #000;
-      margin-right: 10px;
-    }
-
-    .toggle-btn {
-      position: absolute;
-      top: 6px;
-      right: 10px;
-      font-size: 18px;
-      font-weight: bold;
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #333;
-      z-index: 2;
-    }
-
-    .toggle-btn:hover {
-      color: #000;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organograma da Prefeitura de Juiz de Fora</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body class="p-4">
-  <div class="container">
-    <div class="d-flex justify-content-end mb-3">
-      <button class="btn btn-primary" onclick="exportToPDF()">Exportar como PDF</button>
+<body>
+    <div class="organograma-container">
+        <ul class="organograma">
+            <li>
+                <div class="node top-node">Prefeitura de Juiz de Fora</div>
+                <ul>
+                    <li>
+                        <div class="node">Prefeita</div>
+                        <ul>
+                            <li>
+                                <div class="node">Administração Direta</div>
+                                <ul>
+                                    <li><div class="node">Administração Direta 1</div></li>
+                                    <li><div class="node">Administração Direta 2</div></li>
+                                    <li><div class="node">Administração Direta 3</div></li>
+                                    <li><div class="node">Administração Direta 4</div></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <div class="node">Vice Prefeito</div>
+                        <ul>
+                            <li>
+                                <div class="node">Administração indireta</div>
+                                <ul>
+                                    <li><div class="node">Administração indireta 1</div></li>
+                                    <li><div class="node">Administração indireta 2</div></li>
+                                    <li><div class="node">Administração indireta 3</div></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
     </div>
-
-    <div id="organograma" class="org-container">
-      <!-- Prefeitura -->
-      <div class="org-node root">Prefeitura de<br>Juiz de Fora</div>
-      <div class="connector-line"></div>
-
-      <!-- Conector central -->
-      <div class="horizontal-connector">
-        <div class="center-line"></div>
-      </div>
-
-      <!-- Prefeita e Vice -->
-      <div class="children-row">
-        <div class="children-column">
-          <div class="org-node">Prefeita</div>
-        </div>
-        <div class="children-column">
-          <div class="org-node">Vice Prefeito</div>
-        </div>
-      </div>
-
-      <!-- Administração Direta e Indireta -->
-      <div class="children-row">
-        <!-- Administração Direta -->
-        <div class="children-column">
-          <div class="org-node">
-            Administração Direta
-            <button class="toggle-btn" onclick="toggleSub(event, 'subDireta')">+</button>
-          </div>
-          <div class="main-connector"></div>
-          <div class="branch-wrapper">
-            <div class="branch-horizontal"></div>
-            <div class="subitems" id="subDireta">
-              <div class="branch-vertical"></div>
-              <div class="sub-node"><div class="org-node">Administração Direta 1</div></div>
-              <div class="sub-node"><div class="org-node">Administração Direta 2</div></div>
-              <div class="sub-node"><div class="org-node">Administração Direta 3</div></div>
-              <div class="sub-node"><div class="org-node">Administração Direta 4</div></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Administração Indireta -->
-        <div class="children-column">
-          <div class="org-node">
-            Administração Indireta
-            <button class="toggle-btn" onclick="toggleSub(event, 'subIndireta')">+</button>
-          </div>
-          <div class="main-connector"></div>
-          <div class="branch-wrapper">
-            <div class="branch-horizontal"></div>
-            <div class="subitems" id="subIndireta">
-              <div class="branch-vertical"></div>
-              <div class="sub-node"><div class="org-node">Administração Indireta 1</div></div>
-              <div class="sub-node"><div class="org-node">Administração Indireta 2</div></div>
-              <div class="sub-node"><div class="org-node">Administração Indireta 3</div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    function toggleSub(event, id) {
-      event.stopPropagation();
-      const sub = document.getElementById(id);
-      const btn = event.currentTarget;
-      sub.classList.toggle('show');
-      btn.textContent = sub.classList.contains('show') ? '−' : '+';
-    }
-
-    async function exportToPDF() {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p', 'pt', 'a4');
-      const element = document.getElementById("organograma");
-
-      const canvas = await html2canvas(element, {
-        scale: 3,
-        useCORS: true,
-        scrollY: -window.scrollY
-      });
-
-      const imgData = canvas.toDataURL('image/png');
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(imgData, 'PNG', 0, 20, pdfWidth, pdfHeight);
-      pdf.save("organograma_completo.pdf");
-    }
-  </script>
 </body>
 </html>
