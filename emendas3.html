@@ -27,10 +27,6 @@ table.dataTable td, table.dataTable th{
 #tabela{ display:none; }
 
 /* BOTÕES – PADRÃO index2.html */
-.dt-buttons .btn{
-  padding:0.25rem 0.5rem;
-  font-size:0.7rem;
-}
 .dataTables_wrapper .dataTables_paginate{
   margin-top:0.5rem;
   display:flex;
@@ -64,7 +60,7 @@ table.dataTable td, table.dataTable th{
   margin-bottom:6px;
 }
 
-/* LINHA INFERIOR DA TABELA */
+/* LINHA ÚNICA ABAIXO DA TABELA */
 .dt-footer{
   display:flex;
   justify-content:space-between;
@@ -72,8 +68,13 @@ table.dataTable td, table.dataTable th{
   margin-top:6px;
   font-size:0.7rem;
 }
+.dt-footer select{
+  width:70px;
+  display:inline-block;
+}
 .dataTables_info{
-  padding:0;
+  padding:0 !important;
+  margin:0 !important;
 }
 </style>
 </head>
@@ -113,11 +114,11 @@ table.dataTable td, table.dataTable th{
   <table id="tabela" class="table table-bordered table-striped table-sm w-100"></table>
 </div>
 
-<!-- LINHA INFERIOR -->
+<!-- LINHA ÚNICA: LENGTH + INFO -->
 <div class="dt-footer">
   <div>
     <label class="me-1">Registros por página:</label>
-    <select id="lengthSelector" class="form-select form-select-sm d-inline-block" style="width:70px;">
+    <select id="lengthSelector" class="form-select form-select-sm">
       <option value="10">10</option>
       <option value="25">25</option>
       <option value="50">50</option>
@@ -196,7 +197,7 @@ function atualizar(){
    language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
  });
 
- $('#infoWrapper').html($('.dataTables_info'));
+ $('#infoWrapper').append($('.dataTables_info'));
 
  $('#btnCsv').click(()=>$('.buttons-csv').click());
  $('#btnXls').click(()=>$('.buttons-excel').click());
