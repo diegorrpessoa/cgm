@@ -254,7 +254,7 @@ function popularFiltroEncadeado(id,campo,dados){
   const s=$('#'+id);
   s.empty().append('<option value="">Todos</option>');
   let vals=[...new Set(dados.map(r=>r[campo]).filter(v=>v))];
-  if(campo==="Mês") vals.sort((a,b)=>mesesOrdem.indexOf(a)-mesesOrdem.indexOf(b));
+  if(campo==="Origem") vals.sort((a,b)=>mesesOrdem.indexOf(a)-mesesOrdem.indexOf(b));
   else vals.sort();
   vals.forEach(v=>s.append(`<option value="${v}">${v}</option>`));
   s.prop('disabled', false);
