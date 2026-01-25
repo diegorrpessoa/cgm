@@ -12,57 +12,41 @@
 <style>
 body { background-color:#f8f9fa; }
 .dataTables_filter { display:none; }
+label { font-size:0.7rem; font-weight:600; color:#343a40; }
+.form-select-sm, table { font-size:0.7rem !important; }
+table.dataTable td, table.dataTable th { white-space:nowrap; }
 
-label {
-  font-size:0.7rem;
-  font-weight:600;
-  color:#343a40;
-}
-
-.form-select-sm, table {
-  font-size:0.7rem !important;
-}
-
-table.dataTable td, table.dataTable th {
-  white-space:nowrap;
-}
-
-#tabela { display:none; }
-
-/* Indicador de atualização */
-#indicadorAtualizacao {
+#indicadorAtualizacao{
   font-size:0.65rem;
   color:#6c757d;
   text-align:right;
   margin-bottom:6px;
 }
 
-/* Botões no padrão index2.html */
-.dt-buttons {
+/* PADRÃO VISUAL index2.html */
+.dt-buttons{
   float:right;
   margin-bottom:6px;
 }
-.dt-buttons .btn {
+.dt-buttons .btn{
   padding:0.25rem 0.5rem;
   font-size:0.7rem;
 }
 
-/* Paginação padrão index2.html */
-.dataTables_wrapper .dataTables_paginate {
+.dataTables_paginate{
   margin-top:0.5rem;
   text-align:center !important;
 }
-.dataTables_wrapper .dataTables_paginate .paginate_button {
+.dataTables_paginate .paginate_button{
   padding:0.2rem 0.5rem !important;
   margin:0 2px !important;
   font-size:0.65rem !important;
   border-radius:5px !important;
-  background-color:#e9ecef !important;
+  background:#e9ecef !important;
   border:1px solid #dee2e6 !important;
-  color:#212529 !important;
 }
-.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  background-color:#0d6efd !important;
+.dataTables_paginate .paginate_button.current{
+  background:#0d6efd !important;
   color:#fff !important;
   font-weight:bold !important;
 }
@@ -73,23 +57,20 @@ table.dataTable td, table.dataTable th {
 
 <div class="container-fluid mt-3">
 
-  <!-- INDICADOR DE ATUALIZAÇÃO -->
-  <div id="indicadorAtualizacao">
-    Dados atualizados automaticamente – Lei nº 14.129/2021
-  </div>
+  <div id="indicadorAtualizacao"></div>
 
   <!-- FILTROS -->
   <div class="row gx-2 gy-2 mb-3">
     <div class="col-sm-2"><label>Ano *</label><select id="anoFiltro" class="form-select form-select-sm"></select></div>
-    <div class="col-sm-2"><label>Origem dos Recursos</label><select id="origemFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Tipo de Emenda</label><select id="tipoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Proponente</label><select id="autoriaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Identificação da Emenda</label><select id="numeroFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Objeto da Despesa</label><select id="objetoFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Órgão / Entidade Beneficiária</label><select id="recebedorFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>CNPJ do Recebedor</label><select id="cnpjFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Grupo de Natureza da Despesa (GND)</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
-    <div class="col-sm-2"><label>Função de Governo</label><select id="funcaoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Origem</label><select id="origemFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Tipo</label><select id="tipoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Autoria</label><select id="autoriaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Número</label><select id="numeroFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Objeto</label><select id="objetoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Recebedor</label><select id="recebedorFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>CNPJ</label><select id="cnpjFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Natureza (GND)</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Função</label><select id="funcaoFiltro" class="form-select form-select-sm" disabled></select></div>
   </div>
 
   <!-- TABELA -->
@@ -106,7 +87,6 @@ table.dataTable td, table.dataTable th {
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.bootstrap5.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
@@ -114,117 +94,110 @@ table.dataTable td, table.dataTable th {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
 <script>
-let dadosOriginais=[], tabela=null;
+let dadosOriginais = [];
+let tabela = null;
 
-const campos={
-  ano:"Ano",
-  origem:"Origem dos recursos",
-  tipo:"Tipo de emenda",
-  autoria:"Proponente",
-  numero:"Identificação da Emenda",
-  funcao:"Função de Governo Função programática",
-  natureza:"Grupo de Natureza de Despesa (GND)",
-  objeto:"Objeto da Despesa",
-  recebedor:"Órgão ou entidade executora ou beneficiária",
-  cnpj:"CNPJ do Órgão ou entidade executora ou beneficiária"
+/* MAPEAMENTO DOS CAMPOS */
+const campos = {
+  ano: "Ano",
+  origem: "Origem dos recursos",
+  tipo: "Tipo de emenda",
+  autoria: "Proponente",
+  numero: "Identificação da Emenda",
+  funcao: "Função de Governo Função programática",
+  natureza: "Grupo de Natureza de Despesa (GND)",
+  objeto: "Objeto da Despesa",
+  recebedor: "Órgão ou entidade executora ou beneficiária",
+  cnpj: "CNPJ do Órgão ou entidade executora ou beneficiária"
 };
 
-const ordemFiltros=["ano","origem","tipo","autoria","numero","objeto","recebedor","cnpj","natureza","funcao"];
+const ordemFiltros = Object.keys(campos);
 
 $(document).ready(function(){
 
   Papa.parse(
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv",
     {
-      download:true,
-      header:true,
-      skipEmptyLines:true,
-      complete:function(res){
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(res){
 
-        dadosOriginais=res.data.filter(r=>r[campos.ano]);
+        dadosOriginais = res.data.filter(r => r[campos.ano]);
 
-        const agora=new Date();
-        $('#indicadorAtualizacao').text(
-          `Dados atualizados em ${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})} – Lei nº 14.129/2021`
+        /* ==== DATA REAL DE ATUALIZAÇÃO DA BASE ==== */
+        let dataAtualizacao = null;
+        if(res.data.length){
+          const col = Object.keys(res.data[0]).find(c =>
+            c.toLowerCase().includes("atualiza")
+          );
+          if(col){
+            dataAtualizacao = res.data.find(r => r[col])?.[col];
+          }
+        }
+
+        $('#indicadorAtualizacao').html(
+          dataAtualizacao
+          ? `Dados atualizados em <strong>${dataAtualizacao}</strong>`
+          : `Data de atualização da base não informada pelo órgão responsável`
         );
 
-        popularFiltro("anoFiltro",campos.ano,dadosOriginais);
+        popularFiltro("anoFiltro", campos.ano, dadosOriginais);
       }
     }
   );
 
   ordemFiltros.forEach(f=>{
-    $('#'+f+'Filtro').on('change',()=>{
-      if(f==="ano" && !$('#anoFiltro').val()){
-        $('#tabela').hide();
-        tabela?.clear().draw();
-        return;
-      }
-      resetFiltrosApos(f);
-      atualizarFiltrosEncadeados(f);
-      inicializarTabela(aplicarFiltros());
-    });
+    $('#' + f + 'Filtro').on('change', renderizarTabela);
   });
 });
 
-function popularFiltro(id,campo,dados){
-  const s=$('#'+id);
-  s.empty().append('<option value="">Todos</option>');
-  [...new Set(dados.map(d=>d[campo]).filter(Boolean))].sort()
-    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
-  s.prop('disabled',false);
+function popularFiltro(id, campo, dados){
+  const s = $('#' + id).empty().append('<option value="">Selecione</option>');
+  [...new Set(dados.map(d => d[campo]).filter(Boolean))]
+    .sort()
+    .forEach(v => s.append(`<option value="${v}">${v}</option>`));
+  s.prop('disabled', false);
 }
 
-function resetFiltrosApos(f){
-  ordemFiltros.slice(ordemFiltros.indexOf(f)+1).forEach(k=>{
-    $('#'+k+'Filtro').val('').prop('disabled',true);
+function renderizarTabela(){
+  let dados = dadosOriginais;
+
+  ordemFiltros.forEach(f=>{
+    const v = $('#' + f + 'Filtro').val();
+    if(v){
+      dados = dados.filter(r => r[campos[f]] === v);
+    }
   });
-}
 
-function atualizarFiltrosEncadeados(f){
-  let base=dadosOriginais;
-  for(let i=0;i<=ordemFiltros.indexOf(f);i++){
-    const v=$('#'+ordemFiltros[i]+'Filtro').val();
-    if(v) base=base.filter(r=>r[campos[ordemFiltros[i]]]===v);
-  }
-  ordemFiltros.slice(ordemFiltros.indexOf(f)+1).forEach(k=>{
-    popularFiltro(k+'Filtro',campos[k],base);
-  });
-}
-
-function aplicarFiltros(){
-  return ordemFiltros.reduce((acc,f)=>{
-    const v=$('#'+f+'Filtro').val();
-    return v?acc.filter(r=>r[campos[f]]===v):acc;
-  },dadosOriginais);
-}
-
-function inicializarTabela(dados){
-  if(!$('#anoFiltro').val()) return;
-  $('#tabela').show();
+  if(!$('#anoFiltro').val() || !dados.length) return;
 
   if(tabela){
     tabela.clear().rows.add(dados).draw();
     return;
   }
 
-  tabela=$('#tabela').DataTable({
-    data:dados,
-    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-    pageLength:10,
-    lengthMenu:[[10,25,50,100],[10,25,50,100]],
-    scrollX:true,
-    dom:'Blfrtip',
-    buttons:[
-      {extend:'csvHtml5',text:'CSV'},
-      {extend:'excelHtml5',text:'XLS'},
-      {extend:'json',text:'JSON'},
-      {extend:'pdfHtml5',text:'PDF',orientation:'landscape'}
+  tabela = $('#tabela').DataTable({
+    data: dados,
+    columns: Object.keys(dados[0]).map(c => ({title:c, data:c})),
+    pageLength: 10,
+    lengthMenu: [[10,25,50,100],[10,25,50,100]],
+    scrollX: true,
+    dom:
+      "<'row mb-1'<'col-sm-6'l><'col-sm-6'B>>" +
+      "<'row'<'col-sm-12'tr>>" +
+      "<'row'<'col-sm-5'i><'col-sm-7'p>>",
+    buttons: [
+      {extend:'csvHtml5', className:'btn btn-light btn-sm', text:'CSV'},
+      {extend:'excelHtml5', className:'btn btn-light btn-sm', text:'XLS'},
+      {extend:'pdfHtml5', className:'btn btn-light btn-sm', text:'PDF', orientation:'landscape'}
     ],
-    language:{
-      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    language: {
+      url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
     }
   });
+
+  setTimeout(()=>tabela.columns.adjust(),200);
 }
 </script>
 
