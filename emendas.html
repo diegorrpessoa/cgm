@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Consulta de Despesas</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+
+  <style>
+    body { background-color:#f8f9fa; }
+    .dataTables_filter { display:none; }
+    label {
+      font-size:0.7rem;
+      font-weight:600;
+      color:#343a40;
+    }
+    .form-select-sm, table {
+      font-size:0.7rem !important;
+    }
+    table.dataTable td, table.dataTable th {
+      white-space:nowrap;
+    }
+    #tabela { display:none; }
+  </style>
+</head>
+
+<body>
+
+<div class="container-fluid mt-4">
+
+  <!-- FILTROS -->
+  <div class="row gx-2 gy-2 mb-3">
+    <div class="col-sm-2">
+      <label>Ano *</label>
+      <select id="anoFiltro" class="form-select form-select-sm"></select>
+    </div>
+
+    <div class="col-sm-2"><label>Origem</label><select id="origemFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Tipo</label><select id="tipoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Autoria</label><select id="autoriaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Número</label><select id="numeroFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Objeto</label><select id="objetoFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Nome do Recebedor</label><select id="recebedorFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>CPF/CNPJ</label><select id="cpfFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Natureza da Despesa</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
+    <div class="col-sm-2"><label>Função</label><select id="funcaoFiltro" class="form-select form-select-sm" disabled></select></div>
+  </div>
+
+  <!-- TABELA -->
+  <div class="table-responsive">
+    <table id="tabela" class="table table-bordered table-striped table-sm w-100"></table>
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+<script>
+let dadosOriginais = [];
+let tabela = null;
+
+/* MAPEAMENTO DAS COLUNAS (EXATAMENTE COMO NO CSV) */
+const campos = {
+  ano: "Ano",
+  origem: "Origem",
+  tipo: "Tipo",
+  autoria: "Autoria",
+  numero: "Número",
+  objeto: "Objeto",
+  recebedor: "Nome Recebedor",
+  cpf: "CPF/CNPJ Recebedor",
+  natureza: "Natureza de Despesa",
+  funcao: "Função"
+};
+
+/* ORDEM DOS FILTROS (ENCadeamento) */
+const ordemFiltros = [
+  "ano",
+  "origem",
+  "tipo",
+  "autoria",
+  "numero",
+  "objeto",
+  "recebedor",
+  "cpf",
+  "natureza",
+  "funcao"
+];
+
+$(document).ready(function(){
+
+  Papa.parse(
+    "https://drive.google.com/uc?export=download&id=1Zsmt8VfRqe89QaA5vlwhoQiUoc23RFBS",
+    {
+      download: true,
+      header: true,
+      skipEmptyLines: true,
+      complete: function(res){
+        dadosOriginais = res.data.filter(r => r[campos.ano]);
+        popularFiltro("anoFiltro", campos.ano, dadosOriginais);
+      }
+    }
+  );
+
+  ordemFiltros.forEach(filtro => {
+    $('#' + filtro + 'Filtro').on('change', function(){
+      if(filtro === "ano" && !this.value){
+        $('#tabela').hide();
+        if(tabela) tabela.clear().draw();
+        return;
+      }
+      resetFiltrosApos(filtro);
+      atualizarFiltrosEncadeados(filtro);
+      const dadosFiltrados = aplicarFiltros();
+      inicializarTabela(dadosFiltrados);
+    });
+  });
+});
+
+/* POPULA SELECT */
+function popularFiltro(id, campo, dados){
+  const select = $('#' + id);
+  select.empty().append('<option value="">Todos</option>');
+  [...new Set(dados.map(d => d[campo]).filter(Boolean))]
+    .sort()
+    .forEach(v => select.append(`<option value="${v}">${v}</option>`));
+  select.prop('disabled', false);
+}
+
+/* DESABILITA FILTROS POSTERIORES */
+function resetFiltrosApos(f){
+  ordemFiltros.slice(ordemFiltros.indexOf(f)+1).forEach(k=>{
+    $('#' + k + 'Filtro').val('').prop('disabled', true);
+  });
+}
+
+/* ATUALIZA FILTROS ENCADEADOS */
+function atualizarFiltrosEncadeados(f){
+  const idx = ordemFiltros.indexOf(f);
+  let base = dadosOriginais;
+
+  for(let i=0; i<=idx; i++){
+    const val = $('#' + ordemFiltros[i] + 'Filtro').val();
+    if(val){
+      base = base.filter(r => r[campos[ordemFiltros[i]]] === val);
+    }
+  }
+
+  ordemFiltros.slice(idx+1).forEach(k=>{
+    popularFiltro(k + 'Filtro', campos[k], base);
+  });
+}
+
+/* APLICA TODOS OS FILTROS */
+function aplicarFiltros(){
+  return ordemFiltros.reduce((acc,f)=>{
+    const val = $('#' + f + 'Filtro').val();
+    return val ? acc.filter(r => r[campos[f]] === val) : acc;
+  }, dadosOriginais);
+}
+
+/* INICIALIZA DATATABLE */
+function inicializarTabela(dados){
+  if(!$('#anoFiltro').val()) return;
+
+  $('#tabela').show();
+
+  if(tabela){
+    tabela.clear().rows.add(dados).draw();
+    return;
+  }
+
+  const colunas = Object.keys(dados[0]).map(c => ({
+    title: c,
+    data: c
+  }));
+
+  tabela = $('#tabela').DataTable({
+    data: dados,
+    columns: colunas,
+    pageLength: 20,
+    scrollX: true,
+    language: {
+      url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
+  });
+}
+</script>
+
+</body>
+</html>
