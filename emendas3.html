@@ -10,7 +10,7 @@
 
 <style>
 body{background:#f8f9fa;}
-.dataTables_filter{display:none;}
+.dataTables_filter{display:none}
 
 label{
   font-size:.7rem;
@@ -25,7 +25,7 @@ table.dataTable td,table.dataTable th{
 }
 #tabela{display:none}
 
-/* PAGINAÇÃO – PADRÃO index2.html */
+/* Paginação – padrão index2 */
 .dataTables_wrapper .dataTables_paginate{
   margin-top:.5rem;
   display:flex;
@@ -45,19 +45,19 @@ table.dataTable td,table.dataTable th{
   font-weight:bold;
 }
 
-/* EXPORTAÇÃO */
+/* Exportação */
 .export-group .btn{
   font-size:.7rem;
   padding:4px 8px;
 }
 
-/* REGISTROS */
+/* Registros */
 #lengthSelector{
   width:70px;
   font-size:.7rem;
 }
 
-/* INDICADOR */
+/* Indicador */
 #indicadorAtualizacao{
   font-size:.65rem;
   color:#6c757d;
@@ -124,7 +124,8 @@ table.dataTable td,table.dataTable th{
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
-let tabela,dadosOriginais=[];
+let tabela;
+let dadosOriginais=[];
 
 const campos={
   ano:"Ano",
@@ -149,25 +150,36 @@ Papa.parse(
  }}
 );
 
-ordem.forEach(f=>$('#'+f+'Filtro').on('change',()=>atualizarFiltros(f)));
+ordem.forEach(f=>{
+ $('#'+f+'Filtro').on('change',()=>atualizarFiltros(f));
+});
 
-function popular(id,campo,base){
- let s=$('#'+id).empty().append('<option value="">Selecione...</option>');
- [...new Set(base.map(r=>r[campo]).filter(Boolean))].sort()
-  .forEach(v=>s.append(`<option>${v}</option>`));
- s.prop('disabled',false);
-}
+function atualizarFiltros(filtroAlterado){
+ let idx=ordem.indexOf(filtroAlterado);
 
-function atualizarFiltros(f){
+ // Base filtrada cumulativa
  let base=dadosOriginais;
- for(let i=0;i<=ordem.indexOf(f);i++){
+ for(let i=0;i<=idx;i++){
   let v=$('#'+ordem[i]+'Filtro').val();
   if(v) base=base.filter(r=>r[campos[ordem[i]]]===v);
  }
- ordem.slice(ordem.indexOf(f)+1).forEach(k=>{
-  popular(k+'Filtro',campos[k],base);
- });
+
+ // Reset e repopula filtros seguintes
+ for(let i=idx+1;i<ordem.length;i++){
+  $('#'+ordem[i]+'Filtro').val('').prop('disabled',true);
+  popular(ordem[i]+'Filtro',campos[ordem[i]],base);
+ }
+
  renderTabela(base);
+}
+
+function popular(id,campo,base){
+ let s=$('#'+id);
+ s.empty().append('<option value="">Selecione...</option>');
+ [...new Set(base.map(r=>r[campo]).filter(Boolean))]
+   .sort()
+   .forEach(v=>s.append(`<option>${v}</option>`));
+ s.prop('disabled',false);
 }
 
 function renderTabela(dados){
@@ -191,51 +203,6 @@ function renderTabela(dados){
  $('#lengthSelector').on('change',function(){
   tabela.page.len(this.value).draw();
  });
-
- $('#btnCsv').click(()=>exportCsv());
- $('#btnXls').click(()=>exportXls());
- $('#btnPdf').click(()=>exportPdf());
- $('#btnTxt').click(()=>exportTxt());
- $('#btnJson').click(()=>exportJson());
-}
-
-function exportCsv(){exportText("csv")}
-function exportTxt(){exportText("txt")}
-
-function exportText(tipo){
- let d=tabela.rows({search:"applied"}).data().toArray();
- let c=Object.keys(d[0]);
- let sep=tipo==="csv"?";":"\t";
- let t=c.join(sep)+"\n"+d.map(r=>c.map(k=>r[k]).join(sep)).join("\n");
- baixar(new Blob([t],{type:"text/plain"}),"dados."+tipo);
-}
-
-function exportJson(){
- baixar(new Blob([JSON.stringify(tabela.rows().data().toArray(),null,2)],{type:"application/json"}),"dados.json");
-}
-
-function exportXls(){
- let wb=XLSX.utils.book_new();
- let ws=XLSX.utils.json_to_sheet(tabela.rows().data().toArray());
- XLSX.utils.book_append_sheet(wb,ws,"Dados");
- XLSX.writeFile(wb,"dados.xlsx");
-}
-
-function exportPdf(){
- let d=tabela.rows().data().toArray();
- let c=Object.keys(d[0]);
- pdfMake.createPdf({
-  pageOrientation:"landscape",
-  content:[{table:{headerRows:1,widths:Array(c.length).fill("*"),
-   body:[c,...d.map(r=>c.map(k=>r[k]))]}}]
- }).download("dados.pdf");
-}
-
-function baixar(b,n){
- let a=document.createElement("a");
- a.href=URL.createObjectURL(b);
- a.download=n;
- a.click();
 }
 </script>
 
