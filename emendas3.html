@@ -1,225 +1,223 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Consulta de Emendas – Execução da Despesa</title>
+<meta charset="utf-8">
+<title>Painel de Emendas – CGM</title>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css">
 
 <style>
-body { background-color:#f8f9fa; }
-.dataTables_filter { display:none; }
-
-label{
-  font-size:0.7rem;
-  font-weight:600;
-  color:#343a40;
+body{
+  background:#f8f9fa;
+  font-size:14px;
 }
-.form-select-sm, table{
-  font-size:0.7rem !important;
-}
-table.dataTable td, table.dataTable th{
-  white-space:nowrap;
-}
-#tabela{ display:none; }
-
-/* BOTÕES – PADRÃO index2.html */
-.dataTables_wrapper .dataTables_paginate{
-  margin-top:0.5rem;
-  display:flex;
-  justify-content:center;
-  gap:4px;
-}
-.dataTables_wrapper .dataTables_paginate .paginate_button{
-  padding:4px 8px !important;
-  font-size:0.65rem !important;
-  border-radius:6px !important;
-  background:#e9ecef !important;
-  border:1px solid #dee2e6 !important;
-}
-.dataTables_wrapper .dataTables_paginate .paginate_button.current{
-  background:#0d6efd !important;
-  color:#fff !important;
-  font-weight:bold;
-}
-
-/* EXPORTAÇÃO */
-.export-group .btn{
-  font-size:0.7rem;
-  padding:4px 8px;
-}
-
-/* INDICADOR */
-#indicadorAtualizacao{
-  font-size:0.65rem;
-  color:#6c757d;
-  text-align:right;
+.filtros select{
   margin-bottom:6px;
 }
-
-/* LINHA ÚNICA ABAIXO DA TABELA */
-.dt-footer{
+.dt-buttons{
+  display:none;
+}
+.export-bar{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-top:6px;
-  font-size:0.7rem;
+  margin-top:8px;
 }
-.dt-footer select{
-  width:70px;
-  display:inline-block;
+.export-bar button{
+  margin-left:4px;
 }
-.dataTables_info{
-  padding:0 !important;
-  margin:0 !important;
+.info-atualizacao{
+  font-size:12px;
+  color:#555;
 }
 </style>
 </head>
 
-<body>
+<body class="container-fluid p-3">
 
-<div class="container-fluid mt-3">
+<h5 class="mb-3">Painel de Emendas Parlamentares</h5>
 
-<div id="indicadorAtualizacao">
-  Dados atualizados automaticamente | Lei nº 14.129/2021
+<div class="row filtros">
+  <div class="col-md-2">
+    <label>Ano *</label>
+    <select id="anoFiltro" class="form-select" disabled></select>
+  </div>
+  <div class="col-md-2"><label>Origem</label><select id="origemFiltro" class="form-select" disabled></select></div>
+  <div class="col-md-2"><label>Tipo</label><select id="tipoFiltro" class="form-select" disabled></select></div>
+  <div class="col-md-2"><label>Autoria</label><select id="autoriaFiltro" class="form-select" disabled></select></div>
+  <div class="col-md-2"><label>Número</label><select id="numeroFiltro" class="form-select" disabled></select></div>
+  <div class="col-md-2"><label>Objeto</label><select id="objetoFiltro" class="form-select" disabled></select></div>
 </div>
 
-<!-- FILTROS -->
-<div class="row gx-2 gy-2 mb-3">
-  <div class="col-sm-2"><label>Ano *</label><select id="anoFiltro" class="form-select form-select-sm"></select></div>
-  <div class="col-sm-2"><label>Origem</label><select id="origemFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>Tipo</label><select id="tipoFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>Autoria</label><select id="autoriaFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>Número</label><select id="numeroFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>Objeto</label><select id="objetoFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>Recebedor</label><select id="recebedorFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>CNPJ</label><select id="cnpjFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>Natureza</label><select id="naturezaFiltro" class="form-select form-select-sm" disabled></select></div>
-  <div class="col-sm-2"><label>Função</label><select id="funcaoFiltro" class="form-select form-select-sm" disabled></select></div>
+<div class="row filtros">
+  <div class="col-md-3"><label>Recebedor</label><select id="recebedorFiltro" class="form-select" disabled></select></div>
+  <div class="col-md-3"><label>CNPJ</label><select id="cnpjFiltro" class="form-select" disabled></select></div>
+  <div class="col-md-3"><label>Natureza</label><select id="naturezaFiltro" class="form-select" disabled></select></div>
+  <div class="col-md-3"><label>Função</label><select id="funcaoFiltro" class="form-select" disabled></select></div>
 </div>
 
-<!-- EXPORTAÇÃO -->
-<div class="d-flex justify-content-end mb-2 export-group">
-  <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-  <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-  <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-  <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
-</div>
+<hr>
 
-<!-- TABELA -->
-<div class="table-responsive">
-  <table id="tabela" class="table table-bordered table-striped table-sm w-100"></table>
-</div>
+<table id="tabela" class="display nowrap" style="width:100%; display:none;"></table>
 
-<!-- LINHA ÚNICA: LENGTH + INFO -->
-<div class="dt-footer">
+<div class="export-bar">
   <div>
-    <label class="me-1">Registros por página:</label>
-    <select id="lengthSelector" class="form-select form-select-sm">
-      <option value="10">10</option>
-      <option value="25">25</option>
-      <option value="50">50</option>
-      <option value="100">100</option>
+    <label>Registros por página:</label>
+    <select id="lengthSelector" class="form-select d-inline-block w-auto">
+      <option>10</option><option>25</option><option>50</option><option>100</option>
     </select>
   </div>
-  <div id="infoWrapper"></div>
+
+  <div>
+    <button id="btnCsv"  class="btn btn-outline-secondary btn-sm">CSV</button>
+    <button id="btnXls"  class="btn btn-outline-secondary btn-sm">XLS</button>
+    <button id="btnTxt"  class="btn btn-outline-secondary btn-sm">TXT</button>
+    <button id="btnPdf"  class="btn btn-outline-secondary btn-sm">PDF</button>
+    <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
+  </div>
 </div>
 
-</div>
+<div class="text-end info-atualizacao mt-1" id="infoAtualizacao"></div>
 
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
 <script>
 let tabela, dadosOriginais=[];
 
 const campos={
-  ano:"Ano",
-  origem:"Origem dos recursos",
-  tipo:"Tipo de emenda",
-  autoria:"Proponente",
-  numero:"Identificação da Emenda",
-  funcao:"Função de Governo Função programática",
-  natureza:"Grupo de Natureza de Despesa (GND)",
-  objeto:"Objeto da Despesa",
-  recebedor:"Órgão ou entidade executora ou beneficiária",
-  cnpj:"CNPJ do Órgão ou entidade executora ou beneficiária"
+ ano:"Ano",
+ origem:"Origem dos recursos",
+ tipo:"Tipo de emenda",
+ autoria:"Proponente",
+ numero:"Identificação da Emenda",
+ funcao:"Função de Governo Função programática",
+ natureza:"Grupo de Natureza de Despesa (GND)",
+ objeto:"Objeto da Despesa",
+ recebedor:"Órgão ou entidade executora ou beneficiária",
+ cnpj:"CNPJ do Órgão ou entidade executora ou beneficiária"
 };
-const ordem=Object.keys(campos);
+
+const ordem=["ano","origem","tipo","autoria","numero","objeto","recebedor","cnpj","natureza","funcao"];
 
 Papa.parse(
  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv",
- {download:true,header:true,complete:r=>{
-   dadosOriginais=r.data.filter(d=>d[campos.ano]);
-   popular("anoFiltro",campos.ano,dadosOriginais);
- }}
+ {
+  download:true,
+  header:true,
+  skipEmptyLines:true,
+  complete:r=>{
+    dadosOriginais=r.data.filter(d=>d[campos.ano]);
+    popularFiltro("anoFiltro",campos.ano,dadosOriginais);
+    $("#anoFiltro").prop("disabled",false);
+    $("#infoAtualizacao").text("Fonte de dados: Google Sheets – atualização conforme última publicação da base.");
+  }
+ }
 );
 
-ordem.forEach(f=>$('#'+f+'Filtro').on('change',atualizar));
+ordem.forEach(f=>{
+ $("#"+f+"Filtro").on("change",function(){
+   if(f==="ano" && !this.value){
+     $("#tabela").hide();
+     resetFiltrosApos("ano");
+     if(tabela) tabela.clear().draw();
+     return;
+   }
+   resetFiltrosApos(f);
+   atualizarFiltrosEncadeados(f);
+   inicializarTabela(aplicarFiltros());
+ });
+});
 
-function popular(id,campo,base){
- let s=$('#'+id).empty().append('<option value="">Todos</option>');
- [...new Set(base.map(r=>r[campo]).filter(Boolean))].sort().forEach(v=>s.append(`<option>${v}</option>`));
- s.prop('disabled',false);
+function popularFiltro(id,campo,dados){
+ const s=$("#"+id);
+ s.empty().append('<option value="">Todos</option>');
+ [...new Set(dados.map(r=>r[campo]).filter(Boolean))].sort()
+   .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+ s.prop("disabled",false);
 }
 
-function atualizar(){
- let dados=dadosOriginais;
- ordem.forEach(f=>{
-   let v=$('#'+f+'Filtro').val();
-   if(v) dados=dados.filter(r=>r[campos[f]]===v);
+function resetFiltrosApos(f){
+ ordem.slice(ordem.indexOf(f)+1).forEach(k=>{
+   $("#"+k+"Filtro").val("").prop("disabled",true);
  });
- if(!$('#anoFiltro').val()) return;
- $('#tabela').show();
+}
+
+function atualizarFiltrosEncadeados(f){
+ let base=dadosOriginais;
+ for(let i=0;i<=ordem.indexOf(f);i++){
+   const v=$("#"+ordem[i]+"Filtro").val();
+   if(v) base=base.filter(r=>r[campos[ordem[i]]]==v);
+ }
+ ordem.slice(ordem.indexOf(f)+1).forEach(k=>{
+   popularFiltro(k+"Filtro",campos[k],base);
+ });
+}
+
+function aplicarFiltros(){
+ return ordem.reduce((acc,f)=>{
+   const v=$("#"+f+"Filtro").val();
+   return v?acc.filter(r=>r[campos[f]]==v):acc;
+ },dadosOriginais);
+}
+
+function inicializarTabela(dados){
+ if(!$("#anoFiltro").val()) return;
+ $("#tabela").show();
 
  if(tabela){
    tabela.clear().rows.add(dados).draw();
    return;
  }
 
- tabela=$('#tabela').DataTable({
-   data:dados,
-   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-   pageLength:10,
-   scrollX:true,
-   dom:'Brtip',
-   buttons:[
-     {extend:'csvHtml5',className:'d-none'},
-     {extend:'excelHtml5',className:'d-none'}
-   ],
-   language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
+ tabela=$("#tabela").DataTable({
+  data:dados,
+  columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+  pageLength:10,
+  lengthMenu:[[10,25,50,100],[10,25,50,100]],
+  scrollX:true,
+  dom:"Bfrtip",
+  buttons:[
+   {extend:"csvHtml5"},
+   {extend:"excelHtml5"},
+   {extend:"pdfHtml5",orientation:"landscape"}
+  ],
+  language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
  });
 
- $('#infoWrapper').append($('.dataTables_info'));
+ $("#btnCsv").click(()=>$(".buttons-csv").click());
+ $("#btnXls").click(()=>$(".buttons-excel").click());
+ $("#btnPdf").click(()=>$(".buttons-pdf").click());
 
- $('#btnCsv').click(()=>$('.buttons-csv').click());
- $('#btnXls').click(()=>$('.buttons-excel').click());
-
- $('#btnJson').click(()=>{
-   baixar(new Blob([JSON.stringify(tabela.rows().data().toArray(),null,2)],{type:'application/json'}),'dados.json');
- });
- $('#btnTxt').click(()=>{
-   let d=tabela.rows().data().toArray();
-   let c=Object.keys(d[0]);
-   let t=c.join(';')+'\n'+d.map(r=>c.map(k=>r[k]).join(';')).join('\n');
-   baixar(new Blob([t],{type:'text/plain'}),'dados.txt');
+ $("#btnTxt").click(()=>{
+   const d=tabela.rows().data().toArray();
+   const c=Object.keys(d[0]);
+   const t=c.join(";")+"\n"+d.map(r=>c.map(k=>r[k]).join(";")).join("\n");
+   download(new Blob([t],{type:"text/plain"}),"dados.txt");
  });
 
- $('#lengthSelector').on('change',function(){
+ $("#btnJson").click(()=>{
+   download(new Blob([JSON.stringify(tabela.rows().data().toArray(),null,2)],{type:"application/json"}),"dados.json");
+ });
+
+ $("#lengthSelector").on("change",function(){
    tabela.page.len(this.value).draw();
  });
 }
 
-function baixar(b,n){
- let a=document.createElement('a');
- a.href=URL.createObjectURL(b);a.download=n;a.click();
+function download(b,n){
+ const a=document.createElement("a");
+ a.href=URL.createObjectURL(b);
+ a.download=n;
+ a.click();
 }
 </script>
 
