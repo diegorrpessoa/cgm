@@ -56,18 +56,24 @@ table.dataTable td, table.dataTable th{
   padding:4px 8px;
 }
 
-/* REGISTROS POR PÁGINA */
-#lengthSelector{
-  width:70px;
-  font-size:0.7rem;
-}
-
 /* INDICADOR */
 #indicadorAtualizacao{
   font-size:0.65rem;
   color:#6c757d;
   text-align:right;
   margin-bottom:6px;
+}
+
+/* LINHA INFERIOR DA TABELA */
+.dt-footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:6px;
+  font-size:0.7rem;
+}
+.dataTables_info{
+  padding:0;
 }
 </style>
 </head>
@@ -107,15 +113,18 @@ table.dataTable td, table.dataTable th{
   <table id="tabela" class="table table-bordered table-striped table-sm w-100"></table>
 </div>
 
-<!-- REGISTROS -->
-<div class="text-end mt-2">
-  <label>Registros por página:</label>
-  <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
-    <option value="10">10</option>
-    <option value="25">25</option>
-    <option value="50">50</option>
-    <option value="100">100</option>
-  </select>
+<!-- LINHA INFERIOR -->
+<div class="dt-footer">
+  <div>
+    <label class="me-1">Registros por página:</label>
+    <select id="lengthSelector" class="form-select form-select-sm d-inline-block" style="width:70px;">
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </div>
+  <div id="infoWrapper"></div>
 </div>
 
 </div>
@@ -179,13 +188,15 @@ function atualizar(){
    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
    pageLength:10,
    scrollX:true,
-   dom:'Bfrtip',
+   dom:'Brtip',
    buttons:[
      {extend:'csvHtml5',className:'d-none'},
      {extend:'excelHtml5',className:'d-none'}
    ],
    language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
  });
+
+ $('#infoWrapper').html($('.dataTables_info'));
 
  $('#btnCsv').click(()=>$('.buttons-csv').click());
  $('#btnXls').click(()=>$('.buttons-excel').click());
