@@ -139,7 +139,7 @@ ordem.forEach(f=>{
 
 function popularFiltro(id,campo,dados){
  const s=$("#"+id);
- s.empty().append('<option value="">Todos</option>');
+ s.empty().append('<option value="">Selecione...</option>');
  [...new Set(dados.map(r=>r[campo]).filter(Boolean))].sort()
    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
  s.prop("disabled",false);
