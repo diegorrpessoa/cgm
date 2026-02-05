@@ -161,7 +161,9 @@ function atualizarFiltros(filtroAlterado){
  let base=dadosOriginais;
  for(let i=0;i<=idx;i++){
   let v=$('#'+ordem[i]+'Filtro').val();
-  if(v) base=base.filter(r=>r[campos[ordem[i]]]===v);
+  if(v && v!=="__todos__"){
+    base=base.filter(r=>r[campos[ordem[i]]]===v);
+  }
  }
 
  // Reset e repopula filtros seguintes
@@ -173,17 +175,35 @@ function atualizarFiltros(filtroAlterado){
  renderTabela(base);
 }
 
+/* ✅ POPULAR COM OPÇÃO TODOS NO ANO */
 function popular(id,campo,base){
  let s=$('#'+id);
+
  s.empty().append('<option value="">Selecione...</option>');
+
+ // ✅ Ano ganha opção Todos
+ if(id==="anoFiltro"){
+   s.append('<option value="__todos__">Todos</option>');
+ }
+
  [...new Set(base.map(r=>r[campo]).filter(Boolean))]
    .sort()
    .forEach(v=>s.append(`<option>${v}</option>`));
+
  s.prop('disabled',false);
 }
 
+/* ✅ RENDERIZA TODOS OS ANOS QUANDO SELECIONAR TODOS */
 function renderTabela(dados){
- if(!$('#anoFiltro').val()) return;
+
+ let anoSelecionado=$('#anoFiltro').val();
+
+ if(!anoSelecionado) return;
+
+ if(anoSelecionado==="__todos__"){
+   dados=dadosOriginais;
+ }
+
  $('#tabela').show();
 
  if(tabela){
