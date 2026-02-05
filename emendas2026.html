@@ -8,9 +8,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
 
-<!-- Select2 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"/>
-
 <style>
 body{background:#f8f9fa;}
 .dataTables_filter{display:none}
@@ -62,50 +59,23 @@ table.dataTable td,table.dataTable th{
   font-size:.7rem;
 }
 
-/* ✅ Atualização discreta 70% preto */
 #indicadorAtualizacao{
   font-size:.65rem;
-  color:rgba(0,0,0,0.7);
+  color:#6c757d;
   text-align:right;
   margin-bottom:8px;
-}
-
-/* Spinner */
-#loadingOverlay{
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,0.92);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:9999;
-}
-
-#loadingOverlay span{
-  font-size:.7rem;
-  margin-top:8px;
-  color:#343a40;
 }
 </style>
 </head>
 
 <body>
 
-<!-- Spinner -->
-<div id="loadingOverlay">
-  <div class="spinner-border text-primary"></div>
-  <span>Carregando dados...</span>
-</div>
-
 <div class="container-fluid mt-3">
 
-<!-- Atualização -->
 <div id="indicadorAtualizacao">
-  Última atualização: carregando...
+  Dados atualizados automaticamente... || Lei nº 14.129/2021
 </div>
 
-<!-- FILTROS -->
 <div class="row gx-2 gy-2 mb-3">
 
   <div class="col-sm-2"><label>Ano *</label>
@@ -132,16 +102,30 @@ table.dataTable td,table.dataTable th{
     <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
   </div>
 
+  <div class="col-sm-2"><label>Recebedor</label>
+    <select id="recebedorFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>CNPJ</label>
+    <select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Natureza</label>
+    <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Função</label>
+    <select id="funcaoFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
 </div>
 
-<!-- Botão limpar -->
 <div class="d-flex justify-content-end mb-2">
   <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
     Limpar Filtros
   </button>
 </div>
 
-<!-- Exportação -->
 <div class="d-flex justify-content-between align-items-center mb-2">
 
   <div>
@@ -156,40 +140,32 @@ table.dataTable td,table.dataTable th{
 
   <div class="export-group">
     <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
+    <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
     <button id="btnPdf" class="btn btn-outline-secondary btn-sm">PDF</button>
+    <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
     <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
   </div>
 
 </div>
 
-<!-- Tabela -->
 <div class="table-responsive">
   <table id="tabela" class="table table-bordered table-striped table-sm w-100"></table>
 </div>
 
 </div>
 
-<!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
-<!-- Select2 -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- PDF Real -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 <script>
 let tabela;
 let dadosOriginais=[];
-let ultimaAtualizacao="";
 
-const urlCSV =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
+const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
 
 const campos={
   ano:"Ano",
@@ -197,183 +173,177 @@ const campos={
   tipo:"Tipo de emenda",
   autoria:"Proponente",
   numero:"Identificação da Emenda",
-  objeto:"Objeto da Despesa"
+  objeto:"Objeto da Despesa",
+  recebedor:"Órgão ou entidade executora ou beneficiária",
+  cnpj:"CNPJ do Órgão ou entidade executora ou beneficiária",
+  natureza:"Grupo de Natureza de Despesa (GND)",
+  funcao:"Função de Governo Função programática"
 };
 
 const ordem=Object.keys(campos);
 
-/* CARREGAR CSV */
-function carregarCSV(){
-
-$("#loadingOverlay").show();
-
 Papa.parse(urlCSV,{
-  download:true,
-  header:true,
-  complete:r=>{
+ download:true,
+ header:true,
+ complete:r=>{
 
-    dadosOriginais=r.data.filter(x=>x[campos.ano]);
+   dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-    ultimaAtualizacao=dadosOriginais[0]["Atualizacao"];
+   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
+   if(linhaAtualizacao){
+     $("#indicadorAtualizacao").html(
+       `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b> || Lei nº 14.129/2021`
+     );
+   }
 
-    $("#indicadorAtualizacao").html(
-      `Última atualização: <b>${ultimaAtualizacao}</b>`
-    );
+   dadosOriginais=dadosOriginais.map(r=>{
+     let copia={...r};
+     delete copia["Atualizacao"];
+     return copia;
+   });
 
-    // remove coluna Atualizacao
-    dadosOriginais=dadosOriginais.map(r=>{
-      let c={...r};
-      delete c["Atualizacao"];
-      return c;
-    });
-
-    iniciarFiltros();
-
-    $("#loadingOverlay").fadeOut();
-  }
-});
-}
-
-/* FILTROS SELECT2 */
-function iniciarFiltros(){
-
-$("select").select2({
-  width:"100%",
-  placeholder:"Digite para buscar...",
-  allowClear:true
+   carregarAno();
+ }
 });
 
-popularFiltro("anoFiltro",dadosOriginais.map(x=>x[campos.ano]));
-
-$("#anoFiltro").on("change",()=>cadeiaFiltros(1));
-$("#origemFiltro").on("change",()=>cadeiaFiltros(2));
-$("#tipoFiltro").on("change",()=>cadeiaFiltros(3));
-$("#autoriaFiltro").on("change",()=>cadeiaFiltros(4));
-$("#numeroFiltro").on("change",()=>cadeiaFiltros(5));
-$("#objetoFiltro").on("change",aplicarFiltros);
+function carregarAno(){
+ let s=$("#anoFiltro");
+ s.empty().append('<option value="">Selecione...</option>');
+ [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
+   .sort()
+   .forEach(v=>s.append(`<option>${v}</option>`));
 }
 
-/* Popular filtro */
-function popularFiltro(id,valores){
-
-let unicos=[...new Set(valores.filter(Boolean))].sort();
-
-$("#"+id).empty().append(`<option></option>`);
-
-unicos.forEach(v=>{
-  $("#"+id).append(`<option value="${v}">${v}</option>`);
-});
-
-$("#"+id).prop("disabled",unicos.length===0);
-}
-
-/* Cadeia */
-function cadeiaFiltros(nivel){
-
-let base=filtrarBase(nivel);
-
-let prox=ordem[nivel];
-if(!prox) return;
-
-popularFiltro(prox+"Filtro",base.map(x=>x[campos[prox]]));
-
-$("#"+prox+"Filtro").prop("disabled",false);
-
-aplicarFiltros();
-}
-
-/* Base filtrada */
-function filtrarBase(nivel){
-
-let base=dadosOriginais;
-
-for(let i=0;i<nivel;i++){
-  let chave=ordem[i];
-  let val=$("#"+chave+"Filtro").val();
-  if(val){
-    base=base.filter(x=>x[campos[chave]]===val);
-  }
-}
-return base;
-}
-
-/* Aplicar filtros */
 function aplicarFiltros(){
-  renderTabela(filtrarBase(ordem.length));
+
+ let ano=$("#anoFiltro").val();
+ if(!ano) return;
+
+ let base=dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+ ordem.slice(1).forEach(f=>{
+   let v=$("#"+f+"Filtro").val();
+   if(v){
+     base=base.filter(r=>r[campos[f]]===v);
+   }
+ });
+
+ atualizarFiltros();
+ renderTabela(base);
 }
 
-/* Render tabela */
+function atualizarFiltros(){
+
+ ordem.slice(1).forEach(f=>{
+
+   let seletor=$("#"+f+"Filtro");
+   let valorAtual=seletor.val();
+
+   let ano=$("#anoFiltro").val();
+   let baseOpcoes=dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+   ordem.slice(1).forEach(outro=>{
+     if(outro===f) return;
+     let val=$("#"+outro+"Filtro").val();
+     if(val){
+       baseOpcoes=baseOpcoes.filter(r=>r[campos[outro]]===val);
+     }
+   });
+
+   let valores=[...new Set(baseOpcoes.map(r=>r[campos[f]]).filter(Boolean))].sort();
+
+   seletor.empty().append('<option value="">Selecione...</option>');
+   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
+
+   seletor.prop("disabled",valores.length===0);
+
+   if(valores.includes(valorAtual)){
+     seletor.val(valorAtual);
+   } else {
+     seletor.val("");
+   }
+ });
+}
+
+$("#anoFiltro").on("change",function(){
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").val("").prop("disabled",false);
+ });
+ aplicarFiltros();
+});
+
+ordem.slice(1).forEach(f=>{
+ $("#"+f+"Filtro").on("change",aplicarFiltros);
+});
+
+$("#btnLimpar").on("click",function(){
+ location.reload();
+});
+
 function renderTabela(dados){
 
-$("#tabela").show();
+ $("#tabela").show();
 
-if(tabela){
-  tabela.clear().rows.add(dados).draw();
-  return;
+ if(tabela){
+   tabela.clear().rows.add(dados).draw();
+   return;
+ }
+
+ tabela=$("#tabela").DataTable({
+   data:dados,
+   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+   pageLength:10,
+   scrollX:true,
+   dom:"frtip",
+   language:{
+     url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+   }
+ });
+
+ $("#btnCsv").on("click",()=>exportarCSV(dados));
+ $("#btnXls").on("click",()=>exportarXLS(dados));
+ $("#btnPdf").on("click",()=>exportarPDF(dados));
+
+ $("#btnTxt").on("click",()=>{
+   baixarArquivo(dados.map(o=>Object.values(o).join(" | ")).join("\n"),"dados.txt","text/plain");
+ });
+
+ $("#btnJson").on("click",()=>{
+   baixarArquivo(JSON.stringify(dados,null,2),"dados.json","application/json");
+ });
+
+ $("#lengthSelector").on("change",function(){
+   tabela.page.len(this.value).draw();
+ });
 }
 
-tabela=$("#tabela").DataTable({
-  data:dados,
-  columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-  pageLength:10,
-  scrollX:true,
-  language:{
-    url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-  }
-});
-
-$("#lengthSelector").on("change",function(){
-  tabela.page.len(this.value).draw();
-});
+function exportarCSV(dados){
+ let csv=Papa.unparse(dados);
+ baixarArquivo(csv,"dados.csv","text/csv");
 }
 
-/* LIMPAR */
-$("#btnLimpar").on("click",function(){
-  location.reload();
-});
-
-/* EXPORTAÇÃO */
-$("#btnCsv").on("click",function(){
-  let csv=Papa.unparse(dadosOriginais);
-  baixar(csv,"dados.csv","text/csv");
-});
-
-$("#btnJson").on("click",function(){
-  baixar(JSON.stringify(dadosOriginais,null,2),"dados.json","application/json");
-});
-
-$("#btnPdf").on("click",function(){
-
-const {jsPDF}=window.jspdf;
-let doc=new jsPDF("l","mm","a4");
-
-doc.text("Relatório Oficial – Emendas IN 05/2025",14,15);
-doc.text("Última atualização: "+ultimaAtualizacao,14,22);
-
-doc.autoTable({
-  html:"#tabela",
-  startY:30,
-  theme:"grid",
-  styles:{fontSize:7}
-});
-
-doc.save("Relatorio_Emendas.pdf");
-});
-
-/* Download */
-function baixar(conteudo,nome,tipo){
-  let blob=new Blob([conteudo],{type:tipo});
-  let link=document.createElement("a");
-  link.href=URL.createObjectURL(blob);
-  link.download=nome;
-  link.click();
+function exportarXLS(dados){
+ let ws=XLSX.utils.json_to_sheet(dados);
+ let wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,ws,"Emendas");
+ XLSX.writeFile(wb,"dados.xlsx");
 }
 
-/* Atualização automática sem reload */
-setInterval(()=>carregarCSV(),300000);
+function exportarPDF(dados){
+ let texto=dados.map(o=>Object.values(o).join(" | ")).join("\n");
+ baixarArquivo(texto,"dados.pdf","application/pdf");
+}
 
-carregarCSV();
+function baixarArquivo(conteudo,nome,tipo){
+ let blob=new Blob([conteudo],{type:tipo});
+ let link=document.createElement("a");
+ link.href=URL.createObjectURL(blob);
+ link.download=nome;
+ link.click();
+}
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 </body>
 </html>
