@@ -115,16 +115,13 @@ table.dataTable td,table.dataTable th{
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
 let tabela;
-let dadosOriginais=[];
+let dadosOriginais = [];
 
-const campos={
+const campos = {
   ano:"Ano",
   origem:"Origem dos recursos",
   tipo:"Tipo de emenda",
@@ -137,109 +134,111 @@ const campos={
   funcao:"Função de Governo Função programática"
 };
 
-const ordem=Object.keys(campos);
+const ordem = Object.keys(campos);
 
 Papa.parse(
  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv",
- {download:true,header:true,complete:r=>{
-   dadosOriginais=r.data.filter(d=>d[campos.ano]);
-   popularAno();
- }}
+ {
+   download:true,
+   header:true,
+   complete:r=>{
+     dadosOriginais = r.data.filter(d=>d[campos.ano]);
+     carregarAno();
+   }
+ }
 );
 
-ordem.forEach(f=>{
- $('#'+f+'Filtro').on('change',()=>aplicarFiltros());
-});
+function carregarAno(){
+  let s=$("#anoFiltro");
+  s.empty().append('<option value="">Selecione...</option>');
+  s.append('<option value="__todos__">Todos</option>');
 
-$("#btnLimpar").on("click",function(){
- $("#anoFiltro").val("");
- ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").val("").prop("disabled",true).empty();
- });
- $("#tabela").hide();
- if(tabela){
-   tabela.clear().draw();
- }
- popularAno();
-});
+  [...new Set(dadosOriginais.map(r=>r[campos.ano]).filter(Boolean))]
+    .sort()
+    .forEach(v=>s.append(`<option>${v}</option>`));
+}
 
-function popularAno(){
- let s=$("#anoFiltro");
- s.empty().append('<option value="">Selecione...</option>');
- s.append('<option value="__todos__">Todos</option>');
- [...new Set(dadosOriginais.map(r=>r[campos.ano]).filter(Boolean))]
-   .sort()
-   .forEach(v=>s.append(`<option>${v}</option>`));
+function resetarFiltrosDependentes(){
+  ordem.slice(1).forEach(f=>{
+    $("#"+f+"Filtro").val("").prop("disabled",true).empty();
+  });
+}
+
+function atualizarOpcoesFiltros(baseFiltrada){
+  ordem.slice(1).forEach(f=>{
+    let seletor=$("#"+f+"Filtro");
+    let valores=[...new Set(baseFiltrada.map(r=>r[campos[f]]).filter(Boolean))].sort();
+
+    seletor.empty().append('<option value="">Selecione...</option>');
+
+    valores.forEach(v=>{
+      seletor.append(`<option>${v}</option>`);
+    });
+
+    seletor.prop("disabled",valores.length===0);
+  });
 }
 
 function aplicarFiltros(){
- let anoSelecionado=$("#anoFiltro").val();
- if(!anoSelecionado) return;
+  let ano=$("#anoFiltro").val();
+  if(!ano) return;
 
- let base=dadosOriginais;
+  let base=dadosOriginais;
 
- if(anoSelecionado!=="__todos__"){
-   base=base.filter(r=>r[campos.ano]===anoSelecionado);
- }
+  if(ano!=="__todos__"){
+    base=base.filter(r=>r[campos.ano]===ano);
+  }
 
- ordem.slice(1).forEach(f=>{
-   let v=$("#"+f+"Filtro").val();
-   if(v) base=base.filter(r=>r[campos[f]]===v);
- });
+  ordem.slice(1).forEach(f=>{
+    let v=$("#"+f+"Filtro").val();
+    if(v){
+      base=base.filter(r=>r[campos[f]]===v);
+    }
+  });
 
- ordem.slice(1).forEach(f=>{
-   let s=$("#"+f+"Filtro");
-   let valorAtual=s.val();
-   s.empty().append('<option value="">Selecione...</option>');
-
-   let baseOpcoes=dadosOriginais;
-
-   if(anoSelecionado!=="__todos__"){
-     baseOpcoes=baseOpcoes.filter(r=>r[campos.ano]===anoSelecionado);
-   }
-
-   ordem.slice(1).forEach(outro=>{
-     if(outro===f) return;
-     let val=$("#"+outro+"Filtro").val();
-     if(val) baseOpcoes=baseOpcoes.filter(r=>r[campos[outro]]===val);
-   });
-
-   [...new Set(baseOpcoes.map(r=>r[campos[f]]).filter(Boolean))]
-     .sort()
-     .forEach(v=>s.append(`<option>${v}</option>`));
-
-   s.prop("disabled",false);
-
-   if(valorAtual && [...s.find("option")].some(o=>o.value===valorAtual)){
-     s.val(valorAtual);
-   } else {
-     s.val("");
-   }
- });
-
- renderTabela(base);
+  atualizarOpcoesFiltros(base);
+  renderTabela(base);
 }
 
+$("#anoFiltro").on("change",function(){
+  resetarFiltrosDependentes();
+  aplicarFiltros();
+});
+
+ordem.slice(1).forEach(f=>{
+  $("#"+f+"Filtro").on("change",function(){
+    aplicarFiltros();
+  });
+});
+
+$("#btnLimpar").on("click",function(){
+  $("#anoFiltro").val("");
+  resetarFiltrosDependentes();
+  $("#tabela").hide();
+  if(tabela) tabela.clear().draw();
+});
+
 function renderTabela(dados){
- $("#tabela").show();
+  $("#tabela").show();
 
- if(tabela){
-  tabela.clear().rows.add(dados).draw();
-  return;
- }
+  if(tabela){
+    tabela.clear().rows.add(dados).draw();
+    return;
+  }
 
- tabela=$("#tabela").DataTable({
-  data:dados,
-  columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-  pageLength:10,
-  scrollX:true,
-  dom:"frtip",
-  language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
- });
+  tabela=$("#tabela").DataTable({
+    data:dados,
+    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+    pageLength:10,
+    scrollX:true,
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
+  });
 
- $("#lengthSelector").on("change",function(){
-  tabela.page.len(this.value).draw();
- });
+  $("#lengthSelector").on("change",function(){
+    tabela.page.len(this.value).draw();
+  });
 }
 </script>
 
