@@ -7,6 +7,7 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css"/>
 
 <style>
 body{background:#f8f9fa;}
@@ -45,8 +46,8 @@ table.dataTable td,table.dataTable th{
 }
 
 .export-group .btn{
-  font-size:.7rem;
-  padding:4px 8px;
+  font-size:.7rem !important;
+  padding:4px 8px !important;
 }
 
 #lengthSelector{
@@ -68,7 +69,7 @@ table.dataTable td,table.dataTable th{
 <div class="container-fluid mt-3">
 
 <div id="indicadorAtualizacao">
-  Dados atualizados automaticamente || Lei nº 14.129/2021
+  Dados carregados automaticamente | Lei nº 14.129/2021
 </div>
 
 <div class="row gx-2 gy-2 mb-3">
@@ -98,13 +99,8 @@ table.dataTable td,table.dataTable th{
       <option>100</option>
     </select>
   </div>
-  <div class="export-group">
-    <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-    <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-    <button id="btnPdf" class="btn btn-outline-secondary btn-sm">PDF</button>
-    <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
-    <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-  </div>
+
+  <div class="export-group" id="exportacoes"></div>
 </div>
 
 <div class="table-responsive">
@@ -114,14 +110,27 @@ table.dataTable td,table.dataTable th{
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
 let tabela;
-let dadosOriginais = [];
+let dadosOriginais=[];
 
-const campos = {
+const campos={
   ano:"Ano",
   origem:"Origem dos recursos",
   tipo:"Tipo de emenda",
@@ -134,111 +143,124 @@ const campos = {
   funcao:"Função de Governo Função programática"
 };
 
-const ordem = Object.keys(campos);
+const ordem=Object.keys(campos);
 
 Papa.parse(
  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv",
- {
-   download:true,
-   header:true,
-   complete:r=>{
-     dadosOriginais = r.data.filter(d=>d[campos.ano]);
-     carregarAno();
-   }
- }
+ {download:true,header:true,complete:r=>{
+   dadosOriginais=r.data.filter(d=>d[campos.ano]);
+
+   let agora=new Date();
+   $("#indicadorAtualizacao").html(
+     "Base carregada em: "+agora.toLocaleString("pt-BR")+
+     " | Lei nº 14.129/2021"
+   );
+
+   carregarAno();
+ }}
 );
 
 function carregarAno(){
-  let s=$("#anoFiltro");
-  s.empty().append('<option value="">Selecione...</option>');
-  s.append('<option value="__todos__">Todos</option>');
-
-  [...new Set(dadosOriginais.map(r=>r[campos.ano]).filter(Boolean))]
-    .sort()
-    .forEach(v=>s.append(`<option>${v}</option>`));
+ let s=$("#anoFiltro");
+ s.empty().append('<option value="">Selecione...</option>');
+ s.append('<option value="__todos__">Todos</option>');
+ [...new Set(dadosOriginais.map(r=>r[campos.ano]).filter(Boolean))]
+ .sort()
+ .forEach(v=>s.append(`<option>${v}</option>`));
 }
 
-function resetarFiltrosDependentes(){
-  ordem.slice(1).forEach(f=>{
-    $("#"+f+"Filtro").val("").prop("disabled",true).empty();
-  });
+function resetarFiltros(){
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").val("").prop("disabled",true).empty();
+ });
 }
 
-function atualizarOpcoesFiltros(baseFiltrada){
-  ordem.slice(1).forEach(f=>{
-    let seletor=$("#"+f+"Filtro");
-    let valores=[...new Set(baseFiltrada.map(r=>r[campos[f]]).filter(Boolean))].sort();
-
-    seletor.empty().append('<option value="">Selecione...</option>');
-
-    valores.forEach(v=>{
-      seletor.append(`<option>${v}</option>`);
-    });
-
-    seletor.prop("disabled",valores.length===0);
-  });
+function atualizarFiltros(base){
+ ordem.slice(1).forEach(f=>{
+   let seletor=$("#"+f+"Filtro");
+   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
+   seletor.empty().append('<option value="">Selecione...</option>');
+   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
+   seletor.prop("disabled",valores.length===0);
+ });
 }
 
 function aplicarFiltros(){
-  let ano=$("#anoFiltro").val();
-  if(!ano) return;
+ let ano=$("#anoFiltro").val();
+ if(!ano) return;
 
-  let base=dadosOriginais;
+ let base=dadosOriginais;
+ if(ano!=="__todos__"){
+   base=base.filter(r=>r[campos.ano]===ano);
+ }
 
-  if(ano!=="__todos__"){
-    base=base.filter(r=>r[campos.ano]===ano);
-  }
+ ordem.slice(1).forEach(f=>{
+   let v=$("#"+f+"Filtro").val();
+   if(v) base=base.filter(r=>r[campos[f]]===v);
+ });
 
-  ordem.slice(1).forEach(f=>{
-    let v=$("#"+f+"Filtro").val();
-    if(v){
-      base=base.filter(r=>r[campos[f]]===v);
-    }
-  });
-
-  atualizarOpcoesFiltros(base);
-  renderTabela(base);
+ atualizarFiltros(base);
+ renderTabela(base);
 }
 
 $("#anoFiltro").on("change",function(){
-  resetarFiltrosDependentes();
-  aplicarFiltros();
+ resetarFiltros();
+ aplicarFiltros();
 });
 
 ordem.slice(1).forEach(f=>{
-  $("#"+f+"Filtro").on("change",function(){
-    aplicarFiltros();
-  });
+ $("#"+f+"Filtro").on("change",aplicarFiltros);
 });
 
 $("#btnLimpar").on("click",function(){
-  $("#anoFiltro").val("");
-  resetarFiltrosDependentes();
-  $("#tabela").hide();
-  if(tabela) tabela.clear().draw();
+ $("#anoFiltro").val("");
+ resetarFiltros();
+ $("#tabela").hide();
+ if(tabela) tabela.clear().draw();
 });
 
 function renderTabela(dados){
-  $("#tabela").show();
+ $("#tabela").show();
 
-  if(tabela){
-    tabela.clear().rows.add(dados).draw();
-    return;
-  }
+ if(tabela){
+   tabela.clear().rows.add(dados).draw();
+   return;
+ }
 
-  tabela=$("#tabela").DataTable({
-    data:dados,
-    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-    pageLength:10,
-    scrollX:true,
-    language:{
-      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-    }
-  });
+ tabela=$("#tabela").DataTable({
+   data:dados,
+   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+   pageLength:10,
+   scrollX:true,
+   dom:"Bfrtip",
+   buttons:[
+     {extend:"csvHtml5",text:"CSV",className:"btn btn-outline-secondary btn-sm"},
+     {extend:"excelHtml5",text:"XLS",className:"btn btn-outline-secondary btn-sm"},
+     {extend:"pdfHtml5",text:"PDF",className:"btn btn-outline-secondary btn-sm"},
+     {extend:"print",text:"TXT",className:"btn btn-outline-secondary btn-sm"},
+     {
+       text:"JSON",
+       className:"btn btn-outline-secondary btn-sm",
+       action:function(){
+         let json=JSON.stringify(dados,null,2);
+         let blob=new Blob([json],{type:"application/json"});
+         let link=document.createElement("a");
+         link.href=URL.createObjectURL(blob);
+         link.download="dados.json";
+         link.click();
+       }
+     }
+   ],
+   language:{
+     url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+   }
+ });
 
-  $("#lengthSelector").on("change",function(){
-    tabela.page.len(this.value).draw();
-  });
+ tabela.buttons().container().appendTo("#exportacoes");
+
+ $("#lengthSelector").on("change",function(){
+   tabela.page.len(this.value).draw();
+ });
 }
 </script>
 
