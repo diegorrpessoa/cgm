@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Painel de Emendas - IN 05/2025 - TCE/MG</title>
+<title>Painel de Emendas | IN 05/2025 - TCE/MG</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -45,9 +45,14 @@ table.dataTable td,table.dataTable th{
   font-weight:bold;
 }
 
+.export-group{
+  display:flex;
+  gap:4px;
+}
+
 .export-group .btn{
-  font-size:.7rem !important;
-  padding:4px 8px !important;
+  font-size:.7rem;
+  padding:4px 8px;
 }
 
 #lengthSelector{
@@ -69,7 +74,7 @@ table.dataTable td,table.dataTable th{
 <div class="container-fluid mt-3">
 
 <div id="indicadorAtualizacao">
-  Dados carregados automaticamente | Lei nº 14.129/2021
+  Dados atualizados automaticamente || Lei nº 14.129/2021
 </div>
 
 <div class="row gx-2 gy-2 mb-3">
@@ -99,8 +104,6 @@ table.dataTable td,table.dataTable th{
       <option>100</option>
     </select>
   </div>
-
-  <div class="export-group" id="exportacoes"></div>
 </div>
 
 <div class="table-responsive">
@@ -110,9 +113,7 @@ table.dataTable td,table.dataTable th{
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
 
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
@@ -122,7 +123,6 @@ table.dataTable td,table.dataTable th{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
 <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
@@ -148,13 +148,20 @@ const ordem=Object.keys(campos);
 Papa.parse(
  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv",
  {download:true,header:true,complete:r=>{
+
    dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-   let agora=new Date();
-   $("#indicadorAtualizacao").html(
-     "Base carregada em: "+agora.toLocaleString("pt-BR")+
-     " | Lei nº 14.129/2021"
-   );
+   let dataAtualizacao=dadosOriginais[0]["Data Atualização"];
+
+   if(dataAtualizacao){
+     $("#indicadorAtualizacao").html(
+       "Última atualização: "+dataAtualizacao+" || Lei nº 14.129/2021"
+     );
+   }
+
+   dadosOriginais.forEach(d=>{
+     delete d["Data Atualização"];
+   });
 
    carregarAno();
  }}
@@ -169,27 +176,12 @@ function carregarAno(){
  .forEach(v=>s.append(`<option>${v}</option>`));
 }
 
-function resetarFiltros(){
- ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").val("").prop("disabled",true).empty();
- });
-}
-
-function atualizarFiltros(base){
- ordem.slice(1).forEach(f=>{
-   let seletor=$("#"+f+"Filtro");
-   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
-   seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
-   seletor.prop("disabled",valores.length===0);
- });
-}
-
 function aplicarFiltros(){
  let ano=$("#anoFiltro").val();
  if(!ano) return;
 
- let base=dadosOriginais;
+ let base=[...dadosOriginais];
+
  if(ano!=="__todos__"){
    base=base.filter(r=>r[campos.ano]===ano);
  }
@@ -199,67 +191,81 @@ function aplicarFiltros(){
    if(v) base=base.filter(r=>r[campos[f]]===v);
  });
 
- atualizarFiltros(base);
+ ordem.slice(1).forEach(f=>{
+   let seletor=$("#"+f+"Filtro");
+   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
+   let atual=seletor.val();
+
+   seletor.empty().append('<option value="">Selecione...</option>');
+   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
+   seletor.prop("disabled",valores.length===0);
+
+   if(valores.includes(atual)) seletor.val(atual);
+ });
+
  renderTabela(base);
 }
 
 $("#anoFiltro").on("change",function(){
- resetarFiltros();
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").val("").prop("disabled",false);
+ });
  aplicarFiltros();
 });
 
 ordem.slice(1).forEach(f=>{
- $("#"+f+"Filtro").on("change",aplicarFiltros);
+ $("#"+f+"Filtro").on("change",function(){
+   aplicarFiltros();
+ });
 });
 
 $("#btnLimpar").on("click",function(){
  $("#anoFiltro").val("");
- resetarFiltros();
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").val("").prop("disabled",true).empty();
+ });
  $("#tabela").hide();
  if(tabela) tabela.clear().draw();
+ carregarAno();
 });
 
 function renderTabela(dados){
  $("#tabela").show();
 
  if(tabela){
-   tabela.clear().rows.add(dados).draw();
-   return;
+  tabela.clear().rows.add(dados).draw();
+  return;
  }
 
  tabela=$("#tabela").DataTable({
-   data:dados,
-   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-   pageLength:10,
-   scrollX:true,
-   dom:"Bfrtip",
-   buttons:[
-     {extend:"csvHtml5",text:"CSV",className:"btn btn-outline-secondary btn-sm"},
-     {extend:"excelHtml5",text:"XLS",className:"btn btn-outline-secondary btn-sm"},
-     {extend:"pdfHtml5",text:"PDF",className:"btn btn-outline-secondary btn-sm"},
-     {extend:"print",text:"TXT",className:"btn btn-outline-secondary btn-sm"},
-     {
-       text:"JSON",
-       className:"btn btn-outline-secondary btn-sm",
-       action:function(){
-         let json=JSON.stringify(dados,null,2);
-         let blob=new Blob([json],{type:"application/json"});
-         let link=document.createElement("a");
-         link.href=URL.createObjectURL(blob);
-         link.download="dados.json";
-         link.click();
-       }
+  data:dados,
+  columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+  pageLength:10,
+  scrollX:true,
+  dom:"Bfrtip",
+  buttons:[
+    {extend:"csvHtml5",text:"CSV",className:"btn btn-outline-secondary btn-sm"},
+    {extend:"excelHtml5",text:"XLS",className:"btn btn-outline-secondary btn-sm"},
+    {extend:"pdfHtml5",text:"PDF",className:"btn btn-outline-secondary btn-sm"},
+    {extend:"copyHtml5",text:"TXT",className:"btn btn-outline-secondary btn-sm"},
+    {text:"JSON",className:"btn btn-outline-secondary btn-sm",
+     action:function(){
+       let json=JSON.stringify(dados,null,2);
+       let blob=new Blob([json],{type:"application/json"});
+       let link=document.createElement("a");
+       link.href=URL.createObjectURL(blob);
+       link.download="emendas.json";
+       link.click();
      }
-   ],
-   language:{
-     url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-   }
+    }
+  ],
+  language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
  });
 
- tabela.buttons().container().appendTo("#exportacoes");
+ $(".dt-buttons").addClass("export-group");
 
  $("#lengthSelector").on("change",function(){
-   tabela.page.len(this.value).draw();
+  tabela.page.len(this.value).draw();
  });
 }
 </script>
