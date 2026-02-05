@@ -84,6 +84,12 @@ table.dataTable td,table.dataTable th{
   <div class="col-sm-2"><label>Função</label><select id="funcaoFiltro" class="form-select form-select-sm" disabled></select></div>
 </div>
 
+<div class="d-flex justify-content-end mb-2">
+  <button id="btnLimpar" class="btn btn-outline-secondary btn-sm">
+    Limpar filtros
+  </button>
+</div>
+
 <div class="d-flex justify-content-between align-items-center mb-2">
   <div>
     <label class="me-1">Registros por página:</label>
@@ -145,6 +151,18 @@ Papa.parse(
 
 ordem.forEach(f=>{
  $('#'+f+'Filtro').on('change',()=>aplicarFiltros());
+});
+
+$("#btnLimpar").on("click",function(){
+ $("#anoFiltro").val("");
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").val("").prop("disabled",true).empty();
+ });
+ $("#tabela").hide();
+ if(tabela){
+   tabela.clear().draw();
+ }
+ popularAno();
 });
 
 function popularAno(){
