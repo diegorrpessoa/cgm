@@ -70,32 +70,16 @@ table.dataTable td,table.dataTable th{
 }
 
 /* Spinner discreto */
-#loadingOverlay{
-  position:fixed;
-  inset:0;
-  background:rgba(255,255,255,0.92);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  z-index:9999;
-}
-
-#loadingOverlay span{
+#spinner{
+  display:none;
   font-size:.7rem;
-  margin-top:8px;
-  color:#343a40;
+  color:rgba(0,0,0,0.6);
+  margin-bottom:8px;
 }
 </style>
 </head>
 
 <body>
-
-<!-- Spinner -->
-<div id="loadingOverlay">
-  <div class="spinner-border text-primary"></div>
-  <span>Carregando dados...</span>
-</div>
 
 <div class="container-fluid mt-3">
 
@@ -103,6 +87,8 @@ table.dataTable td,table.dataTable th{
 <div id="indicadorAtualizacao">
   Última atualização: carregando...
 </div>
+
+<div id="spinner">Atualizando dados...</div>
 
 <!-- FILTROS -->
 <div class="row gx-2 gy-2 mb-3">
@@ -189,18 +175,10 @@ table.dataTable td,table.dataTable th{
 <!-- Scripts -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <!-- Select2 -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- XLSX -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-<!-- PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 <script>
 let tabela;
@@ -224,8 +202,10 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* ✅ FUNÇÃO CENTRAL DE ATUALIZAÇÃO */
+/* ✅ CARREGAR CSV */
 function carregarCSV(){
+
+ $("#spinner").show();
 
  Papa.parse(urlCSV,{
    download:true,
@@ -234,11 +214,13 @@ function carregarCSV(){
 
      dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-     ultimaAtualizacao=dadosOriginais[0]["Atualizacao"];
-
-     $("#indicadorAtualizacao").html(
-       `Última atualização: <b>${ultimaAtualizacao}</b>`
-     );
+     let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
+     if(linhaAtualizacao){
+       ultimaAtualizacao=linhaAtualizacao["Atualizacao"];
+       $("#indicadorAtualizacao").html(
+         `Última atualização: <b>${ultimaAtualizacao}</b>`
+       );
+     }
 
      dadosOriginais=dadosOriginais.map(r=>{
        let copia={...r};
@@ -246,46 +228,69 @@ function carregarCSV(){
        return copia;
      });
 
-     iniciarFiltros();
-     $("#loadingOverlay").fadeOut();
-
+     carregarAno();
+     $("#spinner").hide();
    }
  });
 }
 
-/* ✅ SELECT2 */
-function iniciarFiltros(){
-
- $("select").select2({
-   width:"100%",
-   placeholder:"Selecione...",
-   allowClear:true
- });
-
- carregarAno();
-}
-
-/* ✅ ANO COM "TODOS" */
+/* ✅ ANO COM TODOS */
 function carregarAno(){
 
  let s=$("#anoFiltro");
  s.empty();
 
- s.append(`<option value="TODOS">Todos</option>`);
+ s.append('<option value="">Selecione...</option>');
+ s.append('<option value="__todos__">Todos</option>');
 
- [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
+ [...new Set(dadosOriginais.map(r=>r[campos.ano]).filter(Boolean))]
    .sort()
    .forEach(v=>s.append(`<option>${v}</option>`));
+
+ aplicarSelect2();
 }
 
-/* Aplicar filtros */
+/* ✅ SELECT2 SEM MUDAR VISUAL */
+function aplicarSelect2(){
+
+ $("select").select2({
+   width:"100%",
+   minimumResultsForSearch: 0
+ });
+
+}
+
+/* RESET */
+function resetarFiltros(){
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").val("").prop("disabled",true).empty();
+ });
+}
+
+/* ATUALIZA ENCADEADO */
+function atualizarFiltros(base){
+
+ ordem.slice(1).forEach(f=>{
+   let seletor=$("#"+f+"Filtro");
+
+   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
+
+   seletor.empty().append('<option value="">Selecione...</option>');
+   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
+
+   seletor.prop("disabled",valores.length===0);
+ });
+}
+
+/* APLICAR */
 function aplicarFiltros(){
 
- let base=[...dadosOriginais];
-
  let ano=$("#anoFiltro").val();
+ if(!ano) return;
 
- if(ano && ano!=="TODOS"){
+ let base=dadosOriginais;
+
+ if(ano!=="__todos__"){
    base=base.filter(r=>r[campos.ano]===ano);
  }
 
@@ -296,16 +301,29 @@ function aplicarFiltros(){
    }
  });
 
+ atualizarFiltros(base);
  renderTabela(base);
 }
 
-/* Eventos */
-$("select").on("change",aplicarFiltros);
+/* EVENTOS */
+$("#anoFiltro").on("change",function(){
+ resetarFiltros();
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").prop("disabled",false);
+ });
+ aplicarFiltros();
+});
 
-/* Limpar */
-$("#btnLimpar").on("click",()=>location.reload());
+ordem.slice(1).forEach(f=>{
+ $("#"+f+"Filtro").on("change",aplicarFiltros);
+});
 
-/* Render tabela */
+/* LIMPAR */
+$("#btnLimpar").on("click",function(){
+ location.reload();
+});
+
+/* TABELA */
 function renderTabela(dados){
 
  $("#tabela").show();
@@ -328,75 +346,14 @@ function renderTabela(dados){
  $("#lengthSelector").on("change",function(){
    tabela.page.len(this.value).draw();
  });
-
- configurarExportacoes();
-}
-
-/* Exportações */
-function configurarExportacoes(){
-
- $("#btnCsv").on("click",function(){
-   let csv=Papa.unparse(tabela.rows().data().toArray());
-   baixarArquivo(csv,"dados.csv","text/csv");
- });
-
- $("#btnXls").on("click",function(){
-   let dados=tabela.rows().data().toArray();
-   let ws=XLSX.utils.json_to_sheet(dados);
-   let wb=XLSX.utils.book_new();
-   XLSX.utils.book_append_sheet(wb,ws,"Emendas");
-   XLSX.writeFile(wb,"dados.xlsx");
- });
-
- $("#btnPdf").on("click",function(){
-
-   const {jsPDF}=window.jspdf;
-   let doc=new jsPDF("l","mm","a4");
-
-   doc.text("Relatório de Emendas",14,15);
-   doc.text("Última atualização: "+ultimaAtualizacao,14,22);
-
-   doc.autoTable({
-     head:[Object.keys(tabela.rows().data().toArray()[0])],
-     body:tabela.rows().data().toArray().map(o=>Object.values(o)),
-     startY:30,
-     styles:{fontSize:7}
-   });
-
-   doc.save("relatorio.pdf");
- });
-
- $("#btnTxt").on("click",function(){
-   let txt=tabela.rows().data().toArray()
-     .map(o=>Object.values(o).join(" | "))
-     .join("\n");
-
-   baixarArquivo(txt,"dados.txt","text/plain");
- });
-
- $("#btnJson").on("click",function(){
-   let json=JSON.stringify(tabela.rows().data().toArray(),null,2);
-   baixarArquivo(json,"dados.json","application/json");
- });
-}
-
-/* Download */
-function baixarArquivo(conteudo,nome,tipo){
- let blob=new Blob([conteudo],{type:tipo});
- let link=document.createElement("a");
- link.href=URL.createObjectURL(blob);
- link.download=nome;
- link.click();
 }
 
 /* ✅ AUTOATUALIZAÇÃO SEM RELOAD */
 carregarCSV();
 
-/* Atualiza a cada 5 minutos */
 setInterval(()=>{
- console.log("Atualizando dados automaticamente...");
  carregarCSV();
-}, 300000);
+},300000);
 
 </script>
 
