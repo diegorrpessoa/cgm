@@ -50,7 +50,7 @@ table.dataTable td,table.dataTable th{
   Dados atualizados automaticamente em...
 </div>
 
-<!-- FILTRO ANO -->
+<!-- FILTRO -->
 <div class="row gx-2 gy-2 mb-3">
   <div class="col-sm-2">
     <label>Ano *</label>
@@ -74,9 +74,11 @@ table.dataTable td,table.dataTable th{
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
+<!-- PDFMAKE -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
+<!-- CSV -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
@@ -86,7 +88,7 @@ let dadosOriginais=[];
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
 
-/* CARREGAR CSV */
+/* 🔥 CARREGAR CSV */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
@@ -111,7 +113,7 @@ Papa.parse(urlCSV,{
  }
 });
 
-/* POPULAR ANO */
+/* 🔥 POPULAR ANO */
 function carregarAno(){
  let s=$("#anoFiltro");
  s.empty().append('<option value="">Selecione...</option>');
@@ -121,7 +123,7 @@ function carregarAno(){
    .forEach(v=>s.append(`<option>${v}</option>`));
 }
 
-/* EVENTO ANO */
+/* 🔥 EVENTO */
 $("#anoFiltro").on("change",function(){
 
  let ano=this.value;
@@ -132,7 +134,7 @@ $("#anoFiltro").on("change",function(){
  renderTabela(base);
 });
 
-/* RENDER */
+/* 🔥 RENDER */
 function renderTabela(dados){
 
  $("#tabela").show();
@@ -144,72 +146,99 @@ function renderTabela(dados){
 
  tabela=$("#tabela").DataTable({
    data:dados,
-   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+
+   columns:Object.keys(dados[0]).map(c=>({
+     title:c,
+     data:c
+   })),
+
    pageLength:10,
    scrollX:true,
+
    language:{
      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
    }
  });
 }
 
-/* ✅ PDF COM TODAS AS COLUNAS */
+/* ======================================================
+   ✅ EXPORTAÇÃO PDF ABSOLUTA (TODAS AS COLUNAS)
+====================================================== */
 $("#btnPdf").on("click",function(){
 
- let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
-
- if(dadosVisiveis.length===0){
-   alert("Nenhum dado disponível.");
+ if(!tabela){
+   alert("Tabela ainda não carregada.");
    return;
  }
 
- let colunas=Object.keys(dadosVisiveis[0]);
+ /* 🔥 PEGAR SOMENTE O QUE ESTÁ VISÍVEL NA TELA */
+ let dadosVisiveis = tabela.rows({search:"applied"}).data().toArray();
 
- /* CABEÇALHO */
- let body=[
+ if(dadosVisiveis.length===0){
+   alert("Nenhum dado disponível para exportar.");
+   return;
+ }
+
+ /* 🔥 PEGAR TODAS AS COLUNAS DA TABELA */
+ let colunas = tabela.settings()[0].aoColumns.map(c=>c.sTitle);
+
+ /* 🔥 MONTA CABEÇALHO */
+ let body = [];
+
+ body.push(
    colunas.map(c=>({
      text:c,
-     style:"header",
+     style:"cabecalho",
      noWrap:false
    }))
- ];
+ );
 
- /* LINHAS */
- dadosVisiveis.forEach(row=>{
+ /* 🔥 LINHAS */
+ dadosVisiveis.forEach(linha=>{
+
    body.push(
      colunas.map(col=>({
-       text: row[col] ? row[col].toString() : "",
-       style:"cell",
+       text: linha[col] ? linha[col].toString() : "",
+       style:"celula",
        noWrap:false
      }))
    );
+
  });
 
+ /* 🔥 TAMANHO DINÂMICO DA FONTE */
+ let fonte = colunas.length > 12 ? 5 : 7;
+
+ /* 🔥 PDF FINAL */
  let docDefinition={
 
    pageSize:"A4",
    pageOrientation:"landscape",
-   pageMargins:[10,30,10,25],
+   pageMargins:[8,25,8,20],
 
    footer:function(currentPage,pageCount){
      return {
        text:`Página ${currentPage} de ${pageCount}`,
        alignment:"right",
-       margin:[0,0,15,8],
+       margin:[0,0,15,5],
        fontSize:8,
        color:"gray"
      };
    },
 
    content:[
-     {text:"Painel de Emendas – IN 05/2025 – TCE/MG",style:"title"},
-     {text:$("#indicadorAtualizacao").text(),style:"sub"},
+
+     {text:"Painel de Emendas – IN 05/2025 – TCE/MG",
+      style:"titulo"},
+
+     {text:$("#indicadorAtualizacao").text(),
+      style:"subtitulo"},
 
      {
        table:{
          headerRows:1,
 
-         /* ✅ FORÇA TODAS AS COLUNAS */
+         /* ✅ TODAS AS COLUNAS SEM CORTAR */
          widths:Array(colunas.length).fill("*"),
 
          body:body
@@ -220,23 +249,35 @@ $("#btnPdf").on("click",function(){
    ],
 
    styles:{
-     title:{fontSize:12,bold:true,margin:[0,0,0,6]},
-     sub:{fontSize:8,color:"gray",margin:[0,0,0,8]},
 
-     header:{
+     titulo:{
+       fontSize:11,
        bold:true,
-       fontSize:7,
+       margin:[0,0,0,4]
+     },
+
+     subtitulo:{
+       fontSize:8,
+       color:"gray",
+       margin:[0,0,0,6]
+     },
+
+     cabecalho:{
+       fontSize:fonte,
+       bold:true,
        fillColor:"#e9ecef",
        alignment:"center"
      },
 
-     cell:{
-       fontSize:6
+     celula:{
+       fontSize:fonte,
+       margin:[0,2,0,2]
      }
    }
  };
 
- pdfMake.createPdf(docDefinition).download("painel_emendas_completo.pdf");
+ pdfMake.createPdf(docDefinition)
+        .download("painel_emendas_completo.pdf");
 
 });
 </script>
