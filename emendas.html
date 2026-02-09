@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Painel de Emendas 09.02.26 - IN 05/2025 - TCE/MG</title>
+<title>Painel de Emendas - IN 05/2025 - TCE/MG</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -28,35 +28,9 @@ table.dataTable td,table.dataTable th{
 
 #tabela{display:none}
 
-.dataTables_wrapper .dataTables_paginate{
-  margin-top:.5rem;
-  display:flex;
-  justify-content:center;
-  gap:4px;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button{
-  padding:4px 8px!important;
-  font-size:.65rem!important;
-  border-radius:6px!important;
-  background:#e9ecef!important;
-  border:1px solid #dee2e6!important;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.current{
-  background:#0d6efd!important;
-  color:#fff!important;
-  font-weight:bold;
-}
-
 .export-group .btn{
   font-size:.7rem;
   padding:4px 8px;
-}
-
-#lengthSelector{
-  width:70px;
-  font-size:.7rem;
 }
 
 #indicadorAtualizacao{
@@ -76,79 +50,17 @@ table.dataTable td,table.dataTable th{
   Dados atualizados automaticamente em...
 </div>
 
-<!-- FILTROS -->
+<!-- FILTRO ANO -->
 <div class="row gx-2 gy-2 mb-3">
-
-  <div class="col-sm-2"><label>Ano *</label>
+  <div class="col-sm-2">
+    <label>Ano *</label>
     <select id="anoFiltro" class="form-select form-select-sm"></select>
   </div>
-
-  <div class="col-sm-2"><label>Origem</label>
-    <select id="origemFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Tipo</label>
-    <select id="tipoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Autoria</label>
-    <select id="autoriaFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Número</label>
-    <select id="numeroFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Objeto</label>
-    <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Recebedor</label>
-    <select id="recebedorFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>CNPJ</label>
-    <select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Natureza</label>
-    <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Função</label>
-    <select id="funcaoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-</div>
-
-<!-- LIMPAR -->
-<div class="d-flex justify-content-end mb-2">
-  <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
-    Limpar Filtros
-  </button>
 </div>
 
 <!-- EXPORTAÇÃO -->
-<div class="d-flex justify-content-between align-items-center mb-2">
-
-  <div>
-    <label class="me-1">Registros por página:</label>
-    <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
-      <option>10</option>
-      <option>25</option>
-      <option>50</option>
-      <option>100</option>
-    </select>
-  </div>
-
-  <div class="export-group">
-    <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-    <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-    <button id="btnPdf" class="btn btn-outline-secondary btn-sm">PDF</button>
-    <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
-    <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-  </div>
-
+<div class="d-flex justify-content-end mb-2 export-group">
+  <button id="btnPdf" class="btn btn-outline-secondary btn-sm">PDF</button>
 </div>
 
 <!-- TABELA -->
@@ -166,7 +78,6 @@ table.dataTable td,table.dataTable th{
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 let tabela;
@@ -175,28 +86,13 @@ let dadosOriginais=[];
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
 
-const campos={
-  ano:"Ano",
-  origem:"Origem dos recursos",
-  tipo:"Tipo de emenda",
-  autoria:"Proponente",
-  numero:"Identificação da Emenda",
-  objeto:"Objeto da Despesa",
-  recebedor:"Órgão ou entidade executora ou beneficiária",
-  cnpj:"CNPJ do Órgão ou entidade executora ou beneficiária",
-  natureza:"Grupo de Natureza de Despesa (GND)",
-  funcao:"Função de Governo Função programática"
-};
-
-const ordem=Object.keys(campos);
-
 /* CARREGAR CSV */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
  complete:r=>{
 
-   dadosOriginais=r.data.filter(d=>d[campos.ano]);
+   dadosOriginais=r.data.filter(d=>d["Ano"]);
 
    let linhaAtualizacao=r.data.find(x=>x["Atualizacao"]);
    if(linhaAtualizacao){
@@ -219,78 +115,24 @@ Papa.parse(urlCSV,{
 function carregarAno(){
  let s=$("#anoFiltro");
  s.empty().append('<option value="">Selecione...</option>');
- [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
+
+ [...new Set(dadosOriginais.map(r=>r["Ano"]))]
    .sort()
    .forEach(v=>s.append(`<option>${v}</option>`));
 }
 
-/* FILTROS */
-function aplicarFiltros(){
+/* EVENTO ANO */
+$("#anoFiltro").on("change",function(){
 
- let ano=$("#anoFiltro").val();
+ let ano=this.value;
  if(!ano) return;
 
- let base=dadosOriginais.filter(r=>r[campos.ano]===ano);
+ let base=dadosOriginais.filter(r=>r["Ano"]===ano);
 
- ordem.slice(1).forEach(f=>{
-   let v=$("#"+f+"Filtro").val();
-   if(v){
-     base=base.filter(r=>r[campos[f]]===v);
-   }
- });
-
- atualizarFiltros();
  renderTabela(base);
-}
-
-function atualizarFiltros(){
-
- ordem.slice(1).forEach(f=>{
-
-   let seletor=$("#"+f+"Filtro");
-   let valorAtual=seletor.val();
-
-   let ano=$("#anoFiltro").val();
-   let baseOpcoes=dadosOriginais.filter(r=>r[campos.ano]===ano);
-
-   ordem.slice(1).forEach(outro=>{
-     if(outro===f) return;
-     let val=$("#"+outro+"Filtro").val();
-     if(val){
-       baseOpcoes=baseOpcoes.filter(r=>r[campos[outro]]===val);
-     }
-   });
-
-   let valores=[...new Set(baseOpcoes.map(r=>r[campos[f]]).filter(Boolean))].sort();
-
-   seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
-
-   seletor.prop("disabled",valores.length===0);
-
-   if(valores.includes(valorAtual)){
-     seletor.val(valorAtual);
-   } else {
-     seletor.val("");
-   }
- });
-}
-
-/* EVENTOS */
-$("#anoFiltro").on("change",function(){
- ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").val("").prop("disabled",false);
- });
- aplicarFiltros();
 });
 
-ordem.slice(1).forEach(f=>{
- $("#"+f+"Filtro").on("change",aplicarFiltros);
-});
-
-$("#btnLimpar").on("click",()=>location.reload());
-
-/* RENDER DATATABLE */
+/* RENDER */
 function renderTabela(dados){
 
  $("#tabela").show();
@@ -309,81 +151,51 @@ function renderTabela(dados){
      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
    }
  });
-
- $("#btnCsv").on("click",()=>exportarCSV());
- $("#btnXls").on("click",()=>exportarXLS());
- $("#btnPdf").on("click",()=>exportarPDF());
- $("#btnTxt").on("click",()=>exportarTXT());
- $("#btnJson").on("click",()=>exportarJSON());
-
- $("#lengthSelector").on("change",function(){
-   tabela.page.len(this.value).draw();
- });
 }
 
-/* EXPORTAÇÃO */
-
-/* CSV */
-function exportarCSV(){
- let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
- baixarArquivo(Papa.unparse(dadosVisiveis),"dados.csv","text/csv");
-}
-
-/* XLS */
-function exportarXLS(){
- let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
- let ws=XLSX.utils.json_to_sheet(dadosVisiveis);
- let wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,ws,"Emendas");
- XLSX.writeFile(wb,"dados.xlsx");
-}
-
-/* TXT */
-function exportarTXT(){
- let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
- let txt=dadosVisiveis.map(o=>Object.values(o).join(" | ")).join("\n");
- baixarArquivo(txt,"dados.txt","text/plain");
-}
-
-/* JSON */
-function exportarJSON(){
- let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
- baixarArquivo(JSON.stringify(dadosVisiveis,null,2),"dados.json","application/json");
-}
-
-/* ✅ PDF PROFISSIONAL */
-function exportarPDF(){
+/* ✅ PDF COM TODAS AS COLUNAS */
+$("#btnPdf").on("click",function(){
 
  let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
 
  if(dadosVisiveis.length===0){
-   alert("Nenhum dado disponível para exportação.");
+   alert("Nenhum dado disponível.");
    return;
  }
 
  let colunas=Object.keys(dadosVisiveis[0]);
 
- let corpo=[
-   colunas.map(c=>({text:c,style:"header"}))
+ /* CABEÇALHO */
+ let body=[
+   colunas.map(c=>({
+     text:c,
+     style:"header",
+     noWrap:false
+   }))
  ];
 
+ /* LINHAS */
  dadosVisiveis.forEach(row=>{
-   corpo.push(colunas.map(col=>({
-     text: row[col] ? row[col].toString() : "",
-     style:"cell"
-   })));
+   body.push(
+     colunas.map(col=>({
+       text: row[col] ? row[col].toString() : "",
+       style:"cell",
+       noWrap:false
+     }))
+   );
  });
 
  let docDefinition={
+
    pageSize:"A4",
    pageOrientation:"landscape",
-   pageMargins:[20,40,20,30],
+   pageMargins:[10,30,10,25],
 
    footer:function(currentPage,pageCount){
      return {
        text:`Página ${currentPage} de ${pageCount}`,
        alignment:"right",
-       margin:[0,0,20,10],
+       margin:[0,0,15,8],
        fontSize:8,
        color:"gray"
      };
@@ -392,35 +204,41 @@ function exportarPDF(){
    content:[
      {text:"Painel de Emendas – IN 05/2025 – TCE/MG",style:"title"},
      {text:$("#indicadorAtualizacao").text(),style:"sub"},
+
      {
        table:{
          headerRows:1,
-         widths:colunas.map(()=> "auto"),
-         body:corpo
+
+         /* ✅ FORÇA TODAS AS COLUNAS */
+         widths:Array(colunas.length).fill("*"),
+
+         body:body
        },
+
        layout:"lightHorizontalLines"
      }
    ],
 
    styles:{
-     title:{fontSize:14,bold:true,margin:[0,0,0,8]},
-     sub:{fontSize:9,color:"gray",margin:[0,0,0,10]},
-     header:{bold:true,fontSize:8,fillColor:"#e9ecef",alignment:"center"},
-     cell:{fontSize:7}
+     title:{fontSize:12,bold:true,margin:[0,0,0,6]},
+     sub:{fontSize:8,color:"gray",margin:[0,0,0,8]},
+
+     header:{
+       bold:true,
+       fontSize:7,
+       fillColor:"#e9ecef",
+       alignment:"center"
+     },
+
+     cell:{
+       fontSize:6
+     }
    }
  };
 
- pdfMake.createPdf(docDefinition).download("painel_emendas_filtrado.pdf");
-}
+ pdfMake.createPdf(docDefinition).download("painel_emendas_completo.pdf");
 
-/* DOWNLOAD */
-function baixarArquivo(conteudo,nome,tipo){
- let blob=new Blob([conteudo],{type:tipo});
- let link=document.createElement("a");
- link.href=URL.createObjectURL(blob);
- link.download=nome;
- link.click();
-}
+});
 </script>
 
 </body>
