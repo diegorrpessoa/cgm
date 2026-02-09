@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Painel de Emendas - IN 05/2025 - TCE/MG</title>
+<title>Painel de Emendas 09.02.26 - IN 05/2025 - TCE/MG</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -76,6 +76,7 @@ table.dataTable td,table.dataTable th{
   Dados atualizados automaticamente em...
 </div>
 
+<!-- FILTROS -->
 <div class="row gx-2 gy-2 mb-3">
 
   <div class="col-sm-2"><label>Ano *</label>
@@ -120,21 +121,23 @@ table.dataTable td,table.dataTable th{
 
 </div>
 
+<!-- LIMPAR -->
 <div class="d-flex justify-content-end mb-2">
   <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
     Limpar Filtros
   </button>
 </div>
 
+<!-- EXPORTAÇÃO -->
 <div class="d-flex justify-content-between align-items-center mb-2">
 
   <div>
     <label class="me-1">Registros por página:</label>
     <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
-      <option value="10">10</option>
-      <option value="25">25</option>
-      <option value="50">50</option>
-      <option value="100">100</option>
+      <option>10</option>
+      <option>25</option>
+      <option>50</option>
+      <option>100</option>
     </select>
   </div>
 
@@ -148,28 +151,29 @@ table.dataTable td,table.dataTable th{
 
 </div>
 
+<!-- TABELA -->
 <div class="table-responsive">
   <table id="tabela" class="table table-bordered table-striped table-sm w-100"></table>
 </div>
 
 </div>
 
+<!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 let tabela;
 let dadosOriginais=[];
 
-const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
+const urlCSV =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
 
 const campos={
   ano:"Ano",
@@ -186,6 +190,7 @@ const campos={
 
 const ordem=Object.keys(campos);
 
+/* CARREGAR CSV */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
@@ -193,7 +198,7 @@ Papa.parse(urlCSV,{
 
    dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
+   let linhaAtualizacao=r.data.find(x=>x["Atualizacao"]);
    if(linhaAtualizacao){
      $("#indicadorAtualizacao").html(
        `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
@@ -210,6 +215,7 @@ Papa.parse(urlCSV,{
  }
 });
 
+/* POPULAR ANO */
 function carregarAno(){
  let s=$("#anoFiltro");
  s.empty().append('<option value="">Selecione...</option>');
@@ -218,6 +224,7 @@ function carregarAno(){
    .forEach(v=>s.append(`<option>${v}</option>`));
 }
 
+/* FILTROS */
 function aplicarFiltros(){
 
  let ano=$("#anoFiltro").val();
@@ -269,6 +276,7 @@ function atualizarFiltros(){
  });
 }
 
+/* EVENTOS */
 $("#anoFiltro").on("change",function(){
  ordem.slice(1).forEach(f=>{
    $("#"+f+"Filtro").val("").prop("disabled",false);
@@ -282,6 +290,7 @@ ordem.slice(1).forEach(f=>{
 
 $("#btnLimpar").on("click",()=>location.reload());
 
+/* RENDER DATATABLE */
 function renderTabela(dados){
 
  $("#tabela").show();
@@ -296,107 +305,115 @@ function renderTabela(dados){
    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
    pageLength:10,
    scrollX:true,
-   dom:"frtip",
    language:{
      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
    }
  });
 
- $("#btnCsv").on("click",()=>exportarCSV(dados));
- $("#btnXls").on("click",()=>exportarXLS(dados));
- $("#btnPdf").on("click",()=>exportarPDF(dados));
-
- $("#btnTxt").on("click",()=>{
-   baixarArquivo(dados.map(o=>Object.values(o).join(" | ")).join("\n"),
-   "dados.txt","text/plain");
- });
-
- $("#btnJson").on("click",()=>{
-   baixarArquivo(JSON.stringify(dados,null,2),
-   "dados.json","application/json");
- });
+ $("#btnCsv").on("click",()=>exportarCSV());
+ $("#btnXls").on("click",()=>exportarXLS());
+ $("#btnPdf").on("click",()=>exportarPDF());
+ $("#btnTxt").on("click",()=>exportarTXT());
+ $("#btnJson").on("click",()=>exportarJSON());
 
  $("#lengthSelector").on("change",function(){
    tabela.page.len(this.value).draw();
  });
 }
 
-function exportarCSV(dados){
- baixarArquivo(Papa.unparse(dados),"dados.csv","text/csv");
+/* EXPORTAÇÃO */
+
+/* CSV */
+function exportarCSV(){
+ let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
+ baixarArquivo(Papa.unparse(dadosVisiveis),"dados.csv","text/csv");
 }
 
-function exportarXLS(dados){
- let ws=XLSX.utils.json_to_sheet(dados);
+/* XLS */
+function exportarXLS(){
+ let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
+ let ws=XLSX.utils.json_to_sheet(dadosVisiveis);
  let wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
  XLSX.writeFile(wb,"dados.xlsx");
 }
 
-/* ✅ PDF OTIMIZADO PROFISSIONAL */
-function exportarPDF(dados){
-
-  if(!dados || dados.length===0){
-    alert("Nenhum dado disponível para exportação.");
-    return;
-  }
-
-  let colunas = Object.keys(dados[0]);
-
-  let linhas = dados.map(row =>
-    colunas.map(col => row[col] ? row[col].toString() : "")
-  );
-
-  let tabelaPDF = [
-    colunas.map(c => ({text:c, style:"tableHeader"})),
-    ...linhas
-  ];
-
-  let docDefinition = {
-    pageSize:"A4",
-    pageOrientation:"landscape",
-
-    content:[
-      {text:"Painel de Emendas – IN 05/2025 – TCE/MG", style:"titulo"},
-      {text:$("#indicadorAtualizacao").text(), style:"subtitulo"},
-
-      {
-        table:{
-          headerRows:1,
-          widths:Array(colunas.length).fill("*"),
-          body:tabelaPDF
-        },
-        layout:"lightHorizontalLines"
-      }
-    ],
-
-    styles:{
-      titulo:{
-        fontSize:14,
-        bold:true,
-        margin:[0,0,0,6]
-      },
-      subtitulo:{
-        fontSize:9,
-        italics:true,
-        color:"gray",
-        margin:[0,0,0,10]
-      },
-      tableHeader:{
-        bold:true,
-        fontSize:8,
-        fillColor:"#e9ecef"
-      }
-    },
-
-    defaultStyle:{
-      fontSize:7
-    }
-  };
-
-  pdfMake.createPdf(docDefinition)
-    .download("painel_emendas_IN05.pdf");
+/* TXT */
+function exportarTXT(){
+ let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
+ let txt=dadosVisiveis.map(o=>Object.values(o).join(" | ")).join("\n");
+ baixarArquivo(txt,"dados.txt","text/plain");
 }
 
+/* JSON */
+function exportarJSON(){
+ let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
+ baixarArquivo(JSON.stringify(dadosVisiveis,null,2),"dados.json","application/json");
+}
+
+/* ✅ PDF PROFISSIONAL */
+function exportarPDF(){
+
+ let dadosVisiveis=tabela.rows({search:"applied"}).data().toArray();
+
+ if(dadosVisiveis.length===0){
+   alert("Nenhum dado disponível para exportação.");
+   return;
+ }
+
+ let colunas=Object.keys(dadosVisiveis[0]);
+
+ let corpo=[
+   colunas.map(c=>({text:c,style:"header"}))
+ ];
+
+ dadosVisiveis.forEach(row=>{
+   corpo.push(colunas.map(col=>({
+     text: row[col] ? row[col].toString() : "",
+     style:"cell"
+   })));
+ });
+
+ let docDefinition={
+   pageSize:"A4",
+   pageOrientation:"landscape",
+   pageMargins:[20,40,20,30],
+
+   footer:function(currentPage,pageCount){
+     return {
+       text:`Página ${currentPage} de ${pageCount}`,
+       alignment:"right",
+       margin:[0,0,20,10],
+       fontSize:8,
+       color:"gray"
+     };
+   },
+
+   content:[
+     {text:"Painel de Emendas – IN 05/2025 – TCE/MG",style:"title"},
+     {text:$("#indicadorAtualizacao").text(),style:"sub"},
+     {
+       table:{
+         headerRows:1,
+         widths:colunas.map(()=> "auto"),
+         body:corpo
+       },
+       layout:"lightHorizontalLines"
+     }
+   ],
+
+   styles:{
+     title:{fontSize:14,bold:true,margin:[0,0,0,8]},
+     sub:{fontSize:9,color:"gray",margin:[0,0,0,10]},
+     header:{bold:true,fontSize:8,fillColor:"#e9ecef",alignment:"center"},
+     cell:{fontSize:7}
+   }
+ };
+
+ pdfMake.createPdf(docDefinition).download("painel_emendas_filtrado.pdf");
+}
+
+/* DOWNLOAD */
 function baixarArquivo(conteudo,nome,tipo){
  let blob=new Blob([conteudo],{type:tipo});
  let link=document.createElement("a");
