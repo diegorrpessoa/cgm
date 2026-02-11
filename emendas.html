@@ -90,11 +90,9 @@ table.dataTable td, table.dataTable th {
 
 /* Seletor registros */
 #lengthSelectorContainer {
-  margin-top: 5px;
-  margin-bottom: 10px;
+  margin-top: 10px;
   font-size: 0.75rem;
   display: flex;
-  justify-content: flex-end;
   align-items: center;
   gap: 8px;
 }
@@ -112,7 +110,7 @@ table.dataTable td, table.dataTable th {
 <!-- ✅ SPINNER GOV.BR -->
 <div id="spinnerCsv" class="spinner-overlay">
   <div class="spinner-border text-primary"></div>
-  <div class="spinner-text">Carregando base de dados...</div>
+  <div class="spinner-text">Atualizando dados iniciais...</div>
 </div>
 
 <div class="container-fluid mt-3">
@@ -167,7 +165,7 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
-<!-- LINHA BOTÕES -->
+<!-- ✅ LINHA BOTÕES -->
 <div class="d-flex justify-content-between mb-2">
 
   <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
@@ -183,8 +181,8 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
-<!-- ✅ REGISTROS POR PÁGINA ANTES DA TABELA -->
-<div id="lengthSelectorContainer">
+<!-- REGISTROS POR PÁGINA (ANTES DA TABELA) -->
+<div id="lengthSelectorContainer" class="text-end mb-2">
   <label>Registros por página:</label>
   <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
     <option value="10">10</option>
@@ -227,24 +225,6 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* ✅ GERAR NOME DINÂMICO */
-function gerarNomeArquivo(ext){
-  let partes=["dados-emendas-pjf"];
-
-  ordem.forEach(f=>{
-    let v=$("#"+f+"Filtro").val();
-    if(v && v!=="TODOS"){
-      partes.push(
-        v.toLowerCase()
-         .replace(/\s+/g,"-")
-         .replace(/[^\w-]/g,"")
-      );
-    }
-  });
-
-  return partes.join("-")+"."+ext;
-}
-
 /* CARREGAMENTO CSV */
 Papa.parse(urlCSV,{
  download:true,
@@ -284,7 +264,7 @@ function carregarAno(){
    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* APLICA FILTROS */
+/* FILTROS PRINCIPAIS */
 function aplicarFiltros(){
 
  let ano=$("#anoFiltro").val();
@@ -302,27 +282,50 @@ function aplicarFiltros(){
    }
  });
 
- atualizarFiltros(base);
+ atualizarFiltrosEncadeados();
  renderTabela(base);
 }
 
-/* FILTROS DINÂMICOS */
-function atualizarFiltros(baseAtual){
+/* FILTROS ENCADEADOS (CORRIGIDO) */
+function atualizarFiltrosEncadeados(){
 
  ordem.slice(1).forEach(f=>{
 
    let seletor=$("#"+f+"Filtro");
+   let valorAtual=seletor.val();
 
-   let valores=[...new Set(baseAtual.map(r=>r[campos[f]]).filter(Boolean))].sort();
+   let ano=$("#anoFiltro").val();
+
+   let base =
+     (ano==="TODOS")
+     ? [...dadosOriginais]
+     : dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+   ordem.slice(1).forEach(outro=>{
+     if(outro===f) return;
+
+     let val=$("#"+outro+"Filtro").val();
+     if(val){
+       base=base.filter(r=>r[campos[outro]]===val);
+     }
+   });
+
+   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
    seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
+   valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
 
    seletor.prop("disabled",valores.length===0);
+
+   if(valores.includes(valorAtual)){
+     seletor.val(valorAtual);
+   } else {
+     seletor.val("");
+   }
  });
 }
 
-/* EVENTOS */
+/* EVENTO ANO */
 $("#anoFiltro").on("change",function(){
 
  if(!this.value){
@@ -334,9 +337,11 @@ $("#anoFiltro").on("change",function(){
    $("#"+f+"Filtro").val("").prop("disabled",false);
  });
 
+ atualizarFiltrosEncadeados();
  aplicarFiltros();
 });
 
+/* EVENTOS FILTROS */
 ordem.slice(1).forEach(f=>{
  $("#"+f+"Filtro").on("change",aplicarFiltros);
 });
@@ -382,34 +387,26 @@ function baixarArquivo(conteudo,nome,tipo){
  link.click();
 }
 
-/* CSV */
 $("#btnCsv").on("click",()=>{
- let nome=gerarNomeArquivo("csv");
- baixarArquivo(Papa.unparse(tabela.rows().data().toArray()),nome,"text/csv");
+ baixarArquivo(Papa.unparse(tabela.rows().data().toArray()),"dados.csv","text/csv");
 });
 
-/* JSON */
 $("#btnJson").on("click",()=>{
- let nome=gerarNomeArquivo("json");
- baixarArquivo(JSON.stringify(tabela.rows().data().toArray(),null,2),nome,"application/json");
+ baixarArquivo(JSON.stringify(tabela.rows().data().toArray(),null,2),"dados.json","application/json");
 });
 
-/* TXT */
 $("#btnTxt").on("click",()=>{
- let nome=gerarNomeArquivo("txt");
  let txt=tabela.rows().data().toArray()
    .map(o=>Object.values(o).join(" | "))
    .join("\n");
- baixarArquivo(txt,nome,"text/plain");
+ baixarArquivo(txt,"dados.txt","text/plain");
 });
 
-/* XLS */
 $("#btnXls").on("click",()=>{
- let nome=gerarNomeArquivo("xlsx");
  let ws=XLSX.utils.json_to_sheet(tabela.rows().data().toArray());
  let wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
- XLSX.writeFile(wb,nome);
+ XLSX.writeFile(wb,"dados.xlsx");
 });
 </script>
 
