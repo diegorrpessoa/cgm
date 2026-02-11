@@ -63,7 +63,7 @@ table.dataTable td, table.dataTable th {
   margin-bottom: 8px;
 }
 
-/* Spinner gov.br padrão index2 */
+/* Spinner gov.br */
 .spinner-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -107,10 +107,10 @@ table.dataTable td, table.dataTable th {
 
 <body>
 
-<!-- ✅ SPINNER GOV.BR -->
+<!-- SPINNER -->
 <div id="spinnerCsv" class="spinner-overlay">
   <div class="spinner-border text-primary"></div>
-  <div class="spinner-text">Carregando base de dados...</div>
+  <div class="spinner-text">Atualizando dados iniciais...</div>
 </div>
 
 <div class="container-fluid mt-3">
@@ -165,15 +165,13 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
-<!-- ✅ LINHA BOTÕES PADRÃO INDEX2 -->
+<!-- BOTÕES -->
 <div class="d-flex justify-content-between mb-2">
 
-  <!-- Limpar alinhado à esquerda -->
   <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
     Limpar Filtros
   </button>
 
-  <!-- Exportações alinhadas à direita -->
   <div class="export-group btn-group">
     <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
     <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
@@ -183,13 +181,8 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
-<!-- TABELA -->
-<div class="table-responsive">
-  <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
-</div>
-
-<!-- REGISTROS POR PÁGINA -->
-<div id="lengthSelectorContainer" class="text-end">
+<!-- REGISTROS -->
+<div id="lengthSelectorContainer" class="text-end mb-2">
   <label>Registros por página:</label>
   <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
     <option value="10">10</option>
@@ -197,6 +190,11 @@ table.dataTable td, table.dataTable th {
     <option value="50">50</option>
     <option value="100">100</option>
   </select>
+</div>
+
+<!-- TABELA -->
+<div class="table-responsive">
+  <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
 </div>
 
 </div>
@@ -227,6 +225,20 @@ const campos={
 
 const ordem=Object.keys(campos);
 
+/* 🔥 NOME DINÂMICO EXPORTAÇÃO */
+function gerarNomeArquivo(ext){
+  let partes=["emendas"];
+
+  ordem.forEach(f=>{
+    let val=$("#"+f+"Filtro").val();
+    if(val && val!=="TODOS"){
+      partes.push(val.replace(/\s+/g,"_"));
+    }
+  });
+
+  return partes.join("_")+"."+ext;
+}
+
 /* CARREGAMENTO CSV */
 Papa.parse(urlCSV,{
  download:true,
@@ -249,12 +261,11 @@ Papa.parse(urlCSV,{
    });
 
    carregarAno();
-
    $("#spinnerCsv").fadeOut(200);
  }
 });
 
-/* FILTRO ANO COM TODOS */
+/* FILTRO ANO */
 function carregarAno(){
  let s=$("#anoFiltro");
 
@@ -267,7 +278,7 @@ function carregarAno(){
    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* APLICA FILTROS */
+/* FILTROS */
 function aplicarFiltros(){
 
  let ano=$("#anoFiltro").val();
@@ -285,31 +296,60 @@ function aplicarFiltros(){
    }
  });
 
- atualizarFiltros(base);
+ atualizarFiltrosEncadeados();
  renderTabela(base);
 }
 
-/* FILTROS DINÂMICOS */
-function atualizarFiltros(baseAtual){
+/* ✅ FILTROS NÃO VOLTAM PARA "SELECIONE" */
+function atualizarFiltrosEncadeados(){
 
  ordem.slice(1).forEach(f=>{
 
    let seletor=$("#"+f+"Filtro");
-   let valores=[...new Set(baseAtual.map(r=>r[campos[f]]).filter(Boolean))].sort();
+   let valorSelecionado=seletor.val();
+
+   let ano=$("#anoFiltro").val();
+
+   let base =
+     (ano==="TODOS")
+     ? [...dadosOriginais]
+     : dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+   ordem.slice(1).forEach(outro=>{
+     if(outro===f) return;
+
+     let val=$("#"+outro+"Filtro").val();
+     if(val){
+       base=base.filter(r=>r[campos[outro]]===val);
+     }
+   });
+
+   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
    seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
+   valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
 
    seletor.prop("disabled",valores.length===0);
+
+   if(valores.includes(valorSelecionado)){
+     seletor.val(valorSelecionado);
+   }
  });
 }
 
 /* EVENTOS */
 $("#anoFiltro").on("change",function(){
+
+ if(!this.value){
+   $("#tabela").hide();
+   return;
+ }
+
  ordem.slice(1).forEach(f=>{
    $("#"+f+"Filtro").val("").prop("disabled",false);
  });
 
+ atualizarFiltrosEncadeados();
  aplicarFiltros();
 });
 
@@ -318,12 +358,12 @@ ordem.slice(1).forEach(f=>{
 });
 
 /* LIMPAR */
-$("#btnLimpar").on("click",function(){
- location.reload();
-});
+$("#btnLimpar").on("click",()=>location.reload());
 
 /* TABELA */
 function renderTabela(dados){
+
+ if(!dados.length) return;
 
  $("#tabela").show();
 
@@ -347,7 +387,7 @@ function renderTabela(dados){
  });
 }
 
-/* EXPORTAÇÕES */
+/* EXPORTAÇÕES COM NOME DINÂMICO */
 function baixarArquivo(conteudo,nome,tipo){
  let blob=new Blob([conteudo],{type:tipo});
  let link=document.createElement("a");
@@ -357,25 +397,35 @@ function baixarArquivo(conteudo,nome,tipo){
 }
 
 $("#btnCsv").on("click",()=>{
- baixarArquivo(Papa.unparse(tabela.rows().data().toArray()),"dados-emendas-pjf.csv","text/csv");
+ baixarArquivo(
+   Papa.unparse(tabela.rows().data().toArray()),
+   gerarNomeArquivo("csv"),
+   "text/csv"
+ );
 });
 
 $("#btnJson").on("click",()=>{
- baixarArquivo(JSON.stringify(tabela.rows().data().toArray(),null,2),"dados-emendas-pjf.json","application/json");
+ baixarArquivo(
+   JSON.stringify(tabela.rows().data().toArray(),null,2),
+   gerarNomeArquivo("json"),
+   "application/json"
+ );
 });
 
 $("#btnTxt").on("click",()=>{
  let txt=tabela.rows().data().toArray()
    .map(o=>Object.values(o).join(" | "))
    .join("\n");
- baixarArquivo(txt,"dados-emendas-pjf.txt","text/plain");
+
+ baixarArquivo(txt,gerarNomeArquivo("txt"),"text/plain");
 });
 
 $("#btnXls").on("click",()=>{
  let ws=XLSX.utils.json_to_sheet(tabela.rows().data().toArray());
  let wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
- XLSX.writeFile(wb,"dados-emendas-pjf.xlsx");
+
+ XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
 });
 </script>
 
