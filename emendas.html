@@ -65,15 +65,63 @@ table.dataTable td,table.dataTable th{
   text-align:right;
   margin-bottom:8px;
 }
+
+/* ============================= */
+/* ✅ SPINNER GOV.BR (WCAG)       */
+/* ============================= */
+
+#loadingGov {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(248,249,250,0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-box {
+  text-align: center;
+  font-size: .75rem;
+  color: #0b1f33;
+}
+
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid #dee2e6;
+  border-top: 4px solid #0d6efd;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
 </style>
 </head>
 
 <body>
 
+<!-- ============================= -->
+<!-- ✅ SPINNER GOV.BR             -->
+<!-- ============================= -->
+<div id="loadingGov" role="status" aria-live="polite">
+  <div class="loading-box">
+    <div class="loading-spinner"></div>
+    <p class="mt-2 mb-0"><b>Carregando dados públicos...</b></p>
+    <small>Aguarde, estamos processando a base oficial.</small>
+  </div>
+</div>
+
 <div class="container-fluid mt-3">
 
 <div id="indicadorAtualizacao">
-  Dados atualizados automaticamente em... 
+  Dados atualizados automaticamente em...
 </div>
 
 <div class="row gx-2 gy-2 mb-3">
@@ -120,20 +168,17 @@ table.dataTable td,table.dataTable th{
 
 </div>
 
-<!-- LINHA PRINCIPAL: LIMPAR À ESQUERDA + EXPORTAÇÃO À DIREITA -->
+<!-- LINHA PRINCIPAL -->
 <div class="d-flex justify-content-between align-items-center mb-2">
 
-  <!-- BOTÃO LIMPAR FILTROS À ESQUERDA -->
   <div>
     <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
       Limpar Filtros
     </button>
   </div>
 
-  <!-- EXPORTAÇÃO À DIREITA (SEM PDF) -->
   <div class="export-group">
     <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-    <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
     <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
     <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
   </div>
@@ -142,17 +187,13 @@ table.dataTable td,table.dataTable th{
 
 <!-- REGISTROS POR PÁGINA -->
 <div class="d-flex justify-content-start align-items-center mb-2">
-
-  <div>
-    <label class="me-1">Registros por página:</label>
-    <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
-      <option>10</option>
-      <option>25</option>
-      <option>50</option>
-      <option>100</option>
-    </select>
-  </div>
-
+  <label class="me-1">Registros por página:</label>
+  <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
+    <option>10</option>
+    <option>25</option>
+    <option>50</option>
+    <option>100</option>
+  </select>
 </div>
 
 <div class="table-responsive">
@@ -163,7 +204,6 @@ table.dataTable td,table.dataTable th{
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
@@ -187,6 +227,7 @@ const campos={
 
 const ordem=Object.keys(campos);
 
+/* ✅ CARREGAMENTO COM SPINNER */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
@@ -208,23 +249,33 @@ Papa.parse(urlCSV,{
    });
 
    carregarAno();
+
+   /* ✅ REMOVE SPINNER */
+   $("#loadingGov").fadeOut(300);
  }
 });
 
 function carregarAno(){
  let s=$("#anoFiltro");
- s.empty().append('<option value="">Selecione...</option>');
+
+ s.empty();
+ s.append('<option value="TODOS">Todos os anos</option>');
+
  [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
    .sort()
-   .forEach(v=>s.append(`<option>${v}</option>`));
+   .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+
+ aplicarFiltros();
 }
 
 function aplicarFiltros(){
 
  let ano=$("#anoFiltro").val();
- if(!ano) return;
 
- let base=dadosOriginais.filter(r=>r[campos.ano]===ano);
+ let base =
+   (ano==="TODOS")
+   ? [...dadosOriginais]
+   : dadosOriginais.filter(r=>r[campos.ano]===ano);
 
  ordem.slice(1).forEach(f=>{
    let v=$("#"+f+"Filtro").val();
@@ -233,29 +284,18 @@ function aplicarFiltros(){
    }
  });
 
- atualizarFiltros();
+ atualizarFiltros(base);
  renderTabela(base);
 }
 
-function atualizarFiltros(){
+function atualizarFiltros(baseAtual){
 
  ordem.slice(1).forEach(f=>{
 
    let seletor=$("#"+f+"Filtro");
    let valorAtual=seletor.val();
 
-   let ano=$("#anoFiltro").val();
-   let baseOpcoes=dadosOriginais.filter(r=>r[campos.ano]===ano);
-
-   ordem.slice(1).forEach(outro=>{
-     if(outro===f) return;
-     let val=$("#"+outro+"Filtro").val();
-     if(val){
-       baseOpcoes=baseOpcoes.filter(r=>r[campos[outro]]===val);
-     }
-   });
-
-   let valores=[...new Set(baseOpcoes.map(r=>r[campos[f]]).filter(Boolean))].sort();
+   let valores=[...new Set(baseAtual.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
    seletor.empty().append('<option value="">Selecione...</option>');
    valores.forEach(v=>seletor.append(`<option>${v}</option>`));
@@ -306,7 +346,6 @@ function renderTabela(dados){
  });
 
  $("#btnCsv").on("click",()=>exportarCSV(dados));
- $("#btnXls").on("click",()=>exportarXLS(dados));
 
  $("#btnTxt").on("click",()=>{
    baixarArquivo(dados.map(o=>Object.values(o).join(" | ")).join("\n"),
@@ -328,13 +367,6 @@ function exportarCSV(dados){
  baixarArquivo(csv,"dados.csv","text/csv");
 }
 
-function exportarXLS(dados){
- let ws=XLSX.utils.json_to_sheet(dados);
- let wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,ws,"Emendas");
- XLSX.writeFile(wb,"dados.xlsx");
-}
-
 function baixarArquivo(conteudo,nome,tipo){
  let blob=new Blob([conteudo],{type:tipo});
  let link=document.createElement("a");
@@ -343,8 +375,6 @@ function baixarArquivo(conteudo,nome,tipo){
  link.click();
 }
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 </body>
 </html>
