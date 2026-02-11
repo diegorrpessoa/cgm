@@ -27,7 +27,6 @@ table.dataTable td, table.dataTable th {
   white-space: nowrap;
 }
 
-/* Paginação padrão index2 */
 .dataTables_wrapper .dataTables_paginate {
   margin-top: 0.5rem;
   display: flex;
@@ -49,13 +48,11 @@ table.dataTable td, table.dataTable th {
   font-weight: bold !important;
 }
 
-/* Botões exportação */
 .export-group .btn {
   font-size: 0.7rem;
   padding: 4px 8px;
 }
 
-/* Indicador atualização */
 #indicadorAtualizacao {
   font-size: 0.65rem;
   color: #6c757d;
@@ -63,7 +60,6 @@ table.dataTable td, table.dataTable th {
   margin-bottom: 8px;
 }
 
-/* Spinner gov.br padrão index2 */
 .spinner-overlay {
   position: fixed;
   top: 0; left: 0;
@@ -88,11 +84,11 @@ table.dataTable td, table.dataTable th {
   margin-top: 5px;
 }
 
-/* Seletor registros */
 #lengthSelectorContainer {
   margin-top: 10px;
   font-size: 0.75rem;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
   gap: 8px;
 }
@@ -107,10 +103,9 @@ table.dataTable td, table.dataTable th {
 
 <body>
 
-<!-- ✅ SPINNER GOV.BR -->
 <div id="spinnerCsv" class="spinner-overlay">
   <div class="spinner-border text-primary"></div>
-  <div class="spinner-text">Atualizando dados iniciais...</div>
+  <div class="spinner-text">Carregando base de dados...</div>
 </div>
 
 <div class="container-fluid mt-3">
@@ -119,7 +114,6 @@ table.dataTable td, table.dataTable th {
   Dados atualizados automaticamente em...
 </div>
 
-<!-- FILTROS -->
 <div class="row gx-2 gy-2 mb-3">
 
   <div class="col-sm-2">
@@ -135,45 +129,14 @@ table.dataTable td, table.dataTable th {
     <select id="tipoFiltro" class="form-select form-select-sm" disabled></select>
   </div>
 
-  <div class="col-sm-2"><label>Autoria</label>
-    <select id="autoriaFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Número</label>
-    <select id="numeroFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Objeto</label>
-    <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Recebedor</label>
-    <select id="recebedorFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>CNPJ</label>
-    <select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Natureza</label>
-    <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2"><label>Função</label>
-    <select id="funcaoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
 </div>
 
-<!-- ✅ LINHA BOTÕES PADRÃO INDEX2 -->
 <div class="d-flex justify-content-between mb-2">
 
-  <!-- Limpar alinhado à esquerda -->
   <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
     Limpar Filtros
   </button>
 
-  <!-- Exportações alinhadas à direita -->
   <div class="export-group btn-group">
     <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
     <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
@@ -183,13 +146,11 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
-<!-- TABELA -->
 <div class="table-responsive">
   <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
 </div>
 
-<!-- REGISTROS POR PÁGINA -->
-<div id="lengthSelectorContainer" class="text-end">
+<div id="lengthSelectorContainer">
   <label>Registros por página:</label>
   <select id="lengthSelector" class="form-select form-select-sm d-inline-block">
     <option value="10">10</option>
@@ -215,19 +176,9 @@ const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSIT
 const campos={
   ano:"Ano",
   origem:"Origem dos recursos",
-  tipo:"Tipo de emenda",
-  autoria:"Proponente",
-  numero:"Identificação da Emenda",
-  objeto:"Objeto da Despesa",
-  recebedor:"Órgão ou entidade executora ou beneficiária",
-  cnpj:"CNPJ do Órgão ou entidade executora ou beneficiária",
-  natureza:"Grupo de Natureza de Despesa (GND)",
-  funcao:"Função de Governo Função programática"
+  tipo:"Tipo de emenda"
 };
 
-const ordem=Object.keys(campos);
-
-/* CARREGAMENTO CSV */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
@@ -235,26 +186,11 @@ Papa.parse(urlCSV,{
 
    dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
-   if(linhaAtualizacao){
-     $("#indicadorAtualizacao").html(
-       `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
-     );
-   }
-
-   dadosOriginais=dadosOriginais.map(r=>{
-     let copia={...r};
-     delete copia["Atualizacao"];
-     return copia;
-   });
-
    carregarAno();
-
    $("#spinnerCsv").fadeOut(200);
  }
 });
 
-/* FILTRO ANO COM TODOS */
 function carregarAno(){
  let s=$("#anoFiltro");
 
@@ -267,7 +203,6 @@ function carregarAno(){
    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* APLICA FILTROS */
 function aplicarFiltros(){
 
  let ano=$("#anoFiltro").val();
@@ -278,51 +213,24 @@ function aplicarFiltros(){
    ? [...dadosOriginais]
    : dadosOriginais.filter(r=>r[campos.ano]===ano);
 
- ordem.slice(1).forEach(f=>{
-   let v=$("#"+f+"Filtro").val();
-   if(v){
-     base=base.filter(r=>r[campos[f]]===v);
-   }
- });
+ let origem=$("#origemFiltro").val();
+ if(origem) base=base.filter(r=>r[campos.origem]===origem);
 
- atualizarFiltros(base);
+ let tipo=$("#tipoFiltro").val();
+ if(tipo) base=base.filter(r=>r[campos.tipo]===tipo);
+
  renderTabela(base);
 }
 
-/* FILTROS DINÂMICOS */
-function atualizarFiltros(baseAtual){
-
- ordem.slice(1).forEach(f=>{
-
-   let seletor=$("#"+f+"Filtro");
-   let valores=[...new Set(baseAtual.map(r=>r[campos[f]]).filter(Boolean))].sort();
-
-   seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option>${v}</option>`));
-
-   seletor.prop("disabled",valores.length===0);
- });
-}
-
-/* EVENTOS */
 $("#anoFiltro").on("change",function(){
- ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").val("").prop("disabled",false);
- });
-
+ $("#origemFiltro,#tipoFiltro").prop("disabled",false);
  aplicarFiltros();
 });
 
-ordem.slice(1).forEach(f=>{
- $("#"+f+"Filtro").on("change",aplicarFiltros);
-});
+$("#origemFiltro,#tipoFiltro").on("change",aplicarFiltros);
 
-/* LIMPAR */
-$("#btnLimpar").on("click",function(){
- location.reload();
-});
+$("#btnLimpar").on("click",()=>location.reload());
 
-/* TABELA */
 function renderTabela(dados){
 
  $("#tabela").show();
@@ -337,6 +245,7 @@ function renderTabela(dados){
    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
    pageLength:10,
    scrollX:true,
+   dom:"rtip",
    language:{
      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
    }
@@ -347,7 +256,25 @@ function renderTabela(dados){
  });
 }
 
-/* EXPORTAÇÕES */
+/* ✅ Nome dinâmico */
+function gerarNomeArquivo(ext){
+
+ let partes=["dados-emendas-pjf"];
+
+ let ano=$("#anoFiltro").val();
+ partes.push(ano==="TODOS" ? "todos" : ano);
+
+ let origem=$("#origemFiltro").val();
+ if(origem) partes.push(origem);
+
+ let tipo=$("#tipoFiltro").val();
+ if(tipo) partes.push(tipo);
+
+ return partes
+   .map(p=>p.toLowerCase().replace(/\s+/g,"-"))
+   .join("-") + "." + ext;
+}
+
 function baixarArquivo(conteudo,nome,tipo){
  let blob=new Blob([conteudo],{type:tipo});
  let link=document.createElement("a");
@@ -356,26 +283,37 @@ function baixarArquivo(conteudo,nome,tipo){
  link.click();
 }
 
+/* EXPORTAÇÕES */
 $("#btnCsv").on("click",()=>{
- baixarArquivo(Papa.unparse(tabela.rows().data().toArray()),"dados.csv","text/csv");
+ baixarArquivo(
+   Papa.unparse(tabela.rows().data().toArray()),
+   gerarNomeArquivo("csv"),
+   "text/csv"
+ );
 });
 
 $("#btnJson").on("click",()=>{
- baixarArquivo(JSON.stringify(tabela.rows().data().toArray(),null,2),"dados.json","application/json");
+ baixarArquivo(
+   JSON.stringify(tabela.rows().data().toArray(),null,2),
+   gerarNomeArquivo("json"),
+   "application/json"
+ );
 });
 
 $("#btnTxt").on("click",()=>{
  let txt=tabela.rows().data().toArray()
    .map(o=>Object.values(o).join(" | "))
    .join("\n");
- baixarArquivo(txt,"dados.txt","text/plain");
+
+ baixarArquivo(txt,gerarNomeArquivo("txt"),"text/plain");
 });
 
 $("#btnXls").on("click",()=>{
  let ws=XLSX.utils.json_to_sheet(tabela.rows().data().toArray());
  let wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
- XLSX.writeFile(wb,"dados.xlsx");
+
+ XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
 });
 </script>
 
