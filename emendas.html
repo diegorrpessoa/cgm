@@ -175,8 +175,8 @@ table.dataTable td, table.dataTable th {
   <div class="export-group btn-group">
     <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
     <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
-    <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
     <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+    <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
   </div>
 
 </div>
@@ -227,7 +227,7 @@ const ordem=Object.keys(campos);
 
 /* 🔥 NOME DINÂMICO EXPORTAÇÃO */
 function gerarNomeArquivo(ext){
-  let partes=["emendas"];
+  let partes=["emendas-pjf"];
 
   ordem.forEach(f=>{
     let val=$("#"+f+"Filtro").val();
