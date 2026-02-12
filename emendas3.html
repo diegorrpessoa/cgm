@@ -92,7 +92,7 @@ table.dataTable td, table.dataTable th {
 .totalizadores {
   font-size: 0.7rem;
   background: #fff;
-  padding: 6px 12px;
+  padding: 5px 10px;
   border: 1px solid #dee2e6;
   border-radius: 4px;
 }
@@ -167,7 +167,7 @@ table.dataTable td, table.dataTable th {
 
 <!-- TOTALIZADOR -->
 <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-  <span id="totalPrevisto">Valor Previsto: R$ 0,00</span>
+  <span id="totalPrevisto">Valor previsto: R$ 0,00</span>
 </div>
 
 <!-- BOTÕES -->
@@ -202,8 +202,7 @@ table.dataTable td, table.dataTable th {
 let tabela;
 let dadosOriginais=[];
 
-const urlCSV =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
+const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
 
 const campos={
   ano:"Ano",
@@ -220,208 +219,215 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* 🔥 Nome dinâmico */
-function gerarNomeArquivo(ext){
-  let partes=["dados-emendas-pjf"];
-  ordem.forEach(f=>{
-    let val=$("#"+f+"Filtro").val();
-    if(val && val!=="TODOS"){
-      partes.push(val.toLowerCase().replace(/\s+/g,"-"));
-    }
-  });
-  return partes.join("-")+"."+ext;
-}
-
-/* 🔥 Parser moeda robusto */
+/* SOMA CORRETA */
 function parseMoeda(valor){
   if(!valor) return 0;
   return parseFloat(
     valor.toString()
-      .replace("R$","")
       .replace(/\./g,"")
       .replace(",",".")
-      .replace(/[^\d.-]/g,"")
+      .replace(/[^\d.]/g,"")
   ) || 0;
 }
 
-/* 🔥 Totalizador correto */
 function atualizarResumoPrevisto(dados){
-  if(!dados.length){
-    $("#resumoValores").hide();
-    return;
-  }
+  let total=0;
 
-  let colunaValor =
-    Object.keys(dados[0]).find(c =>
-      c.toLowerCase().includes("valor alocado") ||
-      c.toLowerCase().includes("valor previsto")
-    );
-
-  let total = 0;
   dados.forEach(r=>{
-    total += parseMoeda(r[colunaValor]);
+    total += parseMoeda(r["Valor alocado/previsto"]);
   });
 
   $("#totalPrevisto").text(
-    "Valor Previsto: " +
+    "Valor previsto: " +
     total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
   );
 
   $("#resumoValores").show();
 }
 
-/* 🔥 Carrega CSV */
+/* CSV */
 Papa.parse(urlCSV,{
-  download:true,
-  header:true,
-  complete:r=>{
+ download:true,
+ header:true,
+ complete:r=>{
 
-    dadosOriginais=r.data.filter(d=>d["Ano"]);
+   dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-    let att=dadosOriginais.find(x=>x["Atualizacao"]);
-    if(att){
-      $("#indicadorAtualizacao").html(
-        `Dados atualizados automaticamente em: <b>${att["Atualizacao"]}</b>`
-      );
-    }
+   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
+   if(linhaAtualizacao){
+     $("#indicadorAtualizacao").html(
+       `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
+     );
+   }
 
-    dadosOriginais=dadosOriginais.map(r=>{
-      let copia={...r};
-      delete copia["Atualizacao"];
-      return copia;
-    });
+   dadosOriginais=dadosOriginais.map(r=>{
+     let copia={...r};
+     delete copia["Atualizacao"];
+     return copia;
+   });
 
-    carregarAno();
-    $("#spinnerCsv").fadeOut();
-  }
+   carregarAno();
+   $("#spinnerCsv").fadeOut(200);
+ }
 });
 
-/* Ano */
+/* FILTRO ANO */
 function carregarAno(){
-  let s=$("#anoFiltro");
-  s.empty();
-  s.append('<option value="">Selecione...</option>');
-  s.append('<option value="TODOS">Todos</option>');
+ let s=$("#anoFiltro");
 
-  [...new Set(dadosOriginais.map(r=>r["Ano"]))]
-    .sort()
-    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+ s.empty();
+ s.append('<option value="">Selecione...</option>');
+ s.append('<option value="TODOS">Todos</option>');
+
+ [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
+   .sort()
+   .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* Encadeamento */
+/* FILTRAGEM */
 function aplicarFiltros(){
-  let base=[...dadosOriginais];
 
-  ordem.forEach(f=>{
-    let val=$("#"+f+"Filtro").val();
-    if(val && val!=="TODOS"){
-      base=base.filter(r=>r[campos[f]]===val);
-    }
-  });
+ let ano=$("#anoFiltro").val();
+ if(!ano) return;
 
-  atualizarFiltros(base);
-  atualizarResumoPrevisto(base);
-  renderTabela(base);
+ let base =
+   (ano==="TODOS")
+   ? [...dadosOriginais]
+   : dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+ ordem.slice(1).forEach(f=>{
+   let v=$("#"+f+"Filtro").val();
+   if(v){
+     base=base.filter(r=>r[campos[f]]===v);
+   }
+ });
+
+ atualizarFiltrosEncadeados(base);
+ atualizarResumoPrevisto(base);
+ renderTabela(base);
 }
 
-function atualizarFiltros(base){
-  ordem.slice(1).forEach(f=>{
-    let seletor=$("#"+f+"Filtro");
-    let atual=seletor.val();
+/* FILTROS ENCADEADOS */
+function atualizarFiltrosEncadeados(baseAtual){
 
-    let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
+ ordem.slice(1).forEach(f=>{
 
-    seletor.empty().append('<option value="">Selecione...</option>');
-    valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
+   let seletor=$("#"+f+"Filtro");
+   let atual=seletor.val();
 
-    seletor.prop("disabled",valores.length===0);
+   let valores=[...new Set(baseAtual.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
-    if(valores.includes(atual)){
-      seletor.val(atual);
-    }
-  });
+   seletor.empty().append('<option value="">Selecione...</option>');
+   valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
+
+   seletor.prop("disabled",valores.length===0);
+
+   if(valores.includes(atual)){
+     seletor.val(atual);
+   }
+ });
 }
 
-/* Eventos */
-$("#anoFiltro").on("change",()=>{
-  ordem.slice(1).forEach(f=>{
-    $("#"+f+"Filtro").prop("disabled",false);
-  });
-  aplicarFiltros();
+/* EVENTOS */
+$("#anoFiltro").on("change",function(){
+
+ if(!this.value){
+   $("#tabela").hide();
+   return;
+ }
+
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").val("").prop("disabled",false);
+ });
+
+ aplicarFiltros();
 });
 
 ordem.slice(1).forEach(f=>{
-  $("#"+f+"Filtro").on("change",aplicarFiltros);
+ $("#"+f+"Filtro").on("change",aplicarFiltros);
 });
 
-/* Limpar */
+/* LIMPAR */
 $("#btnLimpar").on("click",()=>location.reload());
 
-/* Tabela */
+/* TABELA */
 function renderTabela(dados){
-  if(!dados.length) return;
 
-  $("#tabela").show();
+ if(!dados.length) return;
 
-  if(tabela){
-    tabela.clear().rows.add(dados).draw();
-    return;
-  }
+ $("#tabela").show();
 
-  tabela=$("#tabela").DataTable({
-    data:dados,
-    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-    pageLength:10,
-    scrollX:true,
-    language:{
-      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-    }
-  });
+ if(tabela){
+   tabela.clear().rows.add(dados).draw(false);
+   tabela.columns.adjust();
+   return;
+ }
+
+ tabela=$("#tabela").DataTable({
+   data:dados,
+   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+
+   pageLength:10,
+   paging:true,
+
+   scrollX:true,
+   scrollY:"55vh",
+   scrollCollapse:true,
+
+   info:false,
+
+   language:{
+     url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+   }
+ });
+
+ tabela.columns.adjust();
 }
 
-/* Exportações */
-function baixarArquivo(blob,nome){
-  let link=document.createElement("a");
-  link.href=URL.createObjectURL(blob);
-  link.download=nome;
-  link.click();
+/* EXPORTAÇÕES */
+function baixarArquivo(conteudo,nome,tipo){
+ let blob=new Blob([conteudo],{type:tipo});
+ let link=document.createElement("a");
+ link.href=URL.createObjectURL(blob);
+ link.download=nome;
+ link.click();
 }
 
-/* CSV sem deslocamento */
+function nomeArquivo(ext){
+ return "emendas-filtradas."+ext;
+}
+
 $("#btnCsv").on("click",()=>{
-  let dados=tabela.rows({search:'applied'}).data().toArray();
-  let csv="sep=;\n"+Papa.unparse(dados,{delimiter:";"});
-  baixarArquivo(new Blob([csv],{type:"text/csv"}),gerarNomeArquivo("csv"));
+ baixarArquivo(
+   Papa.unparse(tabela.rows().data().toArray(),{quotes:true}),
+   nomeArquivo("csv"),
+   "text/csv;charset=utf-8;"
+ );
 });
 
-/* JSON */
 $("#btnJson").on("click",()=>{
-  let dados=tabela.rows({search:'applied'}).data().toArray();
-  baixarArquivo(
-    new Blob([JSON.stringify(dados,null,2)],{type:"application/json"}),
-    gerarNomeArquivo("json")
-  );
+ baixarArquivo(
+   JSON.stringify(tabela.rows().data().toArray(),null,2),
+   nomeArquivo("json"),
+   "application/json"
+ );
 });
 
-/* TXT */
 $("#btnTxt").on("click",()=>{
-  let dados=tabela.rows({search:'applied'}).data().toArray();
-  let cols=Object.keys(dados[0]);
-  let txt=cols.join(";")+"\n"+dados.map(r=>cols.map(c=>r[c]).join(";")).join("\n");
+ let txt=tabela.rows().data().toArray()
+   .map(o=>Object.values(o).join(" | "))
+   .join("\n");
 
-  baixarArquivo(
-    new Blob([txt],{type:"text/plain"}),
-    gerarNomeArquivo("txt")
-  );
+ baixarArquivo(txt,nomeArquivo("txt"),"text/plain");
 });
 
-/* XLS correto */
 $("#btnXls").on("click",()=>{
-  let dados=tabela.rows({search:'applied'}).data().toArray();
-  let ws=XLSX.utils.json_to_sheet(dados);
-  let wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
-  XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
+ let dadosX=tabela.rows().data().toArray();
+ let ws=XLSX.utils.json_to_sheet(dadosX);
+ let wb=XLSX.utils.book_new();
+ XLSX.utils.book_append_sheet(wb,ws,"Emendas");
+
+ XLSX.writeFile(wb,nomeArquivo("xlsx"));
 });
 </script>
 
