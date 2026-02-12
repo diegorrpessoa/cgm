@@ -98,6 +98,8 @@ table.dataTable td, table.dataTable th {
 }
 
 .totalizadores span {
+  display: inline-block;
+  margin-right: 15px;
   font-weight: 600;
 }
 </style>
@@ -113,9 +115,8 @@ table.dataTable td, table.dataTable th {
 
 <div class="container-fluid mt-3">
 
-<!-- ATUALIZAÇÃO -->
 <div id="indicadorAtualizacao">
-  Dados atualizados automaticamente em: <b>carregando...</b>
+  Dados atualizados automaticamente em...
 </div>
 
 <!-- FILTROS -->
@@ -192,6 +193,7 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
+<!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -218,96 +220,146 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* MOEDA */
+/* PARSE MOEDA ROBUSTO */
 function parseMoeda(valor){
-  if(!valor) return 0;
-  return Number(
-    valor.toString()
-      .replace(/\s/g,"")
-      .replace("R$","")
-      .replace(/\./g,"")
-      .replace(",",".")
-  ) || 0;
+  if(valor===null || valor===undefined) return 0;
+  let v=valor.toString().trim();
+  if(v==="") return 0;
+  v=v.replace(/[^\d,.-]/g,"");
+  v=v.replace(/\./g,"");
+  v=v.replace(",",".");
+  return parseFloat(v)||0;
 }
 
-/* SOMATÓRIO */
+/* NOME DINÂMICO EXPORTAÇÃO */
+function gerarNomeArquivo(ext){
+  let partes=["emendas-pjf"];
+  ordem.forEach(f=>{
+    let val=$("#"+f+"Filtro").val();
+    if(val && val!=="TODOS"){
+      partes.push(val.toLowerCase().replace(/\s+/g,"-"));
+    }
+  });
+  return partes.join("-")+"."+ext;
+}
+
+/* SOMATÓRIO FUNCIONAL */
 function atualizarResumoPrevisto(dados){
 
-  let total=0;
+  if(!dados.length){
+    $("#resumoValores").hide();
+    return;
+  }
 
+  let colValor = Object.keys(dados[0]).find(c =>
+    c.toLowerCase().includes("valor")
+  );
+
+  if(!colValor){
+    $("#totalPrevisto").text("Coluna de valor não encontrada.");
+    $("#resumoValores").show();
+    return;
+  }
+
+  let total=0;
   dados.forEach(r=>{
-    total += parseMoeda(r["Valor Alocado/Previsto"]);
+    total += parseMoeda(r[colValor]);
   });
 
   $("#totalPrevisto").text(
     "Valor Alocado/Previsto: " +
-    total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+    total.toLocaleString("pt-BR",{
+      style:"currency",
+      currency:"BRL"
+    })
   );
 
   $("#resumoValores").show();
 }
 
-/* NOME DINÂMICO */
-function gerarNomeArquivo(ext){
-  let partes=["emendas"];
-  ordem.forEach(f=>{
-    let v=$("#"+f+"Filtro").val();
-    if(v && v!=="TODOS") partes.push(v);
-  });
-  return partes.join("-")+"."+ext;
-}
-
-/* CARREGA CSV */
+/* CARREGAMENTO CSV */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
  complete:r=>{
 
-   dadosOriginais=r.data.filter(x=>x["Ano"]);
+   dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-   /* ATUALIZAÇÃO (AO2) */
-   let atualizacao = dadosOriginais[0]["Atualizacao"];
-   if(atualizacao){
+   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
+   if(linhaAtualizacao){
      $("#indicadorAtualizacao").html(
-       `Dados atualizados automaticamente em: <b>${atualizacao}</b>`
+       `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
      );
    }
 
-   /* REMOVE COLUNA */
-   dadosOriginais=dadosOriginais.map(l=>{
-     delete l["Atualizacao"];
-     return l;
+   dadosOriginais=dadosOriginais.map(r=>{
+     let copia={...r};
+     delete copia["Atualizacao"];
+     return copia;
    });
 
    carregarAno();
-
    $("#spinnerCsv").fadeOut(200);
  }
 });
 
-/* ANO */
+/* FILTRO ANO */
 function carregarAno(){
  let s=$("#anoFiltro");
+ s.empty();
+ s.append('<option value="">Selecione...</option>');
+ s.append('<option value="TODOS">Todos</option>');
 
- s.html(`
-   <option value="">Selecione...</option>
-   <option value="TODOS">Todos</option>
- `);
-
- [...new Set(dadosOriginais.map(r=>r["Ano"]))]
-  .sort()
-  .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+ [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
+   .sort()
+   .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* FILTROS ENCADEADOS */
+/* APLICA FILTROS */
+function aplicarFiltros(){
+
+ let ano=$("#anoFiltro").val();
+ if(!ano) return;
+
+ let base =
+   (ano==="TODOS")
+   ? [...dadosOriginais]
+   : dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+ ordem.slice(1).forEach(f=>{
+   let v=$("#"+f+"Filtro").val();
+   if(v){
+     base=base.filter(r=>r[campos[f]]===v);
+   }
+ });
+
+ atualizarFiltrosEncadeados();
+ atualizarResumoPrevisto(base);
+ renderTabela(base);
+}
+
+/* FILTROS ENCADEADOS COMPLETOS */
 function atualizarFiltrosEncadeados(){
 
  ordem.slice(1).forEach(f=>{
 
    let seletor=$("#"+f+"Filtro");
-   let selecionado=seletor.val();
+   let valorSelecionado=seletor.val();
 
-   let base=filtrarBaseParcial(f);
+   let ano=$("#anoFiltro").val();
+
+   let base =
+     (ano==="TODOS")
+     ? [...dadosOriginais]
+     : dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+   ordem.slice(1).forEach(outro=>{
+     if(outro===f) return;
+     let val=$("#"+outro+"Filtro").val();
+     if(val){
+       base=base.filter(r=>r[campos[outro]]===val);
+     }
+   });
 
    let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
@@ -316,50 +368,23 @@ function atualizarFiltrosEncadeados(){
 
    seletor.prop("disabled",valores.length===0);
 
-   if(valores.includes(selecionado)){
-     seletor.val(selecionado);
+   if(valores.includes(valorSelecionado)){
+     seletor.val(valorSelecionado);
    }
  });
-}
-
-/* BASE PARCIAL */
-function filtrarBaseParcial(excluir){
-
- let ano=$("#anoFiltro").val();
-
- let base =
-   (ano==="TODOS")
-   ? [...dadosOriginais]
-   : dadosOriginais.filter(r=>r["Ano"]===ano);
-
- ordem.slice(1).forEach(f=>{
-   if(f===excluir) return;
-   let v=$("#"+f+"Filtro").val();
-   if(v){
-     base=base.filter(r=>r[campos[f]]===v);
-   }
- });
-
- return base;
-}
-
-/* APLICA */
-function aplicarFiltros(){
-
- let base=filtrarBaseParcial(null);
-
- atualizarFiltrosEncadeados();
- atualizarResumoPrevisto(base);
- renderTabela(base);
 }
 
 /* EVENTOS */
 $("#anoFiltro").on("change",function(){
 
- if(!this.value) return;
+ if(!this.value){
+   $("#tabela").hide();
+   $("#resumoValores").hide();
+   return;
+ }
 
  ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").prop("disabled",false).val("");
+   $("#"+f+"Filtro").val("").prop("disabled",false);
  });
 
  aplicarFiltros();
@@ -395,7 +420,7 @@ function renderTabela(dados){
  });
 }
 
-/* EXPORT */
+/* EXPORTAÇÃO CORRETA */
 function baixarArquivo(conteudo,nome,tipo){
  let blob=new Blob([conteudo],{type:tipo});
  let link=document.createElement("a");
@@ -406,7 +431,7 @@ function baixarArquivo(conteudo,nome,tipo){
 
 $("#btnCsv").on("click",()=>{
  baixarArquivo(
-   Papa.unparse(tabela.rows({search:"applied"}).data().toArray()),
+   Papa.unparse(tabela.rows().data().toArray()),
    gerarNomeArquivo("csv"),
    "text/csv"
  );
@@ -414,28 +439,28 @@ $("#btnCsv").on("click",()=>{
 
 $("#btnJson").on("click",()=>{
  baixarArquivo(
-   JSON.stringify(tabela.rows({search:"applied"}).data().toArray(),null,2),
+   JSON.stringify(tabela.rows().data().toArray(),null,2),
    gerarNomeArquivo("json"),
    "application/json"
  );
 });
 
 $("#btnTxt").on("click",()=>{
- let txt=tabela.rows({search:"applied"}).data().toArray()
+ let txt=tabela.rows().data().toArray()
    .map(o=>Object.values(o).join(" | "))
    .join("\n");
 
  baixarArquivo(txt,gerarNomeArquivo("txt"),"text/plain");
 });
 
+/* XLSX CORRIGIDO */
 $("#btnXls").on("click",()=>{
 
- let dados=tabela.rows({search:"applied"}).data().toArray();
- if(!dados.length) return alert("Nenhum dado disponível.");
+ let dadosExport=tabela.rows().data().toArray();
+ if(!dadosExport.length) return;
 
- let ws=XLSX.utils.json_to_sheet(dados);
+ let ws=XLSX.utils.json_to_sheet(dadosExport);
  let wb=XLSX.utils.book_new();
-
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
 
  XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
