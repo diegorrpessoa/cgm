@@ -167,7 +167,7 @@ table.dataTable td, table.dataTable th {
 
 <!-- TOTALIZADOR -->
 <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-  <span id="totalPrevisto">Valor Alocado/Previsto: R$ 0,00</span>
+  <span id="totalPrevisto">Valor Previsto: R$ 0,00</span>
 </div>
 
 <!-- BOTÕES -->
@@ -193,7 +193,6 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
-<!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
@@ -220,20 +219,9 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* PARSE MOEDA ROBUSTO */
-function parseMoeda(valor){
-  if(valor===null || valor===undefined) return 0;
-  let v=valor.toString().trim();
-  if(v==="") return 0;
-  v=v.replace(/[^\d,.-]/g,"");
-  v=v.replace(/\./g,"");
-  v=v.replace(",",".");
-  return parseFloat(v)||0;
-}
-
 /* NOME DINÂMICO EXPORTAÇÃO */
 function gerarNomeArquivo(ext){
-  let partes=["emendas-pjf"];
+  let partes=["dados-emendas-pjf"];
   ordem.forEach(f=>{
     let val=$("#"+f+"Filtro").val();
     if(val && val!=="TODOS"){
@@ -243,7 +231,7 @@ function gerarNomeArquivo(ext){
   return partes.join("-")+"."+ext;
 }
 
-/* SOMATÓRIO FUNCIONAL */
+/* TOTALIZADOR */
 function atualizarResumoPrevisto(dados){
 
   if(!dados.length){
@@ -251,24 +239,25 @@ function atualizarResumoPrevisto(dados){
     return;
   }
 
-  let colValor = Object.keys(dados[0]).find(c =>
-    c.toLowerCase().includes("valor")
-  );
+  let totalPrevisto=0;
 
-  if(!colValor){
-    $("#totalPrevisto").text("Coluna de valor não encontrada.");
-    $("#resumoValores").show();
-    return;
+  function parseMoeda(valor){
+    if(!valor) return 0;
+    return parseFloat(
+      valor.toString()
+        .replace(/[^\d\-,]/g,"")
+        .replace(/\./g,"")
+        .replace(",",".")
+    ) || 0;
   }
 
-  let total=0;
   dados.forEach(r=>{
-    total += parseMoeda(r[colValor]);
+    totalPrevisto += parseMoeda(r["Valor Alocado/Previsto"]);
   });
 
   $("#totalPrevisto").text(
     "Valor Alocado/Previsto: " +
-    total.toLocaleString("pt-BR",{
+    totalPrevisto.toLocaleString("pt-BR",{
       style:"currency",
       currency:"BRL"
     })
@@ -306,6 +295,7 @@ Papa.parse(urlCSV,{
 /* FILTRO ANO */
 function carregarAno(){
  let s=$("#anoFiltro");
+
  s.empty();
  s.append('<option value="">Selecione...</option>');
  s.append('<option value="TODOS">Todos</option>');
@@ -338,7 +328,7 @@ function aplicarFiltros(){
  renderTabela(base);
 }
 
-/* FILTROS ENCADEADOS COMPLETOS */
+/* FILTROS ENCADEADOS */
 function atualizarFiltrosEncadeados(){
 
  ordem.slice(1).forEach(f=>{
@@ -347,7 +337,6 @@ function atualizarFiltrosEncadeados(){
    let valorSelecionado=seletor.val();
 
    let ano=$("#anoFiltro").val();
-
    let base =
      (ano==="TODOS")
      ? [...dadosOriginais]
@@ -379,7 +368,6 @@ $("#anoFiltro").on("change",function(){
 
  if(!this.value){
    $("#tabela").hide();
-   $("#resumoValores").hide();
    return;
  }
 
@@ -387,6 +375,7 @@ $("#anoFiltro").on("change",function(){
    $("#"+f+"Filtro").val("").prop("disabled",false);
  });
 
+ atualizarFiltrosEncadeados();
  aplicarFiltros();
 });
 
@@ -420,7 +409,7 @@ function renderTabela(dados){
  });
 }
 
-/* EXPORTAÇÃO CORRETA */
+/* EXPORTAÇÕES */
 function baixarArquivo(conteudo,nome,tipo){
  let blob=new Blob([conteudo],{type:tipo});
  let link=document.createElement("a");
@@ -429,14 +418,26 @@ function baixarArquivo(conteudo,nome,tipo){
  link.click();
 }
 
+/* ✅ CSV EXCEL-PROOF */
 $("#btnCsv").on("click",()=>{
- baixarArquivo(
-   Papa.unparse(tabela.rows().data().toArray()),
-   gerarNomeArquivo("csv"),
-   "text/csv"
- );
+
+  let dadosExport = tabela.rows().data().toArray();
+  if(!dadosExport.length) return;
+
+  let csv = Papa.unparse(dadosExport,{
+    delimiter:";",
+    quotes:true,
+    skipEmptyLines:true
+  });
+
+  baixarArquivo(
+    "\uFEFF"+csv,
+    gerarNomeArquivo("csv"),
+    "text/csv;charset=utf-8;"
+  );
 });
 
+/* JSON */
 $("#btnJson").on("click",()=>{
  baixarArquivo(
    JSON.stringify(tabela.rows().data().toArray(),null,2),
@@ -445,6 +446,7 @@ $("#btnJson").on("click",()=>{
  );
 });
 
+/* TXT */
 $("#btnTxt").on("click",()=>{
  let txt=tabela.rows().data().toArray()
    .map(o=>Object.values(o).join(" | "))
@@ -453,16 +455,11 @@ $("#btnTxt").on("click",()=>{
  baixarArquivo(txt,gerarNomeArquivo("txt"),"text/plain");
 });
 
-/* XLSX CORRIGIDO */
+/* XLS */
 $("#btnXls").on("click",()=>{
-
- let dadosExport=tabela.rows().data().toArray();
- if(!dadosExport.length) return;
-
- let ws=XLSX.utils.json_to_sheet(dadosExport);
+ let ws=XLSX.utils.json_to_sheet(tabela.rows().data().toArray());
  let wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
-
  XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
 });
 </script>
