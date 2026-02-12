@@ -167,7 +167,7 @@ table.dataTable td, table.dataTable th {
 
 <!-- TOTALIZADOR -->
 <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-  <span id="totalPrevisto">Valor Alocado/Previsto: R$ 0,00</span>
+  <span id="totalPrevisto">Valor Previsto: R$ 0,00</span>
 </div>
 
 <!-- BOTÕES -->
@@ -231,235 +231,22 @@ function gerarNomeArquivo(ext){
   return partes.join("-")+"."+ext;
 }
 
-/* ✅ TOTALIZADOR CORRIGIDO DEFINITIVO */
-function atualizarResumoPrevisto(dados){
-
-  if(!dados.length){
-    $("#resumoValores").hide();
-    return;
-  }
-
-  let totalPrevisto = 0;
-
-  /* Localiza automaticamente a coluna correta */
-  const colunaPrevisto = Object.keys(dados[0]).find(c =>
-    c.toLowerCase().includes("alocado") ||
-    c.toLowerCase().includes("previsto")
-  );
-
-  if(!colunaPrevisto){
-    $("#totalPrevisto").text("Coluna Valor Alocado/Previsto não encontrada.");
-    $("#resumoValores").show();
-    return;
-  }
-
-  function parseMoeda(valor){
-    if(!valor) return 0;
-    return parseFloat(
-      valor.toString()
-        .replace(/[^\d,.-]/g,"")
-        .replace(/\./g,"")
-        .replace(",",".")
-    ) || 0;
-  }
-
-  dados.forEach(r=>{
-    totalPrevisto += parseMoeda(r[colunaPrevisto]);
-  });
-
-  $("#totalPrevisto").text(
-    "Valor Alocado/Previsto: " +
-    totalPrevisto.toLocaleString("pt-BR",{
-      style:"currency",
-      currency:"BRL"
-    })
-  );
-
-  $("#resumoValores").show();
-}
-
-/* CARREGAMENTO CSV */
-Papa.parse(urlCSV,{
- download:true,
- header:true,
- complete:r=>{
-
-   dadosOriginais=r.data.filter(d=>d[campos.ano]);
-
-   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
-   if(linhaAtualizacao){
-     $("#indicadorAtualizacao").html(
-       `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
-     );
-   }
-
-   dadosOriginais=dadosOriginais.map(r=>{
-     let copia={...r};
-     delete copia["Atualizacao"];
-     return copia;
-   });
-
-   carregarAno();
-   $("#spinnerCsv").fadeOut(200);
- }
-});
-
-/* FILTRO ANO */
-function carregarAno(){
- let s=$("#anoFiltro");
- s.empty();
- s.append('<option value="">Selecione...</option>');
- s.append('<option value="TODOS">Todos</option>');
-
- [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
-   .sort()
-   .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
-}
-
-/* APLICA FILTROS */
-function aplicarFiltros(){
-
- let ano=$("#anoFiltro").val();
- if(!ano) return;
-
- let base =
-   (ano==="TODOS")
-   ? [...dadosOriginais]
-   : dadosOriginais.filter(r=>r[campos.ano]===ano);
-
- ordem.slice(1).forEach(f=>{
-   let v=$("#"+f+"Filtro").val();
-   if(v){
-     base=base.filter(r=>r[campos[f]]===v);
-   }
- });
-
- atualizarFiltrosEncadeados();
- atualizarResumoPrevisto(base);
- renderTabela(base);
-}
-
-/* FILTROS ENCADEADOS */
-function atualizarFiltrosEncadeados(){
-
- ordem.slice(1).forEach(f=>{
-
-   let seletor=$("#"+f+"Filtro");
-   let valorSelecionado=seletor.val();
-
-   let ano=$("#anoFiltro").val();
-   let base =
-     (ano==="TODOS")
-     ? [...dadosOriginais]
-     : dadosOriginais.filter(r=>r[campos.ano]===ano);
-
-   ordem.slice(1).forEach(outro=>{
-     if(outro===f) return;
-     let val=$("#"+outro+"Filtro").val();
-     if(val){
-       base=base.filter(r=>r[campos[outro]]===val);
-     }
-   });
-
-   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
-
-   seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
-
-   seletor.prop("disabled",valores.length===0);
-
-   if(valores.includes(valorSelecionado)){
-     seletor.val(valorSelecionado);
-   }
- });
-}
-
-/* EVENTOS */
-$("#anoFiltro").on("change",function(){
-
- if(!this.value){
-   $("#tabela").hide();
-   $("#resumoValores").hide();
-   return;
- }
-
- ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").val("").prop("disabled",false);
- });
-
- atualizarFiltrosEncadeados();
- aplicarFiltros();
-});
-
-ordem.slice(1).forEach(f=>{
- $("#"+f+"Filtro").on("change",aplicarFiltros);
-});
-
-/* LIMPAR */
-$("#btnLimpar").on("click",()=>location.reload());
-
-/* TABELA */
-function renderTabela(dados){
-
- if(!dados.length) return;
-
- $("#tabela").show();
-
- if(tabela){
-   tabela.clear().rows.add(dados).draw();
-   return;
- }
-
- tabela=$("#tabela").DataTable({
-   data:dados,
-   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-   pageLength:10,
-   scrollX:true,
-   language:{
-     url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-   }
- });
-}
-
-/* EXPORTAÇÕES */
-function baixarArquivo(conteudo,nome,tipo){
- let blob=new Blob([conteudo],{type:tipo});
- let link=document.createElement("a");
- link.href=URL.createObjectURL(blob);
- link.download=nome;
- link.click();
-}
-
-$("#btnCsv").on("click",()=>{
- baixarArquivo(
-   Papa.unparse(tabela.rows().data().toArray()),
-   gerarNomeArquivo("csv"),
-   "text/csv"
- );
-});
-
-$("#btnJson").on("click",()=>{
- baixarArquivo(
-   JSON.stringify(tabela.rows().data().toArray(),null,2),
-   gerarNomeArquivo("json"),
-   "application/json"
- );
-});
-
-$("#btnTxt").on("click",()=>{
- let txt=tabela.rows().data().toArray()
-   .map(o=>Object.values(o).join(" | "))
-   .join("\n");
-
- baixarArquivo(txt,gerarNomeArquivo("txt"),"text/plain");
-});
-
+/* EXPORTAÇÃO XLS CORRIGIDA */
 $("#btnXls").on("click",()=>{
- let ws=XLSX.utils.json_to_sheet(tabela.rows().data().toArray());
- let wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,ws,"Emendas");
 
- XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
+  let dadosFiltrados = tabela.rows({ search: "applied" }).data().toArray();
+
+  if(!dadosFiltrados.length){
+    alert("Nenhum dado disponível para exportação.");
+    return;
+  }
+
+  let ws = XLSX.utils.json_to_sheet(dadosFiltrados);
+
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Emendas");
+
+  XLSX.writeFile(wb, gerarNomeArquivo("xlsx"));
 });
 </script>
 
