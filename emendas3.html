@@ -167,7 +167,7 @@ table.dataTable td, table.dataTable th {
 
 <!-- TOTALIZADOR -->
 <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-  <span id="totalPrevisto">Valor Previsto: R$ 0,00</span>
+  <span id="totalPrevisto">Valor alocado/previsto: R$ 0,00</span>
 </div>
 
 <!-- BOTÕES -->
@@ -219,6 +219,9 @@ const campos={
 
 const ordem=Object.keys(campos);
 
+/* COLUNA CORRETA */
+const colunaPrevisto="Valor alocado/previsto";
+
 /* NOME DINÂMICO EXPORTAÇÃO */
 function gerarNomeArquivo(ext){
   let partes=["dados-emendas-pjf"];
@@ -231,7 +234,7 @@ function gerarNomeArquivo(ext){
   return partes.join("-")+"."+ext;
 }
 
-/* TOTALIZADOR */
+/* SOMATÓRIO CORRIGIDO */
 function atualizarResumoPrevisto(dados){
 
   if(!dados.length){
@@ -239,34 +242,31 @@ function atualizarResumoPrevisto(dados){
     return;
   }
 
-  let totalPrevisto=0;
+  let total=0;
 
-  function parseMoeda(valor){
-    if(!valor) return 0;
+  function parseMoeda(v){
+    if(!v) return 0;
     return parseFloat(
-      valor.toString()
-        .replace(/[^\d\-,]/g,"")
-        .replace(/\./g,"")
-        .replace(",",".")
+      v.toString()
+       .replace(/[^\d\-,]/g,"")
+       .replace(/\./g,"")
+       .replace(",",".")
     ) || 0;
   }
 
   dados.forEach(r=>{
-    totalPrevisto += parseMoeda(r["Valor Alocado/Previsto"]);
+    total += parseMoeda(r[colunaPrevisto]);
   });
 
   $("#totalPrevisto").text(
-    "Valor Alocado/Previsto: " +
-    totalPrevisto.toLocaleString("pt-BR",{
-      style:"currency",
-      currency:"BRL"
-    })
+    "Valor alocado/previsto: " +
+    total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
   );
 
   $("#resumoValores").show();
 }
 
-/* CARREGAMENTO CSV */
+/* CARREGAMENTO */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
@@ -365,17 +365,9 @@ function atualizarFiltrosEncadeados(){
 
 /* EVENTOS */
 $("#anoFiltro").on("change",function(){
-
- if(!this.value){
-   $("#tabela").hide();
-   return;
- }
-
  ordem.slice(1).forEach(f=>{
    $("#"+f+"Filtro").val("").prop("disabled",false);
  });
-
- atualizarFiltrosEncadeados();
  aplicarFiltros();
 });
 
@@ -409,57 +401,34 @@ function renderTabela(dados){
  });
 }
 
-/* EXPORTAÇÕES */
-function baixarArquivo(conteudo,nome,tipo){
- let blob=new Blob([conteudo],{type:tipo});
- let link=document.createElement("a");
- link.href=URL.createObjectURL(blob);
- link.download=nome;
- link.click();
-}
-
-/* ✅ CSV EXCEL-PROOF */
+/* EXPORTAÇÃO CSV GOV.BR */
 $("#btnCsv").on("click",()=>{
 
-  let dadosExport = tabela.rows().data().toArray();
-  if(!dadosExport.length) return;
+ let dadosExport=tabela.rows().data().toArray();
+ if(!dadosExport.length) return;
 
-  let csv = Papa.unparse(dadosExport,{
-    delimiter:";",
-    quotes:true,
-    skipEmptyLines:true
-  });
+ let csv=Papa.unparse(dadosExport,{
+   delimiter:";",
+   quotes:true
+ });
 
-  baixarArquivo(
-    "\uFEFF"+csv,
-    gerarNomeArquivo("csv"),
-    "text/csv;charset=utf-8;"
-  );
+ let blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+ let link=document.createElement("a");
+ link.href=URL.createObjectURL(blob);
+ link.download=gerarNomeArquivo("csv");
+ link.click();
 });
 
-/* JSON */
-$("#btnJson").on("click",()=>{
- baixarArquivo(
-   JSON.stringify(tabela.rows().data().toArray(),null,2),
-   gerarNomeArquivo("json"),
-   "application/json"
- );
-});
-
-/* TXT */
-$("#btnTxt").on("click",()=>{
- let txt=tabela.rows().data().toArray()
-   .map(o=>Object.values(o).join(" | "))
-   .join("\n");
-
- baixarArquivo(txt,gerarNomeArquivo("txt"),"text/plain");
-});
-
-/* XLS */
+/* EXPORTAÇÃO XLS GOV.BR */
 $("#btnXls").on("click",()=>{
- let ws=XLSX.utils.json_to_sheet(tabela.rows().data().toArray());
+
+ let dadosExport=tabela.rows().data().toArray();
+ if(!dadosExport.length) return;
+
+ let ws=XLSX.utils.json_to_sheet(dadosExport);
  let wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
+
  XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
 });
 </script>
