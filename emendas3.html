@@ -98,8 +98,6 @@ table.dataTable td, table.dataTable th {
 }
 
 .totalizadores span {
-  display: inline-block;
-  margin-right: 15px;
   font-weight: 600;
 }
 </style>
@@ -115,8 +113,9 @@ table.dataTable td, table.dataTable th {
 
 <div class="container-fluid mt-3">
 
+<!-- ATUALIZAÇÃO -->
 <div id="indicadorAtualizacao">
-  Dados atualizados automaticamente em...
+  Dados atualizados automaticamente em: <b>carregando...</b>
 </div>
 
 <!-- FILTROS -->
@@ -219,33 +218,22 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* NOME DINÂMICO */
-function gerarNomeArquivo(ext){
-  let partes=["dados-emendas-pjf"];
-  ordem.forEach(f=>{
-    let val=$("#"+f+"Filtro").val();
-    if(val && val!=="TODOS"){
-      partes.push(val.toLowerCase().replace(/\s+/g,"-"));
-    }
-  });
-  return partes.join("-")+"."+ext;
+/* MOEDA */
+function parseMoeda(valor){
+  if(!valor) return 0;
+  return Number(
+    valor.toString()
+      .replace(/\s/g,"")
+      .replace("R$","")
+      .replace(/\./g,"")
+      .replace(",",".")
+  ) || 0;
 }
 
-/* SOMATÓRIO CORRIGIDO */
+/* SOMATÓRIO */
 function atualizarResumoPrevisto(dados){
 
   let total=0;
-
-  function parseMoeda(v){
-    if(!v) return 0;
-    return Number(
-      v.toString()
-       .replace("R$","")
-       .replace(/\./g,"")
-       .replace(",",".")
-       .trim()
-    ) || 0;
-  }
 
   dados.forEach(r=>{
     total += parseMoeda(r["Valor Alocado/Previsto"]);
@@ -259,13 +247,37 @@ function atualizarResumoPrevisto(dados){
   $("#resumoValores").show();
 }
 
-/* CARREGAMENTO */
+/* NOME DINÂMICO */
+function gerarNomeArquivo(ext){
+  let partes=["emendas"];
+  ordem.forEach(f=>{
+    let v=$("#"+f+"Filtro").val();
+    if(v && v!=="TODOS") partes.push(v);
+  });
+  return partes.join("-")+"."+ext;
+}
+
+/* CARREGA CSV */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
  complete:r=>{
 
-   dadosOriginais=r.data.filter(d=>d["Ano"]);
+   dadosOriginais=r.data.filter(x=>x["Ano"]);
+
+   /* ATUALIZAÇÃO (AO2) */
+   let atualizacao = dadosOriginais[0]["Atualizacao"];
+   if(atualizacao){
+     $("#indicadorAtualizacao").html(
+       `Dados atualizados automaticamente em: <b>${atualizacao}</b>`
+     );
+   }
+
+   /* REMOVE COLUNA */
+   dadosOriginais=dadosOriginais.map(l=>{
+     delete l["Atualizacao"];
+     return l;
+   });
 
    carregarAno();
 
@@ -273,24 +285,47 @@ Papa.parse(urlCSV,{
  }
 });
 
-/* POPULA ANO */
+/* ANO */
 function carregarAno(){
  let s=$("#anoFiltro");
 
- s.empty();
- s.append('<option value="">Selecione...</option>');
- s.append('<option value="TODOS">Todos</option>');
+ s.html(`
+   <option value="">Selecione...</option>
+   <option value="TODOS">Todos</option>
+ `);
 
  [...new Set(dadosOriginais.map(r=>r["Ano"]))]
-   .sort()
-   .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+  .sort()
+  .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* APLICA FILTROS */
-function aplicarFiltros(){
+/* FILTROS ENCADEADOS */
+function atualizarFiltrosEncadeados(){
+
+ ordem.slice(1).forEach(f=>{
+
+   let seletor=$("#"+f+"Filtro");
+   let selecionado=seletor.val();
+
+   let base=filtrarBaseParcial(f);
+
+   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
+
+   seletor.empty().append('<option value="">Selecione...</option>');
+   valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
+
+   seletor.prop("disabled",valores.length===0);
+
+   if(valores.includes(selecionado)){
+     seletor.val(selecionado);
+   }
+ });
+}
+
+/* BASE PARCIAL */
+function filtrarBaseParcial(excluir){
 
  let ano=$("#anoFiltro").val();
- if(!ano) return;
 
  let base =
    (ano==="TODOS")
@@ -298,18 +333,38 @@ function aplicarFiltros(){
    : dadosOriginais.filter(r=>r["Ano"]===ano);
 
  ordem.slice(1).forEach(f=>{
+   if(f===excluir) return;
    let v=$("#"+f+"Filtro").val();
    if(v){
      base=base.filter(r=>r[campos[f]]===v);
    }
  });
 
+ return base;
+}
+
+/* APLICA */
+function aplicarFiltros(){
+
+ let base=filtrarBaseParcial(null);
+
+ atualizarFiltrosEncadeados();
  atualizarResumoPrevisto(base);
  renderTabela(base);
 }
 
 /* EVENTOS */
-$("#anoFiltro").on("change",aplicarFiltros);
+$("#anoFiltro").on("change",function(){
+
+ if(!this.value) return;
+
+ ordem.slice(1).forEach(f=>{
+   $("#"+f+"Filtro").prop("disabled",false).val("");
+ });
+
+ aplicarFiltros();
+});
+
 ordem.slice(1).forEach(f=>{
  $("#"+f+"Filtro").on("change",aplicarFiltros);
 });
@@ -340,7 +395,7 @@ function renderTabela(dados){
  });
 }
 
-/* EXPORTAÇÕES */
+/* EXPORT */
 function baixarArquivo(conteudo,nome,tipo){
  let blob=new Blob([conteudo],{type:tipo});
  let link=document.createElement("a");
@@ -349,7 +404,6 @@ function baixarArquivo(conteudo,nome,tipo){
  link.click();
 }
 
-/* CSV */
 $("#btnCsv").on("click",()=>{
  baixarArquivo(
    Papa.unparse(tabela.rows({search:"applied"}).data().toArray()),
@@ -358,7 +412,6 @@ $("#btnCsv").on("click",()=>{
  );
 });
 
-/* JSON */
 $("#btnJson").on("click",()=>{
  baixarArquivo(
    JSON.stringify(tabela.rows({search:"applied"}).data().toArray(),null,2),
@@ -367,7 +420,6 @@ $("#btnJson").on("click",()=>{
  );
 });
 
-/* TXT */
 $("#btnTxt").on("click",()=>{
  let txt=tabela.rows({search:"applied"}).data().toArray()
    .map(o=>Object.values(o).join(" | "))
@@ -376,22 +428,17 @@ $("#btnTxt").on("click",()=>{
  baixarArquivo(txt,gerarNomeArquivo("txt"),"text/plain");
 });
 
-/* XLSX CORRIGIDO */
 $("#btnXls").on("click",()=>{
 
-  let dadosFiltrados = tabela.rows({ search:"applied" }).data().toArray();
+ let dados=tabela.rows({search:"applied"}).data().toArray();
+ if(!dados.length) return alert("Nenhum dado disponível.");
 
-  if(!dadosFiltrados.length){
-    alert("Nenhum dado disponível para exportação.");
-    return;
-  }
+ let ws=XLSX.utils.json_to_sheet(dados);
+ let wb=XLSX.utils.book_new();
 
-  let ws = XLSX.utils.json_to_sheet(dadosFiltrados);
+ XLSX.utils.book_append_sheet(wb,ws,"Emendas");
 
-  let wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Emendas");
-
-  XLSX.writeFile(wb, gerarNomeArquivo("xlsx"));
+ XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
 });
 </script>
 
