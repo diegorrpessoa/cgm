@@ -220,7 +220,7 @@ const campos={
 const ordem=Object.keys(campos);
 
 /* COLUNA CORRETA */
-const colunaPrevisto="Valor alocado/previsto";
+const colunaPrevisto="/previsto";
 
 /* NOME DINÂMICO EXPORTAÇÃO */
 function gerarNomeArquivo(ext){
@@ -259,7 +259,7 @@ function atualizarResumoPrevisto(dados){
   });
 
   $("#totalPrevisto").text(
-    "Valor alocado/previsto: " +
+    "Valor previsto: " +
     total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
   );
 
