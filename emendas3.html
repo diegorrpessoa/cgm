@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Painel de Emendas - IN 05/2025 - TCE/MG</title>
+<title>Painel 3 de Emendas - IN 05/2025 - TCE/MG</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -167,7 +167,7 @@ table.dataTable td, table.dataTable th {
 
 <!-- TOTALIZADOR -->
 <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-  <span id="totalPrevisto">Valor previsto: R$ 0,00</span>
+  <span id="totalPrevisto">Valor alocado/previsto: R$ 0,00</span>
 </div>
 
 <!-- BOTÕES -->
@@ -218,23 +218,59 @@ const campos={
 };
 
 const ordem=Object.keys(campos);
+const colunaPrevisto="Valor alocado/previsto";
 
-/* COLUNA CORRETA */
-const colunaPrevisto="/previsto";
+/* EXPORTAÇÃO UNIVERSAL ROBUSTA */
+function baixarArquivoSeguro(conteudo,nome,tipo){
 
-/* NOME DINÂMICO EXPORTAÇÃO */
+  let blob=new Blob([conteudo],{type:tipo});
+  let url=URL.createObjectURL(blob);
+
+  let link=document.createElement("a");
+  link.href=url;
+  link.download=nome;
+
+  document.body.appendChild(link);
+  link.click();
+
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/* DADOS FILTRADOS */
+function getDadosExportacao(){
+
+  if(!tabela){
+    alert("Tabela ainda não carregada.");
+    return null;
+  }
+
+  let dados=tabela.rows({search:"applied"}).data().toArray();
+
+  if(!dados.length){
+    alert("Nenhum dado disponível para exportação.");
+    return null;
+  }
+
+  return dados;
+}
+
+/* NOME DINÂMICO */
 function gerarNomeArquivo(ext){
-  let partes=["dados-emendas-pjf"];
+
+  let partes=["dados-emendas"];
+
   ordem.forEach(f=>{
     let val=$("#"+f+"Filtro").val();
     if(val && val!=="TODOS"){
       partes.push(val.toLowerCase().replace(/\s+/g,"-"));
     }
   });
+
   return partes.join("-")+"."+ext;
 }
 
-/* SOMATÓRIO CORRIGIDO */
+/* SOMATÓRIO */
 function atualizarResumoPrevisto(dados){
 
   if(!dados.length){
@@ -259,33 +295,20 @@ function atualizarResumoPrevisto(dados){
   });
 
   $("#totalPrevisto").text(
-    "Valor previsto: " +
+    "Valor alocado/previsto: " +
     total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
   );
 
   $("#resumoValores").show();
 }
 
-/* CARREGAMENTO */
+/* CARREGAMENTO CSV */
 Papa.parse(urlCSV,{
  download:true,
  header:true,
  complete:r=>{
 
    dadosOriginais=r.data.filter(d=>d[campos.ano]);
-
-   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
-   if(linhaAtualizacao){
-     $("#indicadorAtualizacao").html(
-       `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
-     );
-   }
-
-   dadosOriginais=dadosOriginais.map(r=>{
-     let copia={...r};
-     delete copia["Atualizacao"];
-     return copia;
-   });
 
    carregarAno();
    $("#spinnerCsv").fadeOut(200);
@@ -294,9 +317,10 @@ Papa.parse(urlCSV,{
 
 /* FILTRO ANO */
 function carregarAno(){
- let s=$("#anoFiltro");
 
+ let s=$("#anoFiltro");
  s.empty();
+
  s.append('<option value="">Selecione...</option>');
  s.append('<option value="TODOS">Todos</option>');
 
@@ -305,7 +329,7 @@ function carregarAno(){
    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* APLICA FILTROS */
+/* FILTROS */
 function aplicarFiltros(){
 
  let ano=$("#anoFiltro").val();
@@ -323,60 +347,15 @@ function aplicarFiltros(){
    }
  });
 
- atualizarFiltrosEncadeados();
  atualizarResumoPrevisto(base);
  renderTabela(base);
 }
 
-/* FILTROS ENCADEADOS */
-function atualizarFiltrosEncadeados(){
-
- ordem.slice(1).forEach(f=>{
-
-   let seletor=$("#"+f+"Filtro");
-   let valorSelecionado=seletor.val();
-
-   let ano=$("#anoFiltro").val();
-   let base =
-     (ano==="TODOS")
-     ? [...dadosOriginais]
-     : dadosOriginais.filter(r=>r[campos.ano]===ano);
-
-   ordem.slice(1).forEach(outro=>{
-     if(outro===f) return;
-     let val=$("#"+outro+"Filtro").val();
-     if(val){
-       base=base.filter(r=>r[campos[outro]]===val);
-     }
-   });
-
-   let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
-
-   seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
-
-   seletor.prop("disabled",valores.length===0);
-
-   if(valores.includes(valorSelecionado)){
-     seletor.val(valorSelecionado);
-   }
- });
-}
-
 /* EVENTOS */
-$("#anoFiltro").on("change",function(){
- ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").val("").prop("disabled",false);
- });
- aplicarFiltros();
-});
-
+$("#anoFiltro").on("change",aplicarFiltros);
 ordem.slice(1).forEach(f=>{
  $("#"+f+"Filtro").on("change",aplicarFiltros);
 });
-
-/* LIMPAR */
-$("#btnLimpar").on("click",()=>location.reload());
 
 /* TABELA */
 function renderTabela(dados){
@@ -401,35 +380,57 @@ function renderTabela(dados){
  });
 }
 
-/* EXPORTAÇÃO CSV GOV.BR */
+/* EXPORTAÇÕES */
+
+/* CSV */
 $("#btnCsv").on("click",()=>{
 
- let dadosExport=tabela.rows().data().toArray();
- if(!dadosExport.length) return;
+ let dados=getDadosExportacao();
+ if(!dados) return;
 
- let csv=Papa.unparse(dadosExport,{
-   delimiter:";",
-   quotes:true
- });
-
- let blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
- let link=document.createElement("a");
- link.href=URL.createObjectURL(blob);
- link.download=gerarNomeArquivo("csv");
- link.click();
+ let csv=Papa.unparse(dados,{delimiter:";",quotes:true});
+ baixarArquivoSeguro("\uFEFF"+csv,gerarNomeArquivo("csv"),"text/csv;charset=utf-8;");
 });
 
-/* EXPORTAÇÃO XLS GOV.BR */
+/* XLS */
 $("#btnXls").on("click",()=>{
 
- let dadosExport=tabela.rows().data().toArray();
- if(!dadosExport.length) return;
+ let dados=getDadosExportacao();
+ if(!dados) return;
 
- let ws=XLSX.utils.json_to_sheet(dadosExport);
+ let ws=XLSX.utils.json_to_sheet(dados);
  let wb=XLSX.utils.book_new();
  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
 
  XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
+});
+
+/* TXT CORRIGIDO */
+$("#btnTxt").on("click",()=>{
+
+ let dados=getDadosExportacao();
+ if(!dados) return;
+
+ let txt=dados.map(o=>Object.values(o).join(" | ")).join("\n");
+
+ baixarArquivoSeguro(
+   txt,
+   gerarNomeArquivo("txt"),
+   "text/plain;charset=utf-8;"
+ );
+});
+
+/* JSON CORRIGIDO */
+$("#btnJson").on("click",()=>{
+
+ let dados=getDadosExportacao();
+ if(!dados) return;
+
+ baixarArquivoSeguro(
+   JSON.stringify(dados,null,2),
+   gerarNomeArquivo("json"),
+   "application/json;charset=utf-8;"
+ );
 });
 </script>
 
