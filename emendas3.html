@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Painel de Emendas - IN 05/2025 - TCE/MG</title>
+<title>Painel 3 de Emendas - IN 05/2025 - TCE/MG</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -326,27 +326,6 @@ function carregarAno(){
     .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* Encadeamento filtros */
-function atualizarFiltrosEncadeados(){
-  ordem.slice(1).forEach(f=>{
-    let seletor=$("#"+f+"Filtro");
-    let valorAtual=seletor.val();
-
-    let base=aplicarFiltroAtual();
-
-    let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
-
-    seletor.empty().append('<option value="">Selecione...</option>');
-    valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
-
-    seletor.prop("disabled",valores.length===0);
-
-    if(valores.includes(valorAtual)){
-      seletor.val(valorAtual);
-    }
-  });
-}
-
 /* Aplica filtros */
 function aplicarFiltroAtual(){
   let ano=$("#anoFiltro").val();
@@ -364,6 +343,62 @@ function aplicarFiltroAtual(){
   });
 
   return base;
+}
+
+/* NOVO: aplica filtros ignorando o próprio filtro */
+function aplicarFiltroIgnorando(filtroIgnorado){
+
+  let ano=$("#anoFiltro").val();
+  if(!ano) return [];
+
+  let base=(ano==="TODOS")
+    ? [...dadosOriginais]
+    : dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+  ordem.slice(1).forEach(f=>{
+
+    if(f===filtroIgnorado) return;
+
+    let v=$("#"+f+"Filtro").val();
+    if(v){
+      base=base.filter(r=>r[campos[f]]===v);
+    }
+  });
+
+  return base;
+}
+
+/* Encadeamento correto */
+function atualizarFiltrosEncadeados(){
+
+  ordem.slice(1).forEach(f=>{
+
+    let seletor=$("#"+f+"Filtro");
+    let valorAtual=seletor.val();
+
+    let base=aplicarFiltroIgnorando(f);
+
+    let valores=[...new Set(
+      base.map(r=>r[campos[f]]).filter(Boolean)
+    )].sort();
+
+    seletor.empty();
+    seletor.append('<option value="">Selecione...</option>');
+
+    valores.forEach(v=>{
+      seletor.append(`<option value="${v}">${v}</option>`);
+    });
+
+    seletor.prop("disabled",valores.length===0);
+
+    if(valores.includes(valorAtual)){
+      seletor.val(valorAtual);
+    } else {
+      seletor.val("");
+    }
+
+  });
+
 }
 
 /* Render tabela */
