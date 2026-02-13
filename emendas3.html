@@ -55,7 +55,7 @@ table.dataTable td, table.dataTable th {
   padding: 4px 8px;
 }
 
-/* Indicador atualização */
+/* Atualização */
 #indicadorAtualizacao {
   font-size: 0.65rem;
   color: #6c757d;
@@ -103,20 +103,19 @@ table.dataTable td, table.dataTable th {
   font-weight: 600;
 }
 
-/* ✅ REGISTROS POR PÁGINA IGUAL INDEX2 */
+/* Registros por página externo */
 #lengthSelectorContainer {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   display: flex;
+  justify-content: flex-end;
   align-items: center;
   gap: 6px;
-  justify-content: flex-end;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 #lengthSelector {
   width: 80px;
-  font-size: 0.72rem;
-  padding: 2px 4px;
+  font-size: 0.7rem;
 }
 </style>
 </head>
@@ -202,7 +201,7 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
-<!-- ✅ REGISTROS POR PÁGINA (ANTES DA TABELA) -->
+<!-- REGISTROS POR PÁGINA -->
 <div id="lengthSelectorContainer">
   <label>Registros por página:</label>
   <select id="lengthSelector" class="form-select form-select-sm">
@@ -246,18 +245,36 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* SOMA */
+/* Nome dinâmico exportação */
+function gerarNomeArquivo(ext){
+  let partes=["dados-emendas-pjf"];
+  ordem.forEach(f=>{
+    let val=$("#"+f+"Filtro").val();
+    if(val && val!=="TODOS"){
+      partes.push(val.toLowerCase().replace(/\s+/g,"-"));
+    }
+  });
+  return partes.join("-")+"."+ext;
+}
+
+/* Parse moeda */
 function parseMoeda(valor){
   if(!valor) return 0;
   return parseFloat(
     valor.toString()
+      .replace(/[^\d,.-]/g,"")
       .replace(/\./g,"")
       .replace(",",".")
-      .replace(/[^\d.]/g,"")
   ) || 0;
 }
 
+/* Totalizador previsto */
 function atualizarResumoPrevisto(dados){
+  if(!dados.length){
+    $("#resumoValores").hide();
+    return;
+  }
+
   let total=0;
   dados.forEach(r=>{
     total += parseMoeda(r["Valor alocado/previsto"]);
@@ -271,118 +288,197 @@ function atualizarResumoPrevisto(dados){
   $("#resumoValores").show();
 }
 
-/* CSV */
+/* CSV carregamento */
 Papa.parse(urlCSV,{
- download:true,
- header:true,
- complete:r=>{
+  download:true,
+  header:true,
+  complete:r=>{
 
-   dadosOriginais=r.data.filter(d=>d[campos.ano]);
+    dadosOriginais=r.data.filter(d=>d[campos.ano]);
 
-   let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
-   if(linhaAtualizacao){
-     $("#indicadorAtualizacao").html(
-       `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
-     );
-   }
+    let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
+    if(linhaAtualizacao){
+      $("#indicadorAtualizacao").html(
+        `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
+      );
+    }
 
-   dadosOriginais=dadosOriginais.map(r=>{
-     let copia={...r};
-     delete copia["Atualizacao"];
-     return copia;
-   });
+    dadosOriginais=dadosOriginais.map(r=>{
+      let copia={...r};
+      delete copia["Atualizacao"];
+      return copia;
+    });
 
-   carregarAno();
-   $("#spinnerCsv").fadeOut(200);
- }
+    carregarAno();
+    $("#spinnerCsv").fadeOut(200);
+  }
 });
 
-/* FILTRO ANO */
+/* Ano */
 function carregarAno(){
- let s=$("#anoFiltro");
+  let s=$("#anoFiltro");
+  s.empty();
+  s.append('<option value="">Selecione...</option>');
+  s.append('<option value="TODOS">Todos</option>');
 
- s.empty();
- s.append('<option value="">Selecione...</option>');
- s.append('<option value="TODOS">Todos</option>');
-
- [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
-   .sort()
-   .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+  [...new Set(dadosOriginais.map(r=>r[campos.ano]))]
+    .sort()
+    .forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 }
 
-/* FILTRAGEM */
-function aplicarFiltros(){
+/* Encadeamento filtros */
+function atualizarFiltrosEncadeados(){
+  ordem.slice(1).forEach(f=>{
+    let seletor=$("#"+f+"Filtro");
+    let valorAtual=seletor.val();
 
- let ano=$("#anoFiltro").val();
- if(!ano) return;
+    let base=aplicarFiltroAtual();
 
- let base =
-   (ano==="TODOS")
-   ? [...dadosOriginais]
-   : dadosOriginais.filter(r=>r[campos.ano]===ano);
+    let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
- ordem.slice(1).forEach(f=>{
-   let v=$("#"+f+"Filtro").val();
-   if(v){
-     base=base.filter(r=>r[campos[f]]===v);
-   }
- });
+    seletor.empty().append('<option value="">Selecione...</option>');
+    valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
 
- atualizarResumoPrevisto(base);
- renderTabela(base);
+    seletor.prop("disabled",valores.length===0);
+
+    if(valores.includes(valorAtual)){
+      seletor.val(valorAtual);
+    }
+  });
 }
 
-/* EVENTOS */
+/* Aplica filtros */
+function aplicarFiltroAtual(){
+  let ano=$("#anoFiltro").val();
+  if(!ano) return [];
+
+  let base=(ano==="TODOS")
+    ? [...dadosOriginais]
+    : dadosOriginais.filter(r=>r[campos.ano]===ano);
+
+  ordem.slice(1).forEach(f=>{
+    let v=$("#"+f+"Filtro").val();
+    if(v){
+      base=base.filter(r=>r[campos[f]]===v);
+    }
+  });
+
+  return base;
+}
+
+/* Render tabela */
+function renderTabela(dados){
+
+  if(!dados.length){
+    $("#tabela").hide();
+    return;
+  }
+
+  $("#tabela").show();
+
+  if(tabela){
+    tabela.clear().rows.add(dados).draw();
+    return;
+  }
+
+  tabela=$("#tabela").DataTable({
+    data:dados,
+    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
+
+    scrollX:true,
+    scrollY:"55vh",
+    scrollCollapse:true,
+
+    paging:true,
+    pageLength:10,
+
+    lengthChange:false,
+    info:true,
+
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
+  });
+
+  $("#lengthSelector").on("change",function(){
+    tabela.page.len(this.value).draw();
+  });
+}
+
+/* Aplicar tudo */
+function aplicarTudo(){
+  let dados=aplicarFiltroAtual();
+  atualizarFiltrosEncadeados();
+  atualizarResumoPrevisto(dados);
+  renderTabela(dados);
+}
+
+/* Eventos */
 $("#anoFiltro").on("change",function(){
- ordem.slice(1).forEach(f=>{
-   $("#"+f+"Filtro").val("").prop("disabled",false);
- });
- aplicarFiltros();
+  ordem.slice(1).forEach(f=>{
+    $("#"+f+"Filtro").val("").prop("disabled",false);
+  });
+  aplicarTudo();
 });
 
 ordem.slice(1).forEach(f=>{
- $("#"+f+"Filtro").on("change",aplicarFiltros);
+  $("#"+f+"Filtro").on("change",aplicarTudo);
 });
 
-/* LIMPAR */
+/* Limpar */
 $("#btnLimpar").on("click",()=>location.reload());
 
-/* TABELA */
-function renderTabela(dados){
-
- if(!dados.length) return;
-
- $("#tabela").show();
-
- if(tabela){
-   tabela.clear().rows.add(dados).draw(false);
-   return;
- }
-
- tabela=$("#tabela").DataTable({
-   data:dados,
-   columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
-
-   paging:true,
-   pageLength:10,
-
-   scrollX:true,
-   scrollY:"55vh",
-   scrollCollapse:true,
-
-   lengthChange:false, /* ✅ REMOVE EXIBIR */
-   info:false,         /* ✅ REMOVE INFO */
-
-   language:{
-     url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-   }
- });
-
- /* ✅ CONTROLE EXTERNO */
- $("#lengthSelector").on("change",function(){
-   tabela.page.len(this.value).draw();
- });
+/* Exportações */
+function baixarArquivo(blob,nome){
+  let link=document.createElement("a");
+  link.href=URL.createObjectURL(blob);
+  link.download=nome;
+  link.click();
 }
+
+/* CSV compatível Excel */
+$("#btnCsv").on("click",()=>{
+  let csv=Papa.unparse(tabela.rows({search:"applied"}).data().toArray(),{
+    quotes:true,
+    delimiter:";"
+  });
+
+  baixarArquivo(
+    new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8;"}),
+    gerarNomeArquivo("csv")
+  );
+});
+
+/* JSON */
+$("#btnJson").on("click",()=>{
+  let dados=tabela.rows({search:"applied"}).data().toArray();
+  baixarArquivo(
+    new Blob([JSON.stringify(dados,null,2)],{type:"application/json"}),
+    gerarNomeArquivo("json")
+  );
+});
+
+/* TXT */
+$("#btnTxt").on("click",()=>{
+  let dados=tabela.rows({search:"applied"}).data().toArray();
+  let txt=dados.map(o=>Object.values(o).join(" | ")).join("\n");
+
+  baixarArquivo(
+    new Blob([txt],{type:"text/plain"}),
+    gerarNomeArquivo("txt")
+  );
+});
+
+/* XLSX correto */
+$("#btnXls").on("click",()=>{
+  let dados=tabela.rows({search:"applied"}).data().toArray();
+
+  let ws=XLSX.utils.json_to_sheet(dados);
+  let wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,"Emendas");
+
+  XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
+});
 </script>
 
 </body>
