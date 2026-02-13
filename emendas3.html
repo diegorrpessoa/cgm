@@ -194,7 +194,7 @@ table.dataTable td, table.dataTable th {
 
   <div class="export-group btn-group">
     <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-    <button id="btnXls" class="btn btn-outline-secondary btn-sm">XLS</button>
+    <button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
     <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
     <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
   </div>
@@ -505,7 +505,7 @@ $("#btnTxt").on("click",()=>{
 });
 
 /* XLSX correto */
-$("#btnXls").on("click",()=>{
+$("#btnXlsx").on("click",()=>{
   let dados=tabela.rows({search:"applied"}).data().toArray();
 
   let ws=XLSX.utils.json_to_sheet(dados);
