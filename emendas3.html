@@ -102,6 +102,22 @@ table.dataTable td, table.dataTable th {
   margin-right: 15px;
   font-weight: 600;
 }
+
+/* ✅ REGISTROS POR PÁGINA IGUAL INDEX2 */
+#lengthSelectorContainer {
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+#lengthSelector {
+  width: 80px;
+  font-size: 0.72rem;
+  padding: 2px 4px;
+}
 </style>
 </head>
 
@@ -186,6 +202,17 @@ table.dataTable td, table.dataTable th {
 
 </div>
 
+<!-- ✅ REGISTROS POR PÁGINA (ANTES DA TABELA) -->
+<div id="lengthSelectorContainer">
+  <label>Registros por página:</label>
+  <select id="lengthSelector" class="form-select form-select-sm">
+    <option value="10">10</option>
+    <option value="25">25</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+</div>
+
 <!-- TABELA -->
 <div class="table-responsive">
   <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
@@ -219,7 +246,7 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* SOMA CORRETA */
+/* SOMA */
 function parseMoeda(valor){
   if(!valor) return 0;
   return parseFloat(
@@ -232,7 +259,6 @@ function parseMoeda(valor){
 
 function atualizarResumoPrevisto(dados){
   let total=0;
-
   dados.forEach(r=>{
     total += parseMoeda(r["Valor alocado/previsto"]);
   });
@@ -302,44 +328,15 @@ function aplicarFiltros(){
    }
  });
 
- atualizarFiltrosEncadeados(base);
  atualizarResumoPrevisto(base);
  renderTabela(base);
 }
 
-/* FILTROS ENCADEADOS */
-function atualizarFiltrosEncadeados(baseAtual){
-
- ordem.slice(1).forEach(f=>{
-
-   let seletor=$("#"+f+"Filtro");
-   let atual=seletor.val();
-
-   let valores=[...new Set(baseAtual.map(r=>r[campos[f]]).filter(Boolean))].sort();
-
-   seletor.empty().append('<option value="">Selecione...</option>');
-   valores.forEach(v=>seletor.append(`<option value="${v}">${v}</option>`));
-
-   seletor.prop("disabled",valores.length===0);
-
-   if(valores.includes(atual)){
-     seletor.val(atual);
-   }
- });
-}
-
 /* EVENTOS */
 $("#anoFiltro").on("change",function(){
-
- if(!this.value){
-   $("#tabela").hide();
-   return;
- }
-
  ordem.slice(1).forEach(f=>{
    $("#"+f+"Filtro").val("").prop("disabled",false);
  });
-
  aplicarFiltros();
 });
 
@@ -359,7 +356,6 @@ function renderTabela(dados){
 
  if(tabela){
    tabela.clear().rows.add(dados).draw(false);
-   tabela.columns.adjust();
    return;
  }
 
@@ -367,68 +363,26 @@ function renderTabela(dados){
    data:dados,
    columns:Object.keys(dados[0]).map(c=>({title:c,data:c})),
 
-   pageLength:10,
    paging:true,
+   pageLength:10,
 
    scrollX:true,
    scrollY:"55vh",
    scrollCollapse:true,
 
-   info:false,
+   lengthChange:false, /* ✅ REMOVE EXIBIR */
+   info:false,         /* ✅ REMOVE INFO */
 
    language:{
      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
    }
  });
 
- tabela.columns.adjust();
+ /* ✅ CONTROLE EXTERNO */
+ $("#lengthSelector").on("change",function(){
+   tabela.page.len(this.value).draw();
+ });
 }
-
-/* EXPORTAÇÕES */
-function baixarArquivo(conteudo,nome,tipo){
- let blob=new Blob([conteudo],{type:tipo});
- let link=document.createElement("a");
- link.href=URL.createObjectURL(blob);
- link.download=nome;
- link.click();
-}
-
-function nomeArquivo(ext){
- return "emendas-filtradas."+ext;
-}
-
-$("#btnCsv").on("click",()=>{
- baixarArquivo(
-   Papa.unparse(tabela.rows().data().toArray(),{quotes:true}),
-   nomeArquivo("csv"),
-   "text/csv;charset=utf-8;"
- );
-});
-
-$("#btnJson").on("click",()=>{
- baixarArquivo(
-   JSON.stringify(tabela.rows().data().toArray(),null,2),
-   nomeArquivo("json"),
-   "application/json"
- );
-});
-
-$("#btnTxt").on("click",()=>{
- let txt=tabela.rows().data().toArray()
-   .map(o=>Object.values(o).join(" | "))
-   .join("\n");
-
- baixarArquivo(txt,nomeArquivo("txt"),"text/plain");
-});
-
-$("#btnXls").on("click",()=>{
- let dadosX=tabela.rows().data().toArray();
- let ws=XLSX.utils.json_to_sheet(dadosX);
- let wb=XLSX.utils.book_new();
- XLSX.utils.book_append_sheet(wb,ws,"Emendas");
-
- XLSX.writeFile(wb,nomeArquivo("xlsx"));
-});
 </script>
 
 </body>
