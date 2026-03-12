@@ -51,6 +51,12 @@ color:#6c757d;
 margin-bottom:8px;
 }
 
+#totalPago{
+font-weight:600;
+font-size:.8rem;
+margin-bottom:10px;
+}
+
 </style>
 </head>
 
@@ -64,6 +70,8 @@ margin-bottom:8px;
 <div class="container-fluid mt-3">
 
 <div id="indicadorAtualizacao"></div>
+
+<div id="totalPago">Valor pago total: R$ 0,00</div>
 
 <div class="row g-2 mb-3">
 
@@ -114,10 +122,38 @@ const campos={
 ug:"Unidade Gestora (UG)",
 fornecedor:"Fornecedor",
 cpf:"CPF/CNPJ fornecedor",
-objeto:"Objeto"
+objeto:"Objeto",
+valor:"Valor pago"
 };
 
-/* ---------- CARREGAR CSV ---------- */
+function moedaParaNumero(valor){
+
+if(!valor) return 0;
+
+return parseFloat(
+valor
+.toString()
+.replace(/[^\d,.-]/g,"")
+.replace(/\./g,"")
+.replace(",",".")
+) || 0;
+
+}
+
+function somarValores(dados){
+
+let total=0;
+
+dados.forEach(r=>{
+total+=moedaParaNumero(r[campos.valor]);
+});
+
+$("#totalPago").text(
+"Valor pago total: "+
+total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+);
+
+}
 
 Papa.parse(urlCSV,{
 download:true,
@@ -125,8 +161,6 @@ header:true,
 complete:r=>{
 
 dadosOriginais=r.data;
-
-/* DATA ATUALIZAÇÃO */
 
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
@@ -138,24 +172,20 @@ $("#indicadorAtualizacao").html(
 
 }
 
-/* REMOVER COLUNA T */
-
 dadosOriginais=dadosOriginais.map(r=>{
 let copia={...r};
 delete copia["Atualizacao"];
 return copia;
 });
 
-/* CARREGAR UG */
-
 carregarUG();
 
 $("#spinnerCsv").fadeOut();
 
+somarValores(dadosOriginais);
+
 }
 });
-
-/* ---------- FILTRO BASE ---------- */
 
 function obterBase(excluir=null){
 
@@ -194,8 +224,6 @@ return base;
 
 }
 
-/* ---------- CARREGAR UG ---------- */
-
 function carregarUG(){
 
 let s=$("#ugFiltro");
@@ -211,8 +239,6 @@ s.append(`<option value="${v}">${v}</option>`);
 });
 
 }
-
-/* ---------- ATUALIZAR FILTRO ---------- */
 
 function atualizarFiltro(nome){
 
@@ -239,8 +265,6 @@ seletor.val(atual);
 
 }
 
-/* ---------- ATUALIZAR TODOS ---------- */
-
 function atualizarFiltros(){
 
 atualizarFiltro("fornecedor");
@@ -248,8 +272,6 @@ atualizarFiltro("cpf");
 atualizarFiltro("objeto");
 
 }
-
-/* ---------- RENDER TABELA ---------- */
 
 function renderTabela(dados){
 
@@ -305,8 +327,6 @@ tabela.clear().rows.add(base).draw();
 
 }
 
-/* ---------- APLICAR FILTROS ---------- */
-
 function aplicar(){
 
 let dados=obterBase();
@@ -315,9 +335,9 @@ atualizarFiltros();
 
 renderTabela(dados);
 
-}
+somarValores(dados);
 
-/* ---------- EVENTOS ---------- */
+}
 
 $("#ugFiltro").on("change",function(){
 
