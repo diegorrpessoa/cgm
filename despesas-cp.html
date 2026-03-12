@@ -30,30 +30,12 @@ table.dataTable td,table.dataTable th{
 white-space:nowrap;
 }
 
-.dataTables_wrapper .dataTables_paginate{
-margin-top:.5rem;
-display:flex;
-justify-content:center;
-gap:4px;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button{
-padding:4px 8px!important;
-font-size:.65rem!important;
-border-radius:6px!important;
-background:#e9ecef!important;
-border:1px solid #dee2e6!important;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.current{
-background:#0d6efd!important;
-color:#fff!important;
-font-weight:bold!important;
-}
-
-.export-group .btn{
+.totalizadores{
 font-size:.7rem;
-padding:4px 8px;
+background:#fff;
+padding:5px 10px;
+border:1px solid #dee2e6;
+border-radius:4px;
 }
 
 #indicadorAtualizacao{
@@ -78,34 +60,6 @@ z-index:9999;
 background:rgba(255,255,255,.9);
 }
 
-.spinner-border{width:2rem;height:2rem;}
-.spinner-text{font-size:.9rem;margin-top:5px;}
-
-.totalizadores{
-font-size:.7rem;
-background:#fff;
-padding:5px 10px;
-border:1px solid #dee2e6;
-border-radius:4px;
-}
-
-.totalizadores span{
-display:inline-block;
-margin-right:15px;
-font-weight:600;
-}
-
-#lengthSelectorContainer{
-font-size:.7rem;
-display:flex;
-justify-content:flex-end;
-align-items:center;
-gap:6px;
-margin-bottom:6px;
-}
-
-#lengthSelector{width:80px;font-size:.7rem;}
-
 </style>
 </head>
 
@@ -125,7 +79,7 @@ Dados atualizados automaticamente em...
 <div class="row gx-2 gy-2 mb-3">
 
 <div class="col-sm-3">
-<label>Unidade Gestora (UG)</label>
+<label>Unidade Gestora (UG) *</label>
 <select id="ugFiltro" class="form-select form-select-sm"></select>
 </div>
 
@@ -150,31 +104,6 @@ Dados atualizados automaticamente em...
 <span id="totalPago">Valor pago: R$ 0,00</span>
 </div>
 
-<div class="d-flex justify-content-between mb-2">
-
-<button id="btnLimpar" class="btn btn-outline-primary btn-sm">
-Limpar filtros
-</button>
-
-<div class="export-group btn-group">
-<button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-<button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
-<button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
-<button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-</div>
-
-</div>
-
-<div id="lengthSelectorContainer">
-<label>Registros por página:</label>
-<select id="lengthSelector" class="form-select form-select-sm">
-<option value="10">10</option>
-<option value="25">25</option>
-<option value="50">50</option>
-<option value="100">100</option>
-</select>
-</div>
-
 <div class="table-responsive">
 <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
 </div>
@@ -182,13 +111,10 @@ Limpar filtros
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 
-let tabela;
 let dadosOriginais=[];
 
 const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3-CtmdGkiL5mdK7T3neAkVW60SUcbfrO-lVMWzEYo5_wZ6RtYGaquGFqVZvX6gmseDAMkzYf2HwUQ/pub?output=csv";
@@ -245,8 +171,6 @@ complete:r=>{
 
 dadosOriginais=r.data;
 
-/* CAPTURAR DATA ATUALIZAÇÃO */
-
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
 if(linhaAtualizacao){
@@ -257,21 +181,13 @@ $("#indicadorAtualizacao").html(
 
 }
 
-/* REMOVER COLUNA ATUALIZAÇÃO */
-
 dadosOriginais=dadosOriginais.map(r=>{
 let copia={...r};
 delete copia["Atualizacao"];
 return copia;
 });
 
-/* FILTRAR REGISTROS */
-
 dadosOriginais=dadosOriginais.filter(d=>d[campos.ug]);
-
-carregarUG();
-
-/* SOMA TOTAL DA BASE */
 
 atualizarResumo(dadosOriginais);
 
@@ -279,18 +195,6 @@ $("#spinnerCsv").fadeOut(200);
 
 }
 });
-
-function carregarUG(){
-
-let s=$("#ugFiltro");
-
-s.append('<option value="">Todos</option>');
-
-[...new Set(dadosOriginais.map(r=>r[campos.ug]))]
-.sort()
-.forEach(v=>s.append(`<option value="${v}">${v}</option>`));
-
-}
 
 function aplicarFiltroAtual(){
 
