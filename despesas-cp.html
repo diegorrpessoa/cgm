@@ -5,7 +5,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Painel de Pagamentos</title>
+<title>Painel Gerencial de Despesas - Calamidade Pública</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -13,6 +13,7 @@
 <style>
 
 body{background:#f8f9fa;}
+
 .dataTables_filter{display:none;}
 
 label{
@@ -89,12 +90,6 @@ border:1px solid #dee2e6;
 border-radius:4px;
 }
 
-.totalizadores span{
-display:inline-block;
-margin-right:15px;
-font-weight:600;
-}
-
 #lengthSelectorContainer{
 font-size:.7rem;
 display:flex;
@@ -104,7 +99,7 @@ gap:6px;
 margin-bottom:6px;
 }
 
-#lengthSelector{width:80px;font-size:.7rem;}
+#lengthSelector{width:80px;}
 
 </style>
 </head>
@@ -134,12 +129,12 @@ Dados atualizados automaticamente em...
 <select id="fornecedorFiltro" class="form-select form-select-sm" disabled></select>
 </div>
 
-<div class="col-sm-2">
+<div class="col-sm-3">
 <label>CPF/CNPJ fornecedor</label>
 <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
 </div>
 
-<div class="col-sm-4">
+<div class="col-sm-3">
 <label>Objeto</label>
 <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
 </div>
@@ -201,8 +196,6 @@ objeto:"Objeto",
 valor:"Valor pago"
 };
 
-const ordem=Object.keys(campos);
-
 function parseMoeda(valor){
 
 if(!valor)return 0;
@@ -245,29 +238,21 @@ complete:r=>{
 
 dadosOriginais=r.data;
 
-/* CAPTURAR DATA ATUALIZAÇÃO (COLUNA T) */
+/* DATA ATUALIZAÇÃO */
 
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
 if(linhaAtualizacao){
-
 $("#indicadorAtualizacao").html(
 `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
 );
-
 }
-
-/* REMOVER COLUNA ATUALIZAÇÃO */
 
 dadosOriginais=dadosOriginais.map(r=>{
 let copia={...r};
 delete copia["Atualizacao"];
 return copia;
 });
-
-/* FILTRAR REGISTROS */
-
-dadosOriginais=dadosOriginais.filter(d=>d[campos.ug]);
 
 carregarUG();
 
@@ -281,6 +266,7 @@ function carregarUG(){
 let s=$("#ugFiltro");
 
 s.append('<option value="">Selecione...</option>');
+s.append('<option value="TODOS">Todos</option>');
 
 [...new Set(dadosOriginais.map(r=>r[campos.ug]))]
 .sort()
@@ -288,47 +274,31 @@ s.append('<option value="">Selecione...</option>');
 
 }
 
-function aplicarFiltroAtual(){
+function aplicarFiltros(){
+
+let base=[...dadosOriginais];
 
 let ug=$("#ugFiltro").val();
 
-if(!ug)return[];
-
-let base=dadosOriginais.filter(r=>r[campos.ug]===ug);
-
-ordem.slice(1).forEach(f=>{
-
-let v=$("#"+f+"Filtro").val();
-
-if(v){
-base=base.filter(r=>r[campos[f]]===v);
+if(ug && ug!=="TODOS"){
+base=base.filter(r=>r[campos.ug]===ug);
 }
 
-});
+let fornecedor=$("#fornecedorFiltro").val();
+let cpf=$("#cpfFiltro").val();
+let objeto=$("#objetoFiltro").val();
 
-return base;
-
+if(fornecedor){
+base=base.filter(r=>r[campos.fornecedor]===fornecedor);
 }
 
-function aplicarFiltroIgnorando(filtro){
-
-let ug=$("#ugFiltro").val();
-
-if(!ug)return[];
-
-let base=dadosOriginais.filter(r=>r[campos.ug]===ug);
-
-ordem.slice(1).forEach(f=>{
-
-if(f===filtro)return;
-
-let v=$("#"+f+"Filtro").val();
-
-if(v){
-base=base.filter(r=>r[campos[f]]===v);
+if(cpf){
+base=base.filter(r=>r[campos.cpf]===cpf);
 }
 
-});
+if(objeto){
+base=base.filter(r=>r[campos.objeto]===objeto);
+}
 
 return base;
 
@@ -336,30 +306,26 @@ return base;
 
 function atualizarFiltros(){
 
-ordem.slice(1).forEach(f=>{
+["fornecedor","cpf","objeto"].forEach(f=>{
 
 let seletor=$("#"+f+"Filtro");
+let atual=seletor.val();
 
-let valorAtual=seletor.val();
-
-let base=aplicarFiltroIgnorando(f);
+let base=aplicarFiltros();
 
 let valores=[...new Set(
 base.map(r=>r[campos[f]]).filter(Boolean)
 )].sort();
 
 seletor.empty();
-
 seletor.append('<option value="">Selecione...</option>');
 
 valores.forEach(v=>{
 seletor.append(`<option value="${v}">${v}</option>`);
 });
 
-seletor.prop("disabled",valores.length===0);
-
-if(valores.includes(valorAtual)){
-seletor.val(valorAtual);
+if(valores.includes(atual)){
+seletor.val(atual);
 }
 
 });
@@ -375,13 +341,11 @@ return;
 
 $("#tabela").show();
 
-/* EXIBIR APENAS COLUNAS A ATÉ S */
-
-const colunasPermitidas=Object.keys(dados[0]).slice(0,19);
+const colunas=Object.keys(dados[0]).slice(0,19);
 
 let dadosFiltrados=dados.map(r=>{
 let obj={};
-colunasPermitidas.forEach(c=>{
+colunas.forEach(c=>{
 obj[c]=r[c];
 });
 return obj;
@@ -396,10 +360,7 @@ tabela=$("#tabela").DataTable({
 
 data:dadosFiltrados,
 
-columns:colunasPermitidas.map(c=>({
-title:c,
-data:c
-})),
+columns:colunas.map(c=>({title:c,data:c})),
 
 scrollX:true,
 scrollY:"55vh",
@@ -424,7 +385,7 @@ tabela.page.len(this.value).draw();
 
 function aplicarTudo(){
 
-let dados=aplicarFiltroAtual();
+let dados=aplicarFiltros();
 
 atualizarFiltros();
 
@@ -434,19 +395,17 @@ renderTabela(dados);
 
 }
 
+/* EVENTOS */
+
 $("#ugFiltro").on("change",function(){
 
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").val("").prop("disabled",false);
-});
+$("#fornecedorFiltro,#cpfFiltro,#objetoFiltro").prop("disabled",false);
 
 aplicarTudo();
 
 });
 
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").on("change",aplicarTudo);
-});
+$("#fornecedorFiltro,#cpfFiltro,#objetoFiltro").on("change",aplicarTudo);
 
 $("#btnLimpar").on("click",()=>location.reload());
 
