@@ -1,221 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-
-<head>
-
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
-<title>Painel Gerencial de Despesas - Calamidade Pública</title>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
-
-<style>
-
-body{
-background:#f8f9fa;
-}
-
-.dataTables_filter{
-display:none;
-}
-
-label{
-font-weight:600;
-font-size:.72rem!important;
-color:#343a40;
-margin-bottom:2px;
-}
-
-.form-select-sm,
-table{
-font-size:.7rem!important;
-}
-
-table.dataTable td,
-table.dataTable th{
-white-space:nowrap;
-}
-
-.dataTables_wrapper .dataTables_paginate{
-margin-top:.5rem;
-display:flex;
-justify-content:center;
-gap:4px;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button{
-padding:4px 8px!important;
-font-size:.65rem!important;
-border-radius:6px!important;
-background:#e9ecef!important;
-border:1px solid #dee2e6!important;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.current{
-background:#0d6efd!important;
-color:#fff!important;
-font-weight:bold!important;
-}
-
-.export-group .btn{
-font-size:.7rem;
-padding:4px 8px;
-}
-
-#indicadorAtualizacao{
-font-size:.65rem;
-color:#6c757d;
-text-align:right;
-margin-bottom:8px;
-}
-
-.spinner-overlay{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100vh;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:flex-start;
-padding-top:60px;
-z-index:9999;
-background:rgba(255,255,255,.9);
-}
-
-.spinner-border{
-width:2rem;
-height:2rem;
-}
-
-.spinner-text{
-font-size:.9rem;
-margin-top:5px;
-}
-
-.totalizadores{
-font-size:.7rem;
-background:#fff;
-padding:5px 10px;
-border:1px solid #dee2e6;
-border-radius:4px;
-}
-
-.totalizadores span{
-display:inline-block;
-margin-right:15px;
-font-weight:600;
-}
-
-#lengthSelectorContainer{
-font-size:.7rem;
-display:flex;
-justify-content:flex-end;
-align-items:center;
-gap:6px;
-margin-bottom:6px;
-}
-
-#lengthSelector{
-width:80px;
-font-size:.7rem;
-}
-
-</style>
-</head>
-
-<body>
-
-<div id="spinnerCsv" class="spinner-overlay">
-<div class="spinner-border text-primary"></div>
-<div class="spinner-text">
-Carregando base de dados...
-</div>
-</div>
-
-<div class="container-fluid mt-3">
-
-<div id="indicadorAtualizacao">
-Dados atualizados automaticamente em...
-</div>
-
-<div class="row gx-2 gy-2 mb-3">
-
-<div class="col-sm-3">
-<label>Unidade Gestora (UG) *</label>
-<select id="ugFiltro" class="form-select form-select-sm"></select>
-</div>
-
-<div class="col-sm-3">
-<label>Fornecedor</label>
-<select id="fornecedorFiltro" class="form-select form-select-sm" disabled></select>
-</div>
-
-<div class="col-sm-2">
-<label>CNPJ/CPF Fornecedor</label>
-<select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
-</div>
-
-<div class="col-sm-4">
-<label>Objeto</label>
-<select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
-</div>
-
-</div>
-
-<div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-<span id="totalPago">Valor pago: R$ 0,00</span>
-</div>
-
-<div class="d-flex justify-content-between mb-2">
-
-<button id="btnLimpar" class="btn btn-outline-primary btn-sm">
-Limpar filtros
-</button>
-
-<div class="export-group btn-group">
-
-<button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-<button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
-<button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
-<button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-
-</div>
-</div>
-
-<div id="lengthSelectorContainer">
-
-<label>Registros por página:</label>
-
-<select id="lengthSelector" class="form-select form-select-sm">
-
-<option value="10">10</option>
-<option value="25">25</option>
-<option value="50">50</option>
-<option value="100">100</option>
-
-</select>
-</div>
-
-<div class="table-responsive">
-
-<table id="tabela"
-class="table table-bordered table-striped table-sm w-100"
-style="display:none;">
-</table>
-
-</div>
-
-</div>
-
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
 <script>
 
 let tabela;
@@ -232,6 +14,42 @@ objeto: "Objeto - Bens e serviços"
 };
 
 const ordem = Object.keys(campos);
+
+
+function detectarLink(valor){
+
+if(!valor) return valor;
+
+let v = valor.toString();
+
+let regexURL = /(https?:\/\/[^\s]+)/g;
+
+if(v.startsWith("=HYPERLINK(")){
+
+let partes = v.match(/"(.*?)"/g);
+
+if(partes && partes.length >= 2){
+
+let url = partes[0].replace(/"/g,"");
+let texto = partes[1].replace(/"/g,"");
+
+return `<a href="${url}" target="_blank">${texto}</a>`;
+
+}
+
+}
+
+if(regexURL.test(v)){
+
+let url = v.match(regexURL)[0];
+
+return `<a href="${url}" target="_blank">${v}</a>`;
+
+}
+
+return v;
+
+}
 
 function parseMoeda(valor){
 
@@ -416,7 +234,10 @@ data:dadosFiltrados,
 
 columns:colunasPermitidas.map(c=>({
 title:c,
-data:c
+data:c,
+render:function(data){
+return detectarLink(data);
+}
 })),
 
 scrollX:true,
@@ -467,90 +288,4 @@ $("#"+f+"Filtro").on("change", aplicarTudo);
 
 $("#btnLimpar").on("click",()=>location.reload());
 
-function obterDadosTabela(){
-
-if(!tabela) return [];
-
-return tabela.rows({search:'applied'}).data().toArray();
-
-}
-
-function downloadArquivo(nome,conteudo,tipo){
-
-let blob = new Blob([conteudo],{type:tipo});
-
-let link = document.createElement("a");
-
-link.href = URL.createObjectURL(blob);
-link.download = nome;
-
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-
-}
-
-$("#btnCsv").click(()=>{
-
-let dados = obterDadosTabela();
-let csv = Papa.unparse(dados);
-
-downloadArquivo("despesas.csv",csv,"text/csv");
-
-});
-
-$("#btnTxt").click(()=>{
-
-let dados = obterDadosTabela();
-let txt = Papa.unparse(dados,{delimiter:";"});
-
-downloadArquivo("despesas.txt",txt,"text/plain");
-
-});
-
-$("#btnJson").click(()=>{
-
-let dados = obterDadosTabela();
-let json = JSON.stringify(dados,null,2);
-
-downloadArquivo("despesas.json",json,"application/json");
-
-});
-
-$("#btnXlsx").click(()=>{
-
-let dados = obterDadosTabela();
-
-let ws = XLSX.utils.json_to_sheet(dados);
-
-let total = 0;
-
-dados.forEach(r=>{
-let valores = Object.values(r);
-let valor = valores[indiceColunaP];
-total += parseMoeda(valor);
-});
-
-let linhaTotal = [];
-
-for(let i=0;i<Object.keys(dados[0]).length;i++){
-linhaTotal.push("");
-}
-
-linhaTotal[0] = "TOTAL VALOR PAGO";
-linhaTotal[indiceColunaP] = total;
-
-XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
-
-let wb = XLSX.utils.book_new();
-
-XLSX.utils.book_append_sheet(wb,ws,"Despesas");
-
-XLSX.writeFile(wb,"despesas.xlsx");
-
-});
-
 </script>
-
-</body>
-</html>
