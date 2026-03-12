@@ -195,7 +195,6 @@ Limpar filtros
 <option value="50">50</option>
 <option value="100">100</option>
 </select>
-
 </div>
 
 <div class="table-responsive">
@@ -242,9 +241,11 @@ valor.toString()
 
 }
 
+/* CORREÇÃO DO SOMATÓRIO */
+
 function atualizarResumo(dados){
 
-if(!dados.length){
+if(!dados || !dados.length){
 $("#resumoValores").hide();
 return;
 }
@@ -252,7 +253,13 @@ return;
 let total = 0;
 
 dados.forEach(r=>{
-total += parseMoeda(r[campos.valor]);
+
+let v = r[campos.valor];
+
+if(v !== undefined && v !== null && v !== ""){
+total += parseMoeda(v);
+}
+
 });
 
 $("#totalPago").text(
