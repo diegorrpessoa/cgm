@@ -130,10 +130,10 @@ table.dataTable th{
 <body>
 
 <div id="spinnerCsv" class="spinner-overlay">
-    <div class="spinner-border text-primary"></div>
-    <div class="spinner-text">
-        Carregando base de dados...
-    </div>
+<div class="spinner-border text-primary"></div>
+<div class="spinner-text">
+Carregando base de dados...
+</div>
 </div>
 
 <div class="container-fluid mt-3">
@@ -187,21 +187,26 @@ Limpar filtros
 </div>
 
 <div id="lengthSelectorContainer">
+
 <label>Registros por página:</label>
 
 <select id="lengthSelector" class="form-select form-select-sm">
+
 <option value="10">10</option>
 <option value="25">25</option>
 <option value="50">50</option>
 <option value="100">100</option>
+
 </select>
 </div>
 
 <div class="table-responsive">
+
 <table id="tabela"
 class="table table-bordered table-striped table-sm w-100"
 style="display:none;">
 </table>
+
 </div>
 
 </div>
@@ -215,15 +220,16 @@ style="display:none;">
 
 let tabela;
 let dadosOriginais = [];
+let indiceColunaP = 15;
 
 const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3-CtmdGkiL5mdK7T3neAkVW60SUcbfrO-lVMWzEYo5_wZ6RtYGaquGFqVZvX6gmseDAMkzYf2HwUQ/pub?output=csv";
 
 const campos = {
-    ug: "Unidade Gestora (UG)",
-    fornecedor: "Fornecedor",
-    cnpj: "CNPJ/CPF Fornecedor",
-    objeto: "Objeto - Bens e serviços",
-    valor: "Valor Pago (R$)"
+ug: "Unidade Gestora (UG)",
+fornecedor: "Fornecedor",
+cnpj: "CNPJ/CPF Fornecedor",
+objeto: "Objeto - Bens e serviços",
+valor: "Valor Pago (R$)"
 };
 
 const ordem = Object.keys(campos);
@@ -250,15 +256,14 @@ return;
 
 let total = 0;
 
-dados.forEach(r=>{
+for(let i=0;i<dados.length;i++){
 
-let valores = Object.values(r);
+let valores = Object.values(dados[i]);
+let valor = valores[indiceColunaP];
 
-let valorColunaP = valores[15];
+total += parseMoeda(valor);
 
-total += parseMoeda(valorColunaP);
-
-});
+}
 
 $("#totalPago").text(
 "Valor pago: " +
