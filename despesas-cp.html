@@ -13,13 +13,9 @@
 
 <style>
 
-body{
-background:#f8f9fa;
-}
+body{background:#f8f9fa;}
 
-.dataTables_filter{
-display:none;
-}
+.dataTables_filter{display:none;}
 
 label{
 font-weight:600;
@@ -28,15 +24,9 @@ color:#343a40;
 margin-bottom:2px;
 }
 
-.form-select-sm,
-table{
-font-size:.7rem!important;
-}
+.form-select-sm,table{font-size:.7rem!important;}
 
-table.dataTable td,
-table.dataTable th{
-white-space:nowrap;
-}
+table.dataTable td,table.dataTable th{white-space:nowrap;}
 
 .dataTables_wrapper .dataTables_paginate{
 margin-top:.5rem;
@@ -86,15 +76,9 @@ z-index:9999;
 background:rgba(255,255,255,.9);
 }
 
-.spinner-border{
-width:2rem;
-height:2rem;
-}
+.spinner-border{width:2rem;height:2rem;}
 
-.spinner-text{
-font-size:.9rem;
-margin-top:5px;
-}
+.spinner-text{font-size:.9rem;margin-top:5px;}
 
 .totalizadores{
 font-size:.7rem;
@@ -119,10 +103,7 @@ gap:6px;
 margin-bottom:6px;
 }
 
-#lengthSelector{
-width:80px;
-font-size:.7rem;
-}
+#lengthSelector{width:80px;font-size:.7rem;}
 
 </style>
 </head>
@@ -131,9 +112,7 @@ font-size:.7rem;
 
 <div id="spinnerCsv" class="spinner-overlay">
 <div class="spinner-border text-primary"></div>
-<div class="spinner-text">
-Carregando base de dados...
-</div>
+<div class="spinner-text">Carregando base de dados...</div>
 </div>
 
 <div class="container-fluid mt-3">
@@ -177,36 +156,28 @@ Limpar filtros
 </button>
 
 <div class="export-group btn-group">
-
 <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
 <button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
 <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
 <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-
 </div>
+
 </div>
 
 <div id="lengthSelectorContainer">
-
 <label>Registros por página:</label>
-
 <select id="lengthSelector" class="form-select form-select-sm">
-
 <option value="10">10</option>
 <option value="25">25</option>
 <option value="50">50</option>
 <option value="100">100</option>
-
 </select>
 </div>
 
 <div class="table-responsive">
-
 <table id="tabela"
 class="table table-bordered table-striped table-sm w-100"
-style="display:none;">
-</table>
-
+style="display:none;"></table>
 </div>
 
 </div>
@@ -222,29 +193,21 @@ let tabela;
 let dadosOriginais = [];
 let indiceColunaP = 15;
 
-const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3-CtmdGkiL5mdK7T3neAkVW60SUcbfrO-lVMWzEYo5_wZ6RtYGaquGFqVZvX6gmseDAMkzYf2HwUQ/pub?output=csv";
+const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3-CtmdGkiL5mdK7T3neAkVW60SUcbfrO-lVMWzEYo5_wZ6RtYGaquGFqVZvX6gmseDAMkzYf2HwUQ/pub?output=csv";
 
-const campos = {
-ug: "Unidade Gestora (UG)",
-fornecedor: "Fornecedor",
-cnpj: "CNPJ/CPF Fornecedor",
-objeto: "Objeto - Bens e serviços",
-valor: "Valor Pago (R$)"
+const campos={
+ug:"Unidade Gestora (UG)",
+fornecedor:"Fornecedor",
+cnpj:"CNPJ/CPF Fornecedor",
+objeto:"Objeto - Bens e serviços"
 };
 
-const ordem = Object.keys(campos);
+const ordem=Object.keys(campos);
 
 function parseMoeda(valor){
-
 if(!valor) return 0;
-
-return parseFloat(
-valor.toString()
-.replace(/[^\d,.-]/g,"")
-.replace(/\./g,"")
-.replace(",",".")
-) || 0;
-
+return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",","."))
+||0;
 }
 
 function atualizarResumo(dados){
@@ -254,64 +217,40 @@ $("#resumoValores").hide();
 return;
 }
 
-let total = 0;
+let total=0;
 
-for(let i=0;i<dados.length;i++){
+dados.forEach(r=>{
+let valores=Object.values(r);
+let valor=valores[indiceColunaP];
+total+=parseMoeda(valor);
+});
 
-let valores = Object.values(dados[i]);
-let valor = valores[indiceColunaP];
-
-total += parseMoeda(valor);
-
-}
-
-$("#totalPago").text(
-"Valor pago: " +
-total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
-);
+$("#totalPago").text("Valor pago: "+
+total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
 
 $("#resumoValores").show();
 
 }
 
 Papa.parse(urlCSV,{
-
 download:true,
 header:true,
-
 complete:r=>{
 
-dadosOriginais = r.data;
+dadosOriginais=r.data;
 
-let linhaAtualizacao = dadosOriginais.find(x=>x["Atualizacao"]);
-
-if(linhaAtualizacao){
-
-$("#indicadorAtualizacao").html(
-`Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
-);
-
-}
-
-dadosOriginais = dadosOriginais.map(r=>{
-let copia = {...r};
-delete copia["Atualizacao"];
-return copia;
-});
-
-dadosOriginais = dadosOriginais.filter(d=>d[campos.ug]);
+dadosOriginais=dadosOriginais.filter(d=>d[campos.ug]);
 
 carregarUG();
 
 $("#spinnerCsv").fadeOut(200);
 
 }
-
 });
 
 function carregarUG(){
 
-let s = $("#ugFiltro");
+let s=$("#ugFiltro");
 
 s.append('<option value="">Selecione...</option>');
 s.append('<option value="todos">Todos</option>');
@@ -326,25 +265,41 @@ s.append(`<option value="${v}">${v}</option>`);
 
 function aplicarFiltroAtual(){
 
-let ug = $("#ugFiltro").val();
-
+let ug=$("#ugFiltro").val();
 if(!ug) return [];
 
-let base = (ug === "todos")
-? [...dadosOriginais]
-: dadosOriginais.filter(r=>r[campos.ug] === ug);
+let base=(ug==="todos")?[...dadosOriginais]:
+dadosOriginais.filter(r=>r[campos.ug]===ug);
 
 ordem.slice(1).forEach(f=>{
-
-let v = $("#"+f+"Filtro").val();
-
-if(v){
-base = base.filter(r=>r[campos[f]] === v);
-}
-
+let v=$("#"+f+"Filtro").val();
+if(v) base=base.filter(r=>r[campos[f]]===v);
 });
 
 return base;
+
+}
+
+function atualizarFiltros(){
+
+ordem.slice(1).forEach(f=>{
+
+let seletor=$("#"+f+"Filtro");
+
+let valores=[...new Set(
+dadosOriginais.map(r=>r[campos[f]]).filter(Boolean)
+)].sort();
+
+seletor.empty();
+seletor.append('<option value="">Selecione...</option>');
+
+valores.forEach(v=>{
+seletor.append(`<option value="${v}">${v}</option>`);
+});
+
+seletor.prop("disabled",false);
+
+});
 
 }
 
@@ -357,38 +312,24 @@ return;
 
 $("#tabela").show();
 
-const colunasPermitidas = Object.keys(dados[0]).slice(0,19);
+const colunas=Object.keys(dados[0]).slice(0,19);
 
-let dadosFiltrados = dados.map(r=>{
-
-let obj = {};
-
-colunasPermitidas.forEach(c=>{
-obj[c] = r[c];
-});
-
+let dadosFiltrados=dados.map(r=>{
+let obj={};
+colunas.forEach(c=>obj[c]=r[c]);
 return obj;
-
 });
 
 if(tabela){
-
-tabela.clear()
-.rows.add(dadosFiltrados)
-.draw();
-
+tabela.clear().rows.add(dadosFiltrados).draw();
 return;
-
 }
 
-tabela = $("#tabela").DataTable({
+tabela=$("#tabela").DataTable({
 
 data:dadosFiltrados,
 
-columns:colunasPermitidas.map(c=>({
-title:c,
-data:c
-})),
+columns:colunas.map(c=>({title:c,data:c})),
 
 scrollX:true,
 scrollY:"55vh",
@@ -397,8 +338,6 @@ scrollCollapse:true,
 paging:true,
 pageLength:10,
 lengthChange:false,
-
-info:true,
 
 language:{
 url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
@@ -414,7 +353,7 @@ tabela.page.len(this.value).draw();
 
 function aplicarTudo(){
 
-let dados = aplicarFiltroAtual();
+let dados=aplicarFiltroAtual();
 
 atualizarResumo(dados);
 
@@ -422,30 +361,38 @@ renderTabela(dados);
 
 }
 
-$("#ugFiltro").on("change", aplicarTudo);
+$("#ugFiltro").on("change",function(){
+
+atualizarFiltros();
+
+aplicarTudo();
+
+});
+
+ordem.slice(1).forEach(f=>{
+$("#"+f+"Filtro").on("change",aplicarTudo);
+});
 
 $("#btnLimpar").on("click",()=>location.reload());
 
-/* EXPORTAÇÃO PROFISSIONAL */
+/* EXPORTAÇÃO */
 
 function obterDadosTabela(){
 
 if(!tabela) return [];
 
-let dados = tabela.rows({search:'applied'}).data().toArray();
-
-return dados;
+return tabela.rows({search:'applied'}).data().toArray();
 
 }
 
 function downloadArquivo(nome,conteudo,tipo){
 
-let blob = new Blob([conteudo],{type:tipo});
+let blob=new Blob([conteudo],{type:tipo});
 
-let link = document.createElement("a");
+let link=document.createElement("a");
 
-link.href = URL.createObjectURL(blob);
-link.download = nome;
+link.href=URL.createObjectURL(blob);
+link.download=nome;
 
 document.body.appendChild(link);
 link.click();
@@ -453,65 +400,50 @@ document.body.removeChild(link);
 
 }
 
-$("#btnCsv").click(function(){
-
-let dados = obterDadosTabela();
-
-let csv = Papa.unparse(dados);
-
+$("#btnCsv").click(()=>{
+let dados=obterDadosTabela();
+let csv=Papa.unparse(dados);
 downloadArquivo("despesas.csv",csv,"text/csv");
-
 });
 
-$("#btnTxt").click(function(){
-
-let dados = obterDadosTabela();
-
-let txt = Papa.unparse(dados,{delimiter:";"});
-
+$("#btnTxt").click(()=>{
+let dados=obterDadosTabela();
+let txt=Papa.unparse(dados,{delimiter:";"});
 downloadArquivo("despesas.txt",txt,"text/plain");
-
 });
 
-$("#btnJson").click(function(){
-
-let dados = obterDadosTabela();
-
-let json = JSON.stringify(dados,null,2);
-
+$("#btnJson").click(()=>{
+let dados=obterDadosTabela();
+let json=JSON.stringify(dados,null,2);
 downloadArquivo("despesas.json",json,"application/json");
-
 });
 
-$("#btnXlsx").click(function(){
+$("#btnXlsx").click(()=>{
 
-let dados = obterDadosTabela();
+let dados=obterDadosTabela();
 
-let ws = XLSX.utils.json_to_sheet(dados);
+let ws=XLSX.utils.json_to_sheet(dados);
 
-let total = 0;
+let total=0;
 
 dados.forEach(r=>{
-
-let valores = Object.values(r);
-let valor = valores[indiceColunaP];
-
-total += parseMoeda(valor);
-
+let valores=Object.values(r);
+let valor=valores[indiceColunaP];
+total+=parseMoeda(valor);
 });
 
-let linhaTotal = [];
+let linhaTotal=[];
 
 for(let i=0;i<Object.keys(dados[0]).length;i++){
 linhaTotal.push("");
 }
 
-linhaTotal[0] = "TOTAL VALOR PAGO";
-linhaTotal[indiceColunaP] = total;
+linhaTotal[0]="TOTAL VALOR PAGO";
+linhaTotal[indiceColunaP]=total;
 
 XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
 
-let wb = XLSX.utils.book_new();
+let wb=XLSX.utils.book_new();
 
 XLSX.utils.book_append_sheet(wb,ws,"Despesas");
 
