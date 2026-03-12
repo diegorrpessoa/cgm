@@ -235,16 +235,13 @@ valor: "Valor Pago (R$)"
 const ordem = Object.keys(campos);
 
 function parseMoeda(valor){
-
 if(!valor) return 0;
-
 return parseFloat(
 valor.toString()
 .replace(/[^\d,.-]/g,"")
 .replace(/\./g,"")
 .replace(",",".")
 ) || 0;
-
 }
 
 function atualizarResumo(dados){
@@ -275,10 +272,8 @@ $("#resumoValores").show();
 }
 
 Papa.parse(urlCSV,{
-
 download:true,
 header:true,
-
 complete:r=>{
 
 dadosOriginais = r.data;
@@ -286,11 +281,9 @@ dadosOriginais = r.data;
 let linhaAtualizacao = dadosOriginais.find(x=>x["Atualizacao"]);
 
 if(linhaAtualizacao){
-
 $("#indicadorAtualizacao").html(
 `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
 );
-
 }
 
 dadosOriginais = dadosOriginais.map(r=>{
@@ -306,7 +299,6 @@ carregarUG();
 $("#spinnerCsv").fadeOut(200);
 
 }
-
 });
 
 function carregarUG(){
@@ -348,66 +340,6 @@ return base;
 
 }
 
-function aplicarFiltroIgnorando(filtro){
-
-let ug = $("#ugFiltro").val();
-
-if(!ug) return [];
-
-let base = dadosOriginais;
-
-if(ug && ug !== "todos"){
-base = base.filter(r=>r[campos.ug] === ug);
-}
-
-ordem.slice(1).forEach(f=>{
-
-if(f === filtro) return;
-
-let v = $("#"+f+"Filtro").val();
-
-if(v){
-base = base.filter(r=>r[campos[f]] === v);
-}
-
-});
-
-return base;
-
-}
-
-function atualizarFiltros(){
-
-ordem.slice(1).forEach(f=>{
-
-let seletor = $("#"+f+"Filtro");
-let valorAtual = seletor.val();
-
-let base = aplicarFiltroIgnorando(f);
-
-let valores = [
-...new Set(
-base.map(r=>r[campos[f]]).filter(Boolean)
-)
-].sort();
-
-seletor.empty();
-seletor.append('<option value="">Selecione...</option>');
-
-valores.forEach(v=>{
-seletor.append(`<option value="${v}">${v}</option>`);
-});
-
-seletor.prop("disabled", valores.length === 0);
-
-if(valores.includes(valorAtual)){
-seletor.val(valorAtual);
-}
-
-});
-
-}
-
 function renderTabela(dados){
 
 if(!dados.length){
@@ -420,15 +352,11 @@ $("#tabela").show();
 const colunasPermitidas = Object.keys(dados[0]).slice(0,19);
 
 let dadosFiltrados = dados.map(r=>{
-
 let obj = {};
-
 colunasPermitidas.forEach(c=>{
 obj[c] = r[c];
 });
-
 return obj;
-
 });
 
 if(tabela){
@@ -476,29 +404,75 @@ function aplicarTudo(){
 
 let dados = aplicarFiltroAtual();
 
-atualizarFiltros();
-
 atualizarResumo(dados);
 
 renderTabela(dados);
 
 }
 
-$("#ugFiltro").on("change",function(){
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").val("").prop("disabled",false);
-});
-
-aplicarTudo();
-
-});
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").on("change", aplicarTudo);
-});
+$("#ugFiltro").on("change", aplicarTudo);
 
 $("#btnLimpar").on("click",()=>location.reload());
+
+/* EXPORTAÇÃO */
+
+function downloadArquivo(nome,conteudo,tipo){
+
+let blob = new Blob([conteudo],{type:tipo});
+let link = document.createElement("a");
+
+link.href = URL.createObjectURL(blob);
+link.download = nome;
+
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+
+}
+
+$("#btnCsv").click(function(){
+
+let dados = aplicarFiltroAtual();
+
+let csv = Papa.unparse(dados);
+
+downloadArquivo("dados.csv",csv,"text/csv");
+
+});
+
+$("#btnTxt").click(function(){
+
+let dados = aplicarFiltroAtual();
+
+let txt = Papa.unparse(dados,{delimiter:";"});
+
+downloadArquivo("dados.txt",txt,"text/plain");
+
+});
+
+$("#btnJson").click(function(){
+
+let dados = aplicarFiltroAtual();
+
+let json = JSON.stringify(dados,null,2);
+
+downloadArquivo("dados.json",json,"application/json");
+
+});
+
+$("#btnXlsx").click(function(){
+
+let dados = aplicarFiltroAtual();
+
+let ws = XLSX.utils.json_to_sheet(dados);
+
+let wb = XLSX.utils.book_new();
+
+XLSX.utils.book_append_sheet(wb,ws,"dados");
+
+XLSX.writeFile(wb,"dados.xlsx");
+
+});
 
 </script>
 
