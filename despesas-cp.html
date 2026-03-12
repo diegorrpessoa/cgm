@@ -2,21 +2,23 @@
 <html lang="pt-br">
 <head>
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
 <title>Painel Gerencial de Despesas - Calamidade Pública</title>
 
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
 
 <style>
 
 body{background:#f8f9fa;}
+.dataTables_filter{display:none;}
 
 label{
 font-weight:600;
 font-size:.72rem!important;
+color:#343a40;
 margin-bottom:2px;
 }
 
@@ -28,7 +30,38 @@ table.dataTable td,table.dataTable th{
 white-space:nowrap;
 }
 
-.dataTables_filter{display:none;}
+.dataTables_wrapper .dataTables_paginate{
+margin-top:.5rem;
+display:flex;
+justify-content:center;
+gap:4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+padding:4px 8px!important;
+font-size:.65rem!important;
+border-radius:6px!important;
+background:#e9ecef!important;
+border:1px solid #dee2e6!important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+background:#0d6efd!important;
+color:#fff!important;
+font-weight:bold!important;
+}
+
+.export-group .btn{
+font-size:.7rem;
+padding:4px 8px;
+}
+
+#indicadorAtualizacao{
+font-size:.65rem;
+color:#6c757d;
+text-align:right;
+margin-bottom:8px;
+}
 
 .spinner-overlay{
 position:fixed;
@@ -39,23 +72,39 @@ height:100vh;
 display:flex;
 flex-direction:column;
 align-items:center;
-justify-content:center;
-background:#fff;
+justify-content:flex-start;
+padding-top:60px;
 z-index:9999;
+background:rgba(255,255,255,.9);
 }
 
-#indicadorAtualizacao{
-font-size:.65rem;
-text-align:right;
-color:#6c757d;
-margin-bottom:8px;
+.spinner-border{width:2rem;height:2rem;}
+.spinner-text{font-size:.9rem;margin-top:5px;}
+
+.totalizadores{
+font-size:.7rem;
+background:#fff;
+padding:5px 10px;
+border:1px solid #dee2e6;
+border-radius:4px;
 }
 
-#totalPago{
+.totalizadores span{
+display:inline-block;
+margin-right:15px;
 font-weight:600;
-font-size:.8rem;
-margin-bottom:10px;
 }
+
+#lengthSelectorContainer{
+font-size:.7rem;
+display:flex;
+justify-content:flex-end;
+align-items:center;
+gap:6px;
+margin-bottom:6px;
+}
+
+#lengthSelector{width:80px;font-size:.7rem;}
 
 </style>
 </head>
@@ -64,45 +113,70 @@ margin-bottom:10px;
 
 <div id="spinnerCsv" class="spinner-overlay">
 <div class="spinner-border text-primary"></div>
-<div>Carregando base de dados...</div>
+<div class="spinner-text">Carregando base de dados...</div>
 </div>
 
 <div class="container-fluid mt-3">
 
-<div id="indicadorAtualizacao"></div>
+<div id="indicadorAtualizacao">
+Dados atualizados automaticamente em...
+</div>
 
-<div id="totalPago">Valor pago total: R$ 0,00</div>
+<div class="row gx-2 gy-2 mb-3">
 
-<div class="row g-2 mb-3">
-
-<div class="col-md-3">
-<label>Unidade Gestora</label>
+<div class="col-sm-3">
+<label>Unidade Gestora (UG) *</label>
 <select id="ugFiltro" class="form-select form-select-sm"></select>
 </div>
 
-<div class="col-md-3">
+<div class="col-sm-3">
 <label>Fornecedor</label>
 <select id="fornecedorFiltro" class="form-select form-select-sm" disabled></select>
 </div>
 
-<div class="col-md-3">
+<div class="col-sm-2">
 <label>CPF/CNPJ fornecedor</label>
 <select id="cpfFiltro" class="form-select form-select-sm" disabled></select>
 </div>
 
-<div class="col-md-3">
+<div class="col-sm-4">
 <label>Objeto</label>
 <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
 </div>
 
 </div>
 
-<div class="mb-2">
-<button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar filtros</button>
+<div class="totalizadores mb-2" id="resumoValores" style="display:none;">
+<span id="totalPago">Valor pago: R$ 0,00</span>
+</div>
+
+<div class="d-flex justify-content-between mb-2">
+
+<button id="btnLimpar" class="btn btn-outline-primary btn-sm">
+Limpar filtros
+</button>
+
+<div class="export-group btn-group">
+<button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
+<button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
+<button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+<button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
+</div>
+
+</div>
+
+<div id="lengthSelectorContainer">
+<label>Registros por página:</label>
+<select id="lengthSelector" class="form-select form-select-sm">
+<option value="10">10</option>
+<option value="25">25</option>
+<option value="50">50</option>
+<option value="100">100</option>
+</select>
 </div>
 
 <div class="table-responsive">
-<table id="tabela" class="table table-bordered table-striped table-sm w-100"></table>
+<table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
 </div>
 
 </div>
@@ -110,6 +184,7 @@ margin-bottom:10px;
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 
@@ -126,32 +201,40 @@ objeto:"Objeto",
 valor:"Valor pago"
 };
 
-function moedaParaNumero(valor){
+const ordem=Object.keys(campos);
 
-if(!valor) return 0;
+function parseMoeda(valor){
+
+if(!valor)return 0;
 
 return parseFloat(
-valor
-.toString()
+valor.toString()
 .replace(/[^\d,.-]/g,"")
 .replace(/\./g,"")
 .replace(",",".")
-) || 0;
+)||0;
 
 }
 
-function somarValores(dados){
+function atualizarResumo(dados){
+
+if(!dados.length){
+$("#resumoValores").hide();
+return;
+}
 
 let total=0;
 
 dados.forEach(r=>{
-total+=moedaParaNumero(r[campos.valor]);
+total+=parseMoeda(r[campos.valor]);
 });
 
 $("#totalPago").text(
-"Valor pago total: "+
+"Valor pago: "+
 total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
 );
+
+$("#resumoValores").show();
 
 }
 
@@ -161,6 +244,8 @@ header:true,
 complete:r=>{
 
 dadosOriginais=r.data;
+
+/* CAPTURAR DATA ATUALIZAÇÃO (COLUNA T) */
 
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
@@ -172,146 +257,158 @@ $("#indicadorAtualizacao").html(
 
 }
 
+/* REMOVER COLUNA ATUALIZAÇÃO */
+
 dadosOriginais=dadosOriginais.map(r=>{
 let copia={...r};
 delete copia["Atualizacao"];
 return copia;
 });
 
+/* FILTRAR REGISTROS */
+
+dadosOriginais=dadosOriginais.filter(d=>d[campos.ug]);
+
 carregarUG();
 
-$("#spinnerCsv").fadeOut();
-
-somarValores(dadosOriginais);
+$("#spinnerCsv").fadeOut(200);
 
 }
 });
-
-function obterBase(excluir=null){
-
-let base=[...dadosOriginais];
-
-let ug=$("#ugFiltro").val();
-let fornecedor=$("#fornecedorFiltro").val();
-let cpf=$("#cpfFiltro").val();
-let objeto=$("#objetoFiltro").val();
-
-if(excluir!=="ug"){
-if(ug && ug!=="TODOS"){
-base=base.filter(r=>r[campos.ug]===ug);
-}
-}
-
-if(excluir!=="fornecedor"){
-if(fornecedor){
-base=base.filter(r=>r[campos.fornecedor]===fornecedor);
-}
-}
-
-if(excluir!=="cpf"){
-if(cpf){
-base=base.filter(r=>r[campos.cpf]===cpf);
-}
-}
-
-if(excluir!=="objeto"){
-if(objeto){
-base=base.filter(r=>r[campos.objeto]===objeto);
-}
-}
-
-return base;
-
-}
 
 function carregarUG(){
 
 let s=$("#ugFiltro");
 
 s.append('<option value="">Selecione...</option>');
-s.append('<option value="TODOS">Todos</option>');
 
 [...new Set(dadosOriginais.map(r=>r[campos.ug]))]
-.filter(Boolean)
 .sort()
-.forEach(v=>{
-s.append(`<option value="${v}">${v}</option>`);
-});
+.forEach(v=>s.append(`<option value="${v}">${v}</option>`));
 
 }
 
-function atualizarFiltro(nome){
+function aplicarFiltroAtual(){
 
-let seletor=$("#"+nome+"Filtro");
+let ug=$("#ugFiltro").val();
 
-let base=obterBase(nome);
+if(!ug)return[];
+
+let base=dadosOriginais.filter(r=>r[campos.ug]===ug);
+
+ordem.slice(1).forEach(f=>{
+
+let v=$("#"+f+"Filtro").val();
+
+if(v){
+base=base.filter(r=>r[campos[f]]===v);
+}
+
+});
+
+return base;
+
+}
+
+function aplicarFiltroIgnorando(filtro){
+
+let ug=$("#ugFiltro").val();
+
+if(!ug)return[];
+
+let base=dadosOriginais.filter(r=>r[campos.ug]===ug);
+
+ordem.slice(1).forEach(f=>{
+
+if(f===filtro)return;
+
+let v=$("#"+f+"Filtro").val();
+
+if(v){
+base=base.filter(r=>r[campos[f]]===v);
+}
+
+});
+
+return base;
+
+}
+
+function atualizarFiltros(){
+
+ordem.slice(1).forEach(f=>{
+
+let seletor=$("#"+f+"Filtro");
+
+let valorAtual=seletor.val();
+
+let base=aplicarFiltroIgnorando(f);
 
 let valores=[...new Set(
-base.map(r=>r[campos[nome]]).filter(Boolean)
+base.map(r=>r[campos[f]]).filter(Boolean)
 )].sort();
 
-let atual=seletor.val();
-
 seletor.empty();
+
 seletor.append('<option value="">Selecione...</option>');
 
 valores.forEach(v=>{
 seletor.append(`<option value="${v}">${v}</option>`);
 });
 
-if(valores.includes(atual)){
-seletor.val(atual);
+seletor.prop("disabled",valores.length===0);
+
+if(valores.includes(valorAtual)){
+seletor.val(valorAtual);
 }
 
-}
-
-function atualizarFiltros(){
-
-atualizarFiltro("fornecedor");
-atualizarFiltro("cpf");
-atualizarFiltro("objeto");
+});
 
 }
 
 function renderTabela(dados){
 
 if(!dados.length){
-
-if(tabela){
-tabela.clear().draw();
-}
-
+$("#tabela").hide();
 return;
 }
 
-const colunas=Object.keys(dados[0]).slice(0,19);
+$("#tabela").show();
 
-let base=dados.map(r=>{
+/* EXIBIR APENAS COLUNAS A ATÉ S */
 
+const colunasPermitidas=Object.keys(dados[0]).slice(0,19);
+
+let dadosFiltrados=dados.map(r=>{
 let obj={};
-
-colunas.forEach(c=>{
+colunasPermitidas.forEach(c=>{
 obj[c]=r[c];
 });
-
 return obj;
-
 });
 
-if(!tabela){
+if(tabela){
+tabela.clear().rows.add(dadosFiltrados).draw();
+return;
+}
 
 tabela=$("#tabela").DataTable({
 
-data:base,
+data:dadosFiltrados,
 
-columns:colunas.map(c=>({title:c,data:c})),
+columns:colunasPermitidas.map(c=>({
+title:c,
+data:c
+})),
 
 scrollX:true,
-scrollY:"60vh",
+scrollY:"55vh",
 scrollCollapse:true,
 
 paging:true,
 pageLength:10,
+lengthChange:false,
+info:true,
 
 language:{
 url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
@@ -319,35 +416,37 @@ url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
 
 });
 
-}else{
-
-tabela.clear().rows.add(base).draw();
-
-}
+$("#lengthSelector").on("change",function(){
+tabela.page.len(this.value).draw();
+});
 
 }
 
-function aplicar(){
+function aplicarTudo(){
 
-let dados=obterBase();
+let dados=aplicarFiltroAtual();
 
 atualizarFiltros();
 
-renderTabela(dados);
+atualizarResumo(dados);
 
-somarValores(dados);
+renderTabela(dados);
 
 }
 
 $("#ugFiltro").on("change",function(){
 
-$("#fornecedorFiltro,#cpfFiltro,#objetoFiltro").prop("disabled",false);
+ordem.slice(1).forEach(f=>{
+$("#"+f+"Filtro").val("").prop("disabled",false);
+});
 
-aplicar();
+aplicarTudo();
 
 });
 
-$("#fornecedorFiltro,#cpfFiltro,#objetoFiltro").on("change",aplicar);
+ordem.slice(1).forEach(f=>{
+$("#"+f+"Filtro").on("change",aplicarTudo);
+});
 
 $("#btnLimpar").on("click",()=>location.reload());
 
