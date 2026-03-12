@@ -344,9 +344,11 @@ let ug = $("#ugFiltro").val();
 
 if(!ug) return [];
 
-let base = (ug === "todos")
-? [...dadosOriginais]
-: dadosOriginais.filter(r=>r[campos.ug] === ug);
+let base = dadosOriginais;
+
+if(ug && ug !== "todos"){
+base = base.filter(r=>r[campos.ug] === ug);
+}
 
 ordem.slice(1).forEach(f=>{
 
