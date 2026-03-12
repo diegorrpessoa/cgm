@@ -14,114 +14,114 @@
 <style>
 
 body{
-    background:#f8f9fa;
+background:#f8f9fa;
 }
 
 .dataTables_filter{
-    display:none;
+display:none;
 }
 
 label{
-    font-weight:600;
-    font-size:.72rem!important;
-    color:#343a40;
-    margin-bottom:2px;
+font-weight:600;
+font-size:.72rem!important;
+color:#343a40;
+margin-bottom:2px;
 }
 
 .form-select-sm,
 table{
-    font-size:.7rem!important;
+font-size:.7rem!important;
 }
 
 table.dataTable td,
 table.dataTable th{
-    white-space:nowrap;
+white-space:nowrap;
 }
 
 .dataTables_wrapper .dataTables_paginate{
-    margin-top:.5rem;
-    display:flex;
-    justify-content:center;
-    gap:4px;
+margin-top:.5rem;
+display:flex;
+justify-content:center;
+gap:4px;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button{
-    padding:4px 8px!important;
-    font-size:.65rem!important;
-    border-radius:6px!important;
-    background:#e9ecef!important;
-    border:1px solid #dee2e6!important;
+padding:4px 8px!important;
+font-size:.65rem!important;
+border-radius:6px!important;
+background:#e9ecef!important;
+border:1px solid #dee2e6!important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{
-    background:#0d6efd!important;
-    color:#fff!important;
-    font-weight:bold!important;
+background:#0d6efd!important;
+color:#fff!important;
+font-weight:bold!important;
 }
 
 .export-group .btn{
-    font-size:.7rem;
-    padding:4px 8px;
+font-size:.7rem;
+padding:4px 8px;
 }
 
 #indicadorAtualizacao{
-    font-size:.65rem;
-    color:#6c757d;
-    text-align:right;
-    margin-bottom:8px;
+font-size:.65rem;
+color:#6c757d;
+text-align:right;
+margin-bottom:8px;
 }
 
 .spinner-overlay{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:flex-start;
-    padding-top:60px;
-    z-index:9999;
-    background:rgba(255,255,255,.9);
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100vh;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:flex-start;
+padding-top:60px;
+z-index:9999;
+background:rgba(255,255,255,.9);
 }
 
 .spinner-border{
-    width:2rem;
-    height:2rem;
+width:2rem;
+height:2rem;
 }
 
 .spinner-text{
-    font-size:.9rem;
-    margin-top:5px;
+font-size:.9rem;
+margin-top:5px;
 }
 
 .totalizadores{
-    font-size:.7rem;
-    background:#fff;
-    padding:5px 10px;
-    border:1px solid #dee2e6;
-    border-radius:4px;
+font-size:.7rem;
+background:#fff;
+padding:5px 10px;
+border:1px solid #dee2e6;
+border-radius:4px;
 }
 
 .totalizadores span{
-    display:inline-block;
-    margin-right:15px;
-    font-weight:600;
+display:inline-block;
+margin-right:15px;
+font-weight:600;
 }
 
 #lengthSelectorContainer{
-    font-size:.7rem;
-    display:flex;
-    justify-content:flex-end;
-    align-items:center;
-    gap:6px;
-    margin-bottom:6px;
+font-size:.7rem;
+display:flex;
+justify-content:flex-end;
+align-items:center;
+gap:6px;
+margin-bottom:6px;
 }
 
 #lengthSelector{
-    width:80px;
-    font-size:.7rem;
+width:80px;
+font-size:.7rem;
 }
 
 </style>
@@ -235,13 +235,16 @@ valor: "Valor Pago (R$)"
 const ordem = Object.keys(campos);
 
 function parseMoeda(valor){
+
 if(!valor) return 0;
+
 return parseFloat(
 valor.toString()
 .replace(/[^\d,.-]/g,"")
 .replace(/\./g,"")
 .replace(",",".")
 ) || 0;
+
 }
 
 function atualizarResumo(dados){
@@ -272,8 +275,10 @@ $("#resumoValores").show();
 }
 
 Papa.parse(urlCSV,{
+
 download:true,
 header:true,
+
 complete:r=>{
 
 dadosOriginais = r.data;
@@ -281,9 +286,11 @@ dadosOriginais = r.data;
 let linhaAtualizacao = dadosOriginais.find(x=>x["Atualizacao"]);
 
 if(linhaAtualizacao){
+
 $("#indicadorAtualizacao").html(
 `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
 );
+
 }
 
 dadosOriginais = dadosOriginais.map(r=>{
@@ -299,6 +306,7 @@ carregarUG();
 $("#spinnerCsv").fadeOut(200);
 
 }
+
 });
 
 function carregarUG(){
@@ -352,11 +360,15 @@ $("#tabela").show();
 const colunasPermitidas = Object.keys(dados[0]).slice(0,19);
 
 let dadosFiltrados = dados.map(r=>{
+
 let obj = {};
+
 colunasPermitidas.forEach(c=>{
 obj[c] = r[c];
 });
+
 return obj;
+
 });
 
 if(tabela){
@@ -414,11 +426,22 @@ $("#ugFiltro").on("change", aplicarTudo);
 
 $("#btnLimpar").on("click",()=>location.reload());
 
-/* EXPORTAÇÃO */
+/* EXPORTAÇÃO PROFISSIONAL */
+
+function obterDadosTabela(){
+
+if(!tabela) return [];
+
+let dados = tabela.rows({search:'applied'}).data().toArray();
+
+return dados;
+
+}
 
 function downloadArquivo(nome,conteudo,tipo){
 
 let blob = new Blob([conteudo],{type:tipo});
+
 let link = document.createElement("a");
 
 link.href = URL.createObjectURL(blob);
@@ -432,45 +455,67 @@ document.body.removeChild(link);
 
 $("#btnCsv").click(function(){
 
-let dados = aplicarFiltroAtual();
+let dados = obterDadosTabela();
 
 let csv = Papa.unparse(dados);
 
-downloadArquivo("dados.csv",csv,"text/csv");
+downloadArquivo("despesas.csv",csv,"text/csv");
 
 });
 
 $("#btnTxt").click(function(){
 
-let dados = aplicarFiltroAtual();
+let dados = obterDadosTabela();
 
 let txt = Papa.unparse(dados,{delimiter:";"});
 
-downloadArquivo("dados.txt",txt,"text/plain");
+downloadArquivo("despesas.txt",txt,"text/plain");
 
 });
 
 $("#btnJson").click(function(){
 
-let dados = aplicarFiltroAtual();
+let dados = obterDadosTabela();
 
 let json = JSON.stringify(dados,null,2);
 
-downloadArquivo("dados.json",json,"application/json");
+downloadArquivo("despesas.json",json,"application/json");
 
 });
 
 $("#btnXlsx").click(function(){
 
-let dados = aplicarFiltroAtual();
+let dados = obterDadosTabela();
 
 let ws = XLSX.utils.json_to_sheet(dados);
 
+let total = 0;
+
+dados.forEach(r=>{
+
+let valores = Object.values(r);
+let valor = valores[indiceColunaP];
+
+total += parseMoeda(valor);
+
+});
+
+let linhaTotal = [];
+
+for(let i=0;i<Object.keys(dados[0]).length;i++){
+linhaTotal.push("");
+}
+
+linhaTotal[0] = "TOTAL VALOR PAGO";
+linhaTotal[indiceColunaP] = total;
+
+XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
+
 let wb = XLSX.utils.book_new();
 
-XLSX.utils.book_append_sheet(wb,ws,"dados");
+XLSX.utils.book_append_sheet(wb,ws,"Despesas");
 
-XLSX.writeFile(wb,"dados.xlsx");
+XLSX.writeFile(wb,"despesas.xlsx");
 
 });
 
