@@ -125,7 +125,7 @@ Dados atualizados automaticamente em...
 <div class="row gx-2 gy-2 mb-3">
 
 <div class="col-sm-3">
-<label>Unidade Gestora (UG) *</label>
+<label>Unidade Gestora (UG)</label>
 <select id="ugFiltro" class="form-select form-select-sm"></select>
 </div>
 
@@ -245,7 +245,7 @@ complete:r=>{
 
 dadosOriginais=r.data;
 
-/* CAPTURAR DATA ATUALIZAÇÃO (COLUNA T) */
+/* CAPTURAR DATA ATUALIZAÇÃO */
 
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
@@ -271,6 +271,10 @@ dadosOriginais=dadosOriginais.filter(d=>d[campos.ug]);
 
 carregarUG();
 
+/* SOMA TOTAL DA BASE */
+
+atualizarResumo(dadosOriginais);
+
 $("#spinnerCsv").fadeOut(200);
 
 }
@@ -280,7 +284,7 @@ function carregarUG(){
 
 let s=$("#ugFiltro");
 
-s.append('<option value="">Selecione...</option>');
+s.append('<option value="">Todos</option>');
 
 [...new Set(dadosOriginais.map(r=>r[campos.ug]))]
 .sort()
@@ -292,9 +296,11 @@ function aplicarFiltroAtual(){
 
 let ug=$("#ugFiltro").val();
 
-if(!ug)return[];
+let base=[...dadosOriginais];
 
-let base=dadosOriginais.filter(r=>r[campos.ug]===ug);
+if(ug){
+base=base.filter(r=>r[campos.ug]===ug);
+}
 
 ordem.slice(1).forEach(f=>{
 
@@ -309,146 +315,6 @@ base=base.filter(r=>r[campos[f]]===v);
 return base;
 
 }
-
-function aplicarFiltroIgnorando(filtro){
-
-let ug=$("#ugFiltro").val();
-
-if(!ug)return[];
-
-let base=dadosOriginais.filter(r=>r[campos.ug]===ug);
-
-ordem.slice(1).forEach(f=>{
-
-if(f===filtro)return;
-
-let v=$("#"+f+"Filtro").val();
-
-if(v){
-base=base.filter(r=>r[campos[f]]===v);
-}
-
-});
-
-return base;
-
-}
-
-function atualizarFiltros(){
-
-ordem.slice(1).forEach(f=>{
-
-let seletor=$("#"+f+"Filtro");
-
-let valorAtual=seletor.val();
-
-let base=aplicarFiltroIgnorando(f);
-
-let valores=[...new Set(
-base.map(r=>r[campos[f]]).filter(Boolean)
-)].sort();
-
-seletor.empty();
-
-seletor.append('<option value="">Selecione...</option>');
-
-valores.forEach(v=>{
-seletor.append(`<option value="${v}">${v}</option>`);
-});
-
-seletor.prop("disabled",valores.length===0);
-
-if(valores.includes(valorAtual)){
-seletor.val(valorAtual);
-}
-
-});
-
-}
-
-function renderTabela(dados){
-
-if(!dados.length){
-$("#tabela").hide();
-return;
-}
-
-$("#tabela").show();
-
-/* EXIBIR APENAS COLUNAS A ATÉ S */
-
-const colunasPermitidas=Object.keys(dados[0]).slice(0,19);
-
-let dadosFiltrados=dados.map(r=>{
-let obj={};
-colunasPermitidas.forEach(c=>{
-obj[c]=r[c];
-});
-return obj;
-});
-
-if(tabela){
-tabela.clear().rows.add(dadosFiltrados).draw();
-return;
-}
-
-tabela=$("#tabela").DataTable({
-
-data:dadosFiltrados,
-
-columns:colunasPermitidas.map(c=>({
-title:c,
-data:c
-})),
-
-scrollX:true,
-scrollY:"55vh",
-scrollCollapse:true,
-
-paging:true,
-pageLength:10,
-lengthChange:false,
-info:true,
-
-language:{
-url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-}
-
-});
-
-$("#lengthSelector").on("change",function(){
-tabela.page.len(this.value).draw();
-});
-
-}
-
-function aplicarTudo(){
-
-let dados=aplicarFiltroAtual();
-
-atualizarFiltros();
-
-atualizarResumo(dados);
-
-renderTabela(dados);
-
-}
-
-$("#ugFiltro").on("change",function(){
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").val("").prop("disabled",false);
-});
-
-aplicarTudo();
-
-});
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").on("change",aplicarTudo);
-});
-
-$("#btnLimpar").on("click",()=>location.reload());
 
 </script>
 
