@@ -232,8 +232,22 @@ valor.toString()
 
 }
 
+function transformarLinks(texto){
+
+if(!texto || typeof texto!=="string") return texto;
+
+let regex=/(https?:\/\/[^\s]+)/g;
+
+return texto.replace(regex,function(url){
+
+return `<a href="${url}" target="_blank">${url}</a>`;
+
+});
+
+}
+
 /* =========================
-CARREGAMENTO CSV OTIMIZADO
+CARREGAMENTO CSV
 ========================= */
 
 Papa.parse(urlCSV,{
@@ -291,10 +305,6 @@ $("#spinnerCsv").fadeOut(200);
 
 });
 
-/* =========================
-CARREGAR UG
-========================= */
-
 function carregarUG(){
 
 let s=$("#ugFiltro");
@@ -309,10 +319,6 @@ s.append(`<option value="${v}">${v}</option>`);
 });
 
 }
-
-/* =========================
-FILTRO
-========================= */
 
 function aplicarFiltroAtual(){
 
@@ -337,10 +343,6 @@ base=base.filter(r=>r[campos[f]]===v);
 return base;
 
 }
-
-/* =========================
-ATUALIZAR FILTROS
-========================= */
 
 function atualizarFiltros(){
 
@@ -372,10 +374,6 @@ seletor.val(valorAtual);
 
 }
 
-/* =========================
-TOTALIZADOR
-========================= */
-
 function atualizarResumo(dados){
 
 if(!dados.length){
@@ -397,10 +395,6 @@ total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
 $("#resumoValores").show();
 
 }
-
-/* =========================
-TABELA
-========================= */
 
 function renderTabela(dados){
 
@@ -424,7 +418,16 @@ data:dados,
 
 columns:colunasPermitidas.map(c=>({
 title:c,
-data:c
+data:c,
+render:function(data,type){
+
+if(type==="display"){
+return transformarLinks(data);
+}
+
+return data;
+
+}
 })),
 
 scrollX:true,
@@ -449,10 +452,6 @@ tabela.page.len(this.value).draw();
 });
 
 }
-
-/* =========================
-APLICAR FILTROS
-========================= */
 
 function aplicarTudo(){
 
@@ -479,10 +478,6 @@ $("#"+f+"Filtro").on("change",aplicarTudo);
 });
 
 $("#btnLimpar").on("click",()=>location.reload());
-
-/* =========================
-EXPORTAÇÃO
-========================= */
 
 function obterDadosTabela(){
 
