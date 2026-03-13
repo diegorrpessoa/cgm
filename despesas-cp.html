@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-
 <head>
+
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
@@ -114,12 +114,6 @@ width:80px;
 font-size:.7rem;
 }
 
-.btn-doc{
-font-size:.65rem;
-padding:2px 6px;
-margin-right:3px;
-}
-
 </style>
 </head>
 
@@ -171,18 +165,16 @@ Limpar filtros
 </button>
 
 <div class="export-group btn-group">
-
 <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
 <button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
 <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
 <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-
 </div>
+
 </div>
 
 <div id="lengthSelectorContainer">
 <label>Registros por página:</label>
-
 <select id="lengthSelector" class="form-select form-select-sm">
 <option value="10">10</option>
 <option value="25">25</option>
@@ -192,10 +184,7 @@ Limpar filtros
 </div>
 
 <div class="table-responsive">
-<table id="tabela"
-class="table table-bordered table-striped table-sm w-100"
-style="display:none;">
-</table>
+<table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
 </div>
 
 </div>
@@ -225,69 +214,19 @@ objeto:"Objeto - Bens e serviços"
 const ordem=Object.keys(campos);
 
 function parseMoeda(valor){
-
 if(!valor) return 0;
-
 return parseFloat(
 valor.toString()
 .replace(/[^\d,.-]/g,"")
 .replace(/\./g,"")
 .replace(",",".")
 )||0;
-
 }
-
-/* =========================
-DETECTOR DE LINKS E DOCUMENTOS
-========================= */
-
-function gerarBotoesDocumento(valor){
-
-if(!valor || typeof valor!=="string") return valor;
-
-let formula=/HYPERLINK\("([^"]+)"[;,]"([^"]+)"\)/i;
-let match=valor.match(formula);
-
-let url=null;
-
-if(match){
-url=match[1];
-}else{
-
-let urlRegex=/(https?:\/\/[^\s]+)/i;
-if(urlRegex.test(valor)){
-url=valor.match(urlRegex)[0];
-}
-
-}
-
-if(!url) return valor;
-
-let icone="📄";
-
-if(url.match(/\.pdf/i)) icone="📄";
-if(url.match(/\.xls|\.xlsx/i)) icone="📊";
-if(url.match(/\.jpg|\.png|\.jpeg/i)) icone="🖼";
-
-return `
-<span class="d-flex gap-1">
-<a href="${url}" target="_blank" class="btn btn-outline-secondary btn-doc">${icone}</a>
-<a href="${url}" target="_blank" class="btn btn-outline-primary btn-doc">🔎</a>
-<a href="${url}" download class="btn btn-outline-success btn-doc">⬇</a>
-</span>
-`;
-
-}
-
-/* =========================
-CARREGAMENTO CSV
-========================= */
 
 Papa.parse(urlCSV,{
 download:true,
 header:true,
 worker:true,
-
 complete:r=>{
 
 dadosOriginais=r.data.filter(d=>d[campos.ug]);
@@ -295,39 +234,24 @@ dadosOriginais=r.data.filter(d=>d[campos.ug]);
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
 if(linhaAtualizacao){
-
 $("#indicadorAtualizacao").html(
 `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
 );
-
 }
 
 dadosOriginais=dadosOriginais.map(r=>{
-
 let copia={...r};
-
-copia._valorPago=parseMoeda(
-Object.values(copia)[indiceColunaP]
-);
-
+copia._valorPago=parseMoeda(Object.values(copia)[indiceColunaP]);
 delete copia["Atualizacao"];
-
 return copia;
-
 });
 
 colunasPermitidas=Object.keys(dadosOriginais[0]).slice(0,19);
 
 dadosOriginais.forEach(r=>{
-
 let ug=r[campos.ug];
-
-if(!indexUG[ug]){
-indexUG[ug]=[];
-}
-
+if(!indexUG[ug]) indexUG[ug]=[];
 indexUG[ug].push(r);
-
 });
 
 carregarUG();
@@ -337,10 +261,6 @@ $("#spinnerCsv").fadeOut(200);
 }
 
 });
-
-/* =========================
-FILTROS E TABELA
-========================= */
 
 function carregarUG(){
 
@@ -363,21 +283,45 @@ let ug=$("#ugFiltro").val();
 
 if(!ug) return [];
 
-let base=(ug==="todos")
-?dadosOriginais
-:indexUG[ug];
+let base=(ug==="todos") ? dadosOriginais : indexUG[ug];
 
 ordem.slice(1).forEach(f=>{
-
 let v=$("#"+f+"Filtro").val();
-
-if(v){
-base=base.filter(r=>r[campos[f]]===v);
-}
-
+if(v) base=base.filter(r=>r[campos[f]]===v);
 });
 
 return base;
+
+}
+
+function atualizarFiltros(){
+
+ordem.slice(1).forEach(f=>{
+
+let seletor=$("#"+f+"Filtro");
+
+let valorAtual=seletor.val();
+
+let base=aplicarFiltroAtual();
+
+let valores=[...new Set(
+base.map(r=>r[campos[f]]).filter(Boolean)
+)].sort();
+
+seletor.empty();
+seletor.append('<option value="">Selecione...</option>');
+
+valores.forEach(v=>{
+seletor.append(`<option value="${v}">${v}</option>`);
+});
+
+seletor.prop("disabled",valores.length===0);
+
+if(valores.includes(valorAtual)){
+seletor.val(valorAtual);
+}
+
+});
 
 }
 
@@ -413,38 +357,44 @@ return;
 $("#tabela").show();
 
 if(tabela){
-
 tabela.clear().rows.add(dados).draw();
 return;
-
 }
 
 tabela=$("#tabela").DataTable({
 
 data:dados,
 
-columns:colunasPermitidas.map(c=>({
+columns:colunasPermitidas.map((c,i)=>{
+
+if(i===17){
+
+return{
 title:c,
 data:c,
-render:function(data,type){
+render:function(data,type,row){
 
-if(type==="display"){
-return gerarBotoesDocumento(data);
+if(type==="display" && data){
+return `<a href="${data}" target="_blank">Acessar</a>`;
 }
 
 return data;
 
 }
-})),
+};
+
+}
+
+return{title:c,data:c};
+
+}),
 
 scrollX:true,
 scrollY:"55vh",
 scrollCollapse:true,
-
 paging:true,
 pageLength:10,
 lengthChange:false,
-
 deferRender:true,
 processing:true,
 
@@ -461,14 +411,25 @@ tabela.page.len(this.value).draw();
 }
 
 function aplicarTudo(){
-
 let dados=aplicarFiltroAtual();
+atualizarFiltros();
 atualizarResumo(dados);
 renderTabela(dados);
-
 }
 
-$("#ugFiltro").on("change",aplicarTudo);
+$("#ugFiltro").on("change",function(){
+
+ordem.slice(1).forEach(f=>{
+$("#"+f+"Filtro").val("").prop("disabled",false);
+});
+
+aplicarTudo();
+
+});
+
+ordem.slice(1).forEach(f=>{
+$("#"+f+"Filtro").on("change",aplicarTudo);
+});
 
 $("#btnLimpar").on("click",()=>location.reload());
 
