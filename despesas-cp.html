@@ -13,13 +13,9 @@
 
 <style>
 
-body{
-background:#f8f9fa;
-}
+body{background:#f8f9fa;}
 
-.dataTables_filter{
-display:none;
-}
+.dataTables_filter{display:none;}
 
 label{
 font-weight:600;
@@ -28,15 +24,9 @@ color:#343a40;
 margin-bottom:2px;
 }
 
-.form-select-sm,
-table{
-font-size:.7rem!important;
-}
+.form-select-sm,table{font-size:.7rem!important;}
 
-table.dataTable td,
-table.dataTable th{
-white-space:nowrap;
-}
+table.dataTable td,table.dataTable th{white-space:nowrap;}
 
 .dataTables_wrapper .dataTables_paginate{
 margin-top:.5rem;
@@ -86,15 +76,9 @@ z-index:9999;
 background:rgba(255,255,255,.9);
 }
 
-.spinner-border{
-width:2rem;
-height:2rem;
-}
+.spinner-border{width:2rem;height:2rem;}
 
-.spinner-text{
-font-size:.9rem;
-margin-top:5px;
-}
+.spinner-text{font-size:.9rem;margin-top:5px;}
 
 .totalizadores{
 font-size:.7rem;
@@ -125,16 +109,13 @@ font-size:.7rem;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <div id="spinnerCsv" class="spinner-overlay">
 <div class="spinner-border text-primary"></div>
-<div class="spinner-text">
-Carregando base de dados...
-</div>
+<div class="spinner-text">Carregando base de dados...</div>
 </div>
 
 <div class="container-fluid mt-3">
@@ -200,11 +181,7 @@ Limpar filtros
 </div>
 
 <div class="table-responsive">
-<table
-id="tabela"
-class="table table-bordered table-striped table-sm w-100"
-style="display:none;">
-</table>
+<table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
 </div>
 
 </div>
@@ -233,6 +210,8 @@ objeto:"Objeto - Bens e serviços"
 
 const ordem=Object.keys(campos);
 
+/* PARSE MOEDA */
+
 function parseMoeda(valor){
 
 if(!valor) return 0;
@@ -242,9 +221,11 @@ valor.toString()
 .replace(/[^\d,.-]/g,"")
 .replace(/\./g,"")
 .replace(",",".")
-) || 0;
+)||0;
 
 }
+
+/* TOTALIZADOR */
 
 function atualizarResumo(dados){
 
@@ -257,8 +238,7 @@ let total=0;
 
 dados.forEach(r=>{
 let valores=Object.values(r);
-let valor=valores[indiceColunaP];
-total+=parseMoeda(valor);
+total+=parseMoeda(valores[indiceColunaP]);
 });
 
 $("#totalPago").text(
@@ -270,6 +250,8 @@ $("#resumoValores").show();
 
 }
 
+/* CARREGAMENTO CSV */
+
 Papa.parse(urlCSV,{
 
 download:true,
@@ -278,8 +260,6 @@ header:true,
 complete:r=>{
 
 dadosOriginais=r.data.filter(d=>d[campos.ug]);
-
-/* === CAPTURA DATA DA COLUNA T === */
 
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
@@ -290,8 +270,6 @@ $("#indicadorAtualizacao").html(
 );
 
 }
-
-/* remove coluna T da tabela */
 
 dadosOriginais=dadosOriginais.map(r=>{
 let copia={...r};
@@ -307,186 +285,86 @@ $("#spinnerCsv").fadeOut(200);
 
 });
 
-function carregarUG(){
+/* EXPORTAÇÕES */
 
-let s=$("#ugFiltro");
+function obterDadosTabela(){
+if(!tabela) return [];
+return tabela.rows({search:'applied'}).data().toArray();
+}
 
-s.append('<option value="">Selecione...</option>');
-s.append('<option value="todos">Todos</option>');
+function downloadArquivo(nome,conteudo,tipo){
 
-[...new Set(dadosOriginais.map(r=>r[campos.ug]))]
-.sort()
-.forEach(v=>{
-s.append(`<option value="${v}">${v}</option>`);
-});
+let blob=new Blob([conteudo],{type:tipo});
+
+let link=document.createElement("a");
+
+link.href=URL.createObjectURL(blob);
+link.download=nome;
+
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
 
 }
 
-function aplicarFiltroAtual(){
+$("#btnCsv").click(()=>{
 
-let ug=$("#ugFiltro").val();
+let dados=obterDadosTabela();
+let csv=Papa.unparse(dados);
 
-if(!ug) return [];
-
-let base=(ug==="todos")
-? [...dadosOriginais]
-: dadosOriginais.filter(r=>r[campos.ug]===ug);
-
-ordem.slice(1).forEach(f=>{
-
-let v=$("#"+f+"Filtro").val();
-
-if(v){
-base=base.filter(r=>r[campos[f]]===v);
-}
+downloadArquivo("despesas.csv",csv,"text/csv");
 
 });
 
-return base;
+$("#btnTxt").click(()=>{
 
-}
+let dados=obterDadosTabela();
+let txt=Papa.unparse(dados,{delimiter:";"});
 
-function aplicarFiltroIgnorando(filtro){
-
-let ug=$("#ugFiltro").val();
-
-if(!ug) return [];
-
-let base=dadosOriginais;
-
-if(ug!=="todos"){
-base=base.filter(r=>r[campos.ug]===ug);
-}
-
-ordem.slice(1).forEach(f=>{
-
-if(f===filtro) return;
-
-let v=$("#"+f+"Filtro").val();
-
-if(v){
-base=base.filter(r=>r[campos[f]]===v);
-}
+downloadArquivo("despesas.txt",txt,"text/plain");
 
 });
 
-return base;
+$("#btnJson").click(()=>{
 
+let dados=obterDadosTabela();
+let json=JSON.stringify(dados,null,2);
+
+downloadArquivo("despesas.json",json,"application/json");
+
+});
+
+$("#btnXlsx").click(()=>{
+
+let dados=obterDadosTabela();
+
+let ws=XLSX.utils.json_to_sheet(dados);
+
+let total=0;
+
+dados.forEach(r=>{
+let valores=Object.values(r);
+total+=parseMoeda(valores[indiceColunaP]);
+});
+
+let linhaTotal=[];
+
+for(let i=0;i<Object.keys(dados[0]).length;i++){
+linhaTotal.push("");
 }
 
-function atualizarFiltros(){
+linhaTotal[0]="TOTAL VALOR PAGO";
+linhaTotal[indiceColunaP]=total;
 
-ordem.slice(1).forEach(f=>{
+XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
 
-let seletor=$("#"+f+"Filtro");
-let valorAtual=seletor.val();
+let wb=XLSX.utils.book_new();
 
-let base=aplicarFiltroIgnorando(f);
+XLSX.utils.book_append_sheet(wb,ws,"Despesas");
 
-let valores=[
-...new Set(base.map(r=>r[campos[f]]).filter(Boolean))
-].sort();
-
-seletor.empty();
-seletor.append('<option value="">Selecione...</option>');
-
-valores.forEach(v=>{
-seletor.append(`<option value="${v}">${v}</option>`);
-});
-
-seletor.prop("disabled",valores.length===0);
-
-if(valores.includes(valorAtual)){
-seletor.val(valorAtual);
-}
+XLSX.writeFile(wb,"despesas.xlsx");
 
 });
-
-}
-
-function renderTabela(dados){
-
-if(!dados.length){
-$("#tabela").hide();
-return;
-}
-
-$("#tabela").show();
-
-const colunasPermitidas=Object.keys(dados[0]).slice(0,19);
-
-let dadosFiltrados=dados.map(r=>{
-let obj={};
-colunasPermitidas.forEach(c=>{
-obj[c]=r[c];
-});
-return obj;
-});
-
-if(tabela){
-
-tabela.clear()
-.rows.add(dadosFiltrados)
-.draw();
-
-return;
-
-}
-
-tabela=$("#tabela").DataTable({
-
-data:dadosFiltrados,
-
-columns:colunasPermitidas.map(c=>({
-title:c,
-data:c
-})),
-
-scrollX:true,
-scrollY:"55vh",
-scrollCollapse:true,
-
-paging:true,
-pageLength:10,
-lengthChange:false,
-
-language:{
-url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-}
-
-});
-
-$("#lengthSelector").on("change",function(){
-tabela.page.len(this.value).draw();
-});
-
-}
-
-function aplicarTudo(){
-
-let dados=aplicarFiltroAtual();
-
-atualizarFiltros();
-atualizarResumo(dados);
-renderTabela(dados);
-
-}
-
-$("#ugFiltro").on("change",function(){
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").val("").prop("disabled",false);
-});
-
-aplicarTudo();
-
-});
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").on("change", aplicarTudo);
-});
-
-$("#btnLimpar").on("click",()=>location.reload());
 
 </script>
 
