@@ -138,7 +138,6 @@ table.dataTable th{
 
 <div class="container-fluid mt-3">
 
-
 <div id="indicadorAtualizacao">
     Dados atualizados automaticamente em...
 </div>
@@ -218,8 +217,6 @@ Limpar filtros
 
 <script>
 
-/* ========================= VARIÁVEIS ========================= */
-
 let tabela;
 let dadosOriginais = [];
 let indiceColunaP = 15;
@@ -238,9 +235,6 @@ const campos = {
 const ordem = Object.keys(campos);
 
 
-
-/* ========================= FUNÇÃO MOEDA ========================= */
-
 function parseMoeda(valor){
 
     if(!valor) return 0;
@@ -254,9 +248,6 @@ function parseMoeda(valor){
 
 }
 
-
-
-/* ========================= CARREGAMENTO CSV ========================= */
 
 Papa.parse(urlCSV,{
 
@@ -315,9 +306,6 @@ Papa.parse(urlCSV,{
 });
 
 
-
-/* ========================= CARREGAR UG ========================= */
-
 function carregarUG(){
 
     let s = $("#ugFiltro");
@@ -333,9 +321,6 @@ function carregarUG(){
 
 }
 
-
-
-/* ========================= FILTRO ========================= */
 
 function aplicarFiltroAtual(){
 
@@ -361,9 +346,6 @@ function aplicarFiltroAtual(){
 
 }
 
-
-
-/* ========================= ATUALIZAR FILTROS ========================= */
 
 function atualizarFiltros(){
 
@@ -397,9 +379,6 @@ function atualizarFiltros(){
 }
 
 
-
-/* ========================= TOTALIZADOR ========================= */
-
 function atualizarResumo(dados){
 
     if(!dados.length){
@@ -422,9 +401,6 @@ function atualizarResumo(dados){
 
 }
 
-
-
-/* ========================= TABELA ========================= */
 
 function renderTabela(dados){
 
@@ -473,9 +449,6 @@ function renderTabela(dados){
 }
 
 
-
-/* ========================= APLICAR FILTROS ========================= */
-
 function aplicarTudo(){
 
     let dados = aplicarFiltroAtual();
@@ -486,9 +459,6 @@ function aplicarTudo(){
 
 }
 
-
-
-/* ========================= EVENTOS ========================= */
 
 $("#ugFiltro").on("change",function(){
 
@@ -507,8 +477,6 @@ ordem.slice(1).forEach(f=>{
 $("#btnLimpar").on("click",()=>location.reload());
 
 
-
-/* ========================= EXPORTAÇÃO ========================= */
 
 function obterDadosTabela(){
 
@@ -534,7 +502,6 @@ function downloadArquivo(nome,conteudo,tipo){
 }
 
 
-
 $("#btnCsv").click(()=>{
 
     let dados = obterDadosTabela();
@@ -544,7 +511,6 @@ $("#btnCsv").click(()=>{
     downloadArquivo("despesas.csv",csv,"text/csv");
 
 });
-
 
 
 $("#btnTxt").click(()=>{
@@ -558,7 +524,6 @@ $("#btnTxt").click(()=>{
 });
 
 
-
 $("#btnJson").click(()=>{
 
     let dados = obterDadosTabela();
@@ -570,25 +535,11 @@ $("#btnJson").click(()=>{
 });
 
 
-
 $("#btnXlsx").click(()=>{
 
     let dados = obterDadosTabela();
 
     let ws = XLSX.utils.json_to_sheet(dados);
-
-    let total = 0;
-
-    dados.forEach(r=>{
-        total += r._valorPago;
-    });
-
-    let linhaTotal = new Array(colunasPermitidas.length).fill("");
-
-    linhaTotal[0] = "TOTAL VALOR PAGO";
-    linhaTotal[indiceColunaP] = total;
-
-    XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
 
     let wb = XLSX.utils.book_new();
 
