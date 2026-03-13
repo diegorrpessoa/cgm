@@ -2,7 +2,6 @@
 <html lang="pt-br">
 
 <head>
-
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
@@ -113,6 +112,12 @@ margin-bottom:6px;
 #lengthSelector{
 width:80px;
 font-size:.7rem;
+}
+
+.btn-doc{
+font-size:.65rem;
+padding:2px 6px;
+margin-right:3px;
 }
 
 </style>
@@ -232,17 +237,45 @@ valor.toString()
 
 }
 
-function transformarLinks(texto){
+/* =========================
+DETECTOR DE LINKS E DOCUMENTOS
+========================= */
 
-if(!texto || typeof texto!=="string") return texto;
+function gerarBotoesDocumento(valor){
 
-let regex=/(https?:\/\/[^\s]+)/g;
+if(!valor || typeof valor!=="string") return valor;
 
-return texto.replace(regex,function(url){
+let formula=/HYPERLINK\("([^"]+)"[;,]"([^"]+)"\)/i;
+let match=valor.match(formula);
 
-return `<a href="${url}" target="_blank">${url}</a>`;
+let url=null;
 
-});
+if(match){
+url=match[1];
+}else{
+
+let urlRegex=/(https?:\/\/[^\s]+)/i;
+if(urlRegex.test(valor)){
+url=valor.match(urlRegex)[0];
+}
+
+}
+
+if(!url) return valor;
+
+let icone="📄";
+
+if(url.match(/\.pdf/i)) icone="📄";
+if(url.match(/\.xls|\.xlsx/i)) icone="📊";
+if(url.match(/\.jpg|\.png|\.jpeg/i)) icone="🖼";
+
+return `
+<span class="d-flex gap-1">
+<a href="${url}" target="_blank" class="btn btn-outline-secondary btn-doc">${icone}</a>
+<a href="${url}" target="_blank" class="btn btn-outline-primary btn-doc">🔎</a>
+<a href="${url}" download class="btn btn-outline-success btn-doc">⬇</a>
+</span>
+`;
 
 }
 
@@ -305,6 +338,10 @@ $("#spinnerCsv").fadeOut(200);
 
 });
 
+/* =========================
+FILTROS E TABELA
+========================= */
+
 function carregarUG(){
 
 let s=$("#ugFiltro");
@@ -341,36 +378,6 @@ base=base.filter(r=>r[campos[f]]===v);
 });
 
 return base;
-
-}
-
-function atualizarFiltros(){
-
-ordem.slice(1).forEach(f=>{
-
-let seletor=$("#"+f+"Filtro");
-let valorAtual=seletor.val();
-
-let base=aplicarFiltroAtual();
-
-let valores=[...new Set(
-base.map(r=>r[campos[f]]).filter(Boolean)
-)].sort();
-
-seletor.empty();
-seletor.append('<option value="">Selecione...</option>');
-
-valores.forEach(v=>{
-seletor.append(`<option value="${v}">${v}</option>`);
-});
-
-seletor.prop("disabled",valores.length===0);
-
-if(valores.includes(valorAtual)){
-seletor.val(valorAtual);
-}
-
-});
 
 }
 
@@ -422,7 +429,7 @@ data:c,
 render:function(data,type){
 
 if(type==="display"){
-return transformarLinks(data);
+return gerarBotoesDocumento(data);
 }
 
 return data;
@@ -456,108 +463,14 @@ tabela.page.len(this.value).draw();
 function aplicarTudo(){
 
 let dados=aplicarFiltroAtual();
-
-atualizarFiltros();
 atualizarResumo(dados);
 renderTabela(dados);
 
 }
 
-$("#ugFiltro").on("change",function(){
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").val("").prop("disabled",false);
-});
-
-aplicarTudo();
-
-});
-
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").on("change",aplicarTudo);
-});
+$("#ugFiltro").on("change",aplicarTudo);
 
 $("#btnLimpar").on("click",()=>location.reload());
-
-function obterDadosTabela(){
-
-if(!tabela) return [];
-
-return tabela.rows({search:'applied'}).data().toArray();
-
-}
-
-function downloadArquivo(nome,conteudo,tipo){
-
-let blob=new Blob([conteudo],{type:tipo});
-
-let link=document.createElement("a");
-
-link.href=URL.createObjectURL(blob);
-link.download=nome;
-
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-
-}
-
-$("#btnCsv").click(()=>{
-
-let dados=obterDadosTabela();
-
-let csv=Papa.unparse(dados);
-
-downloadArquivo("despesas.csv",csv,"text/csv");
-
-});
-
-$("#btnTxt").click(()=>{
-
-let dados=obterDadosTabela();
-
-let txt=Papa.unparse(dados,{delimiter:";"});
-
-downloadArquivo("despesas.txt",txt,"text/plain");
-
-});
-
-$("#btnJson").click(()=>{
-
-let dados=obterDadosTabela();
-
-let json=JSON.stringify(dados,null,2);
-
-downloadArquivo("despesas.json",json,"application/json");
-
-});
-
-$("#btnXlsx").click(()=>{
-
-let dados=obterDadosTabela();
-
-let ws=XLSX.utils.json_to_sheet(dados);
-
-let total=0;
-
-dados.forEach(r=>{
-total+=r._valorPago;
-});
-
-let linhaTotal=new Array(colunasPermitidas.length).fill("");
-
-linhaTotal[0]="TOTAL VALOR PAGO";
-linhaTotal[indiceColunaP]=total;
-
-XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
-
-let wb=XLSX.utils.book_new();
-
-XLSX.utils.book_append_sheet(wb,ws,"Despesas");
-
-XLSX.writeFile(wb,"despesas.xlsx");
-
-});
 
 </script>
 
