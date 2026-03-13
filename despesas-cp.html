@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
 
 <meta charset="UTF-8"/>
@@ -12,122 +13,136 @@
 
 <style>
 
-body{background:#f8f9fa;}
-.dataTables_filter{display:none;}
+body{
+    background:#f8f9fa;
+}
+
+.dataTables_filter{
+    display:none;
+}
 
 label{
-font-weight:600;
-font-size:.72rem!important;
-color:#343a40;
-margin-bottom:2px;
+    font-weight:600;
+    font-size:.72rem!important;
+    color:#343a40;
+    margin-bottom:2px;
 }
 
-.form-select-sm,table{
-font-size:.7rem!important;
+.form-select-sm, table{
+    font-size:.7rem!important;
 }
 
-table.dataTable td,table.dataTable th{
-white-space:nowrap;
+table.dataTable td,
+table.dataTable th{
+    white-space:nowrap;
 }
 
 .dataTables_wrapper .dataTables_paginate{
-margin-top:.5rem;
-display:flex;
-justify-content:center;
-gap:4px;
+    margin-top:.5rem;
+    display:flex;
+    justify-content:center;
+    gap:4px;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button{
-padding:4px 8px!important;
-font-size:.65rem!important;
-border-radius:6px!important;
-background:#e9ecef!important;
-border:1px solid #dee2e6!important;
+    padding:4px 8px!important;
+    font-size:.65rem!important;
+    border-radius:6px!important;
+    background:#e9ecef!important;
+    border:1px solid #dee2e6!important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{
-background:#0d6efd!important;
-color:#fff!important;
-font-weight:bold!important;
+    background:#0d6efd!important;
+    color:#fff!important;
+    font-weight:bold!important;
 }
 
 .export-group .btn{
-font-size:.7rem;
-padding:4px 8px;
+    font-size:.7rem;
+    padding:4px 8px;
 }
 
 #indicadorAtualizacao{
-font-size:.65rem;
-color:#6c757d;
-text-align:right;
-margin-bottom:8px;
+    font-size:.65rem;
+    color:#6c757d;
+    text-align:right;
+    margin-bottom:8px;
 }
 
 .spinner-overlay{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-height:100vh;
-display:flex;
-flex-direction:column;
-align-items:center;
-justify-content:flex-start;
-padding-top:60px;
-z-index:9999;
-background:rgba(255,255,255,.9);
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:flex-start;
+    padding-top:60px;
+    z-index:9999;
+    background:rgba(255,255,255,.9);
 }
 
-.spinner-border{width:2rem;height:2rem;}
+.spinner-border{
+    width:2rem;
+    height:2rem;
+}
 
 .spinner-text{
-font-size:.9rem;
-margin-top:5px;
+    font-size:.9rem;
+    margin-top:5px;
 }
 
 .totalizadores{
-font-size:.7rem;
-background:#fff;
-padding:5px 10px;
-border:1px solid #dee2e6;
-border-radius:4px;
+    font-size:.7rem;
+    background:#fff;
+    padding:5px 10px;
+    border:1px solid #dee2e6;
+    border-radius:4px;
 }
 
 .totalizadores span{
-display:inline-block;
-margin-right:15px;
-font-weight:600;
+    display:inline-block;
+    margin-right:15px;
+    font-weight:600;
 }
 
 #lengthSelectorContainer{
-font-size:.7rem;
-display:flex;
-justify-content:flex-end;
-align-items:center;
-gap:6px;
-margin-bottom:6px;
+    font-size:.7rem;
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:6px;
+    margin-bottom:6px;
 }
 
 #lengthSelector{
-width:80px;
-font-size:.7rem;
+    width:80px;
+    font-size:.7rem;
 }
 
 </style>
+
 </head>
 
 <body>
 
+
 <div id="spinnerCsv" class="spinner-overlay">
-<div class="spinner-border text-primary"></div>
-<div class="spinner-text">Carregando base de dados...</div>
+    <div class="spinner-border text-primary"></div>
+    <div class="spinner-text">Carregando base de dados...</div>
 </div>
+
 
 <div class="container-fluid mt-3">
 
+
 <div id="indicadorAtualizacao">
-Dados atualizados automaticamente em...
+    Dados atualizados automaticamente em...
 </div>
+
 
 <div class="row gx-2 gy-2 mb-3">
 
@@ -153,9 +168,11 @@ Dados atualizados automaticamente em...
 
 </div>
 
+
 <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
 <span id="totalPago">Valor pago: R$ 0,00</span>
 </div>
+
 
 <div class="d-flex justify-content-between mb-2">
 
@@ -172,6 +189,7 @@ Limpar filtros
 
 </div>
 
+
 <div id="lengthSelectorContainer">
 <label>Registros por página:</label>
 <select id="lengthSelector" class="form-select form-select-sm">
@@ -182,337 +200,401 @@ Limpar filtros
 </select>
 </div>
 
+
 <div class="table-responsive">
 <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
 </div>
 
 </div>
 
+
+
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
+
+
 <script>
 
+/* ========================= VARIÁVEIS ========================= */
+
 let tabela;
-let dadosOriginais=[];
-let indiceColunaP=15;
-let colunasPermitidas=[];
-let indexUG={};
+let dadosOriginais = [];
+let indiceColunaP = 15;
+let colunasPermitidas = [];
+let indexUG = {};
 
-const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vS3-CtmdGkiL5mdK7T3neAkVW60SUcbfrO-lVMWzEYo5_wZ6RtYGaquGFqVZvX6gmseDAMkzYf2HwUQ/pub?output=csv";
+const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS3-CtmdGkiL5mdK7T3neAkVW60SUcbfrO-lVMWzEYo5_wZ6RtYGaquGFqVZvX6gmseDAMkzYf2HwUQ/pub?output=csv";
 
-const campos={
-ug:"Unidade Gestora (UG)",
-fornecedor:"Fornecedor",
-cnpj:"CNPJ/CPF Fornecedor",
-objeto:"Objeto - Bens e serviços"
+const campos = {
+    ug:"Unidade Gestora (UG)",
+    fornecedor:"Fornecedor",
+    cnpj:"CNPJ/CPF Fornecedor",
+    objeto:"Objeto - Bens e serviços"
 };
 
-const ordem=Object.keys(campos);
+const ordem = Object.keys(campos);
+
+
+
+/* ========================= FUNÇÃO MOEDA ========================= */
 
 function parseMoeda(valor){
 
-if(!valor) return 0;
+    if(!valor) return 0;
 
-return parseFloat(
-valor.toString()
-.replace(/[^\d,.-]/g,"")
-.replace(/\./g,"")
-.replace(",",".")
-)||0;
+    return parseFloat(
+        valor.toString()
+        .replace(/[^\d,.-]/g,"")
+        .replace(/\./g,"")
+        .replace(",",".")
+    ) || 0;
 
 }
+
+
+
+/* ========================= CARREGAMENTO CSV ========================= */
 
 Papa.parse(urlCSV,{
-download:true,
-header:true,
-worker:true,
 
-complete:r=>{
+    download:true,
+    header:true,
+    worker:true,
 
-dadosOriginais=r.data.filter(d=>d[campos.ug]);
+    complete:r=>{
 
-let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
+        dadosOriginais = r.data.filter(d => d[campos.ug]);
 
-if(linhaAtualizacao){
+        let linhaAtualizacao = dadosOriginais.find(x=>x["Atualizacao"]);
 
-$("#indicadorAtualizacao").html(
-`Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
-);
+        if(linhaAtualizacao){
 
-}
+            $("#indicadorAtualizacao").html(
+                `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
+            );
 
-dadosOriginais=dadosOriginais.map(r=>{
+        }
 
-let copia={...r};
+        dadosOriginais = dadosOriginais.map(r=>{
 
-copia._valorPago=parseMoeda(Object.values(copia)[indiceColunaP]);
+            let copia = {...r};
 
-delete copia["Atualizacao"];
+            copia._valorPago = parseMoeda(
+                Object.values(copia)[indiceColunaP]
+            );
 
-return copia;
+            delete copia["Atualizacao"];
+
+            return copia;
+
+        });
+
+        colunasPermitidas = Object.keys(dadosOriginais[0]).slice(0,19);
+
+        dadosOriginais.forEach(r=>{
+
+            let ug = r[campos.ug];
+
+            if(!indexUG[ug]){
+                indexUG[ug] = [];
+            }
+
+            indexUG[ug].push(r);
+
+        });
+
+        carregarUG();
+
+        $("#spinnerCsv").fadeOut(200);
+
+    }
 
 });
 
-colunasPermitidas=Object.keys(dadosOriginais[0]).slice(0,19);
 
-dadosOriginais.forEach(r=>{
 
-let ug=r[campos.ug];
-
-if(!indexUG[ug]) indexUG[ug]=[];
-
-indexUG[ug].push(r);
-
-});
-
-carregarUG();
-
-$("#spinnerCsv").fadeOut(200);
-
-}
-
-});
+/* ========================= CARREGAR UG ========================= */
 
 function carregarUG(){
 
-let s=$("#ugFiltro");
+    let s = $("#ugFiltro");
 
-s.append('<option value="">Selecione...</option>');
-s.append('<option value="todos">Todos</option>');
+    s.append('<option value="">Selecione...</option>');
+    s.append('<option value="todos">Todos</option>');
 
-Object.keys(indexUG).sort().forEach(v=>{
-s.append(`<option value="${v}">${v}</option>`);
-});
+    Object.keys(indexUG)
+    .sort()
+    .forEach(v=>{
+        s.append(`<option value="${v}">${v}</option>`);
+    });
 
 }
+
+
+
+/* ========================= FILTRO ========================= */
 
 function aplicarFiltroAtual(){
 
-let ug=$("#ugFiltro").val();
+    let ug = $("#ugFiltro").val();
 
-if(!ug) return [];
+    if(!ug) return [];
 
-let base=(ug==="todos") ? dadosOriginais : indexUG[ug];
+    let base = (ug==="todos")
+        ? dadosOriginais
+        : indexUG[ug];
 
-ordem.slice(1).forEach(f=>{
+    ordem.slice(1).forEach(f=>{
 
-let v=$("#"+f+"Filtro").val();
+        let v = $("#"+f+"Filtro").val();
 
-if(v) base=base.filter(r=>r[campos[f]]===v);
+        if(v){
+            base = base.filter(r=>r[campos[f]]===v);
+        }
 
-});
+    });
 
-return base;
+    return base;
 
 }
+
+
+
+/* ========================= ATUALIZAR FILTROS ========================= */
 
 function atualizarFiltros(){
 
-ordem.slice(1).forEach(f=>{
+    ordem.slice(1).forEach(f=>{
 
-let seletor=$("#"+f+"Filtro");
+        let seletor = $("#"+f+"Filtro");
+        let valorAtual = seletor.val();
 
-let valorAtual=seletor.val();
+        let base = aplicarFiltroAtual();
 
-let base=aplicarFiltroAtual();
+        let valores = [...new Set(
+            base.map(r=>r[campos[f]]).filter(Boolean)
+        )].sort();
 
-let valores=[...new Set(
-base.map(r=>r[campos[f]]).filter(Boolean)
-)].sort();
+        seletor.empty();
 
-seletor.empty();
-seletor.append('<option value="">Selecione...</option>');
+        seletor.append('<option value="">Selecione...</option>');
 
-valores.forEach(v=>{
-seletor.append(`<option value="${v}">${v}</option>`);
-});
+        valores.forEach(v=>{
+            seletor.append(`<option value="${v}">${v}</option>`);
+        });
 
-seletor.prop("disabled",valores.length===0);
+        seletor.prop("disabled",valores.length===0);
 
-if(valores.includes(valorAtual)) seletor.val(valorAtual);
+        if(valores.includes(valorAtual)){
+            seletor.val(valorAtual);
+        }
 
-});
+    });
 
 }
+
+
+
+/* ========================= TOTALIZADOR ========================= */
 
 function atualizarResumo(dados){
 
-if(!dados.length){
-$("#resumoValores").hide();
-return;
+    if(!dados.length){
+        $("#resumoValores").hide();
+        return;
+    }
+
+    let total = 0;
+
+    dados.forEach(r=>{
+        total += r._valorPago;
+    });
+
+    $("#totalPago").text(
+        "Valor pago: " +
+        total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
+    );
+
+    $("#resumoValores").show();
+
 }
 
-let total=0;
 
-dados.forEach(r=>{
-total+=r._valorPago;
-});
 
-$("#totalPago").text(
-"Valor pago: "+
-total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"})
-);
-
-$("#resumoValores").show();
-
-}
+/* ========================= TABELA ========================= */
 
 function renderTabela(dados){
 
-if(!dados.length){
-$("#tabela").hide();
-return;
-}
+    if(!dados.length){
+        $("#tabela").hide();
+        return;
+    }
 
-$("#tabela").show();
+    $("#tabela").show();
 
-if(tabela){
-tabela.clear().rows.add(dados).draw();
-return;
-}
+    if(tabela){
+        tabela.clear().rows.add(dados).draw();
+        return;
+    }
 
-tabela=$("#tabela").DataTable({
+    tabela = $("#tabela").DataTable({
 
-data:dados,
+        data:dados,
 
-columns:colunasPermitidas.map(c=>({
+        columns:colunasPermitidas.map(c=>({
+            title:c,
+            data:c
+        })),
 
-title:c,
-data:c,
+        scrollX:true,
+        scrollY:"55vh",
+        scrollCollapse:true,
 
-render:function(data,type){
+        paging:true,
+        pageLength:10,
+        lengthChange:false,
 
-if(type==="display" && typeof data==="string" && data.startsWith("http")){
-return `<a href="${data}" target="_blank">Abrir</a>`;
-}
+        deferRender:true,
+        processing:true,
 
-return data;
+        language:{
+            url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+        }
 
-}
+    });
 
-})),
-
-scrollX:true,
-scrollY:"55vh",
-scrollCollapse:true,
-paging:true,
-pageLength:10,
-lengthChange:false,
-deferRender:true,
-processing:true,
-
-language:{
-url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-}
-
-});
-
-$("#lengthSelector").on("change",function(){
-tabela.page.len(this.value).draw();
-});
+    $("#lengthSelector").on("change",function(){
+        tabela.page.len(this.value).draw();
+    });
 
 }
+
+
+
+/* ========================= APLICAR FILTROS ========================= */
 
 function aplicarTudo(){
 
-let dados=aplicarFiltroAtual();
+    let dados = aplicarFiltroAtual();
 
-atualizarFiltros();
-
-atualizarResumo(dados);
-
-renderTabela(dados);
+    atualizarFiltros();
+    atualizarResumo(dados);
+    renderTabela(dados);
 
 }
 
+
+
+/* ========================= EVENTOS ========================= */
+
 $("#ugFiltro").on("change",function(){
 
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").val("").prop("disabled",false);
+    ordem.slice(1).forEach(f=>{
+        $("#"+f+"Filtro").val("").prop("disabled",false);
+    });
+
+    aplicarTudo();
+
 });
 
-aplicarTudo();
-
-});
-
 ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").on("change",aplicarTudo);
+    $("#"+f+"Filtro").on("change",aplicarTudo);
 });
 
 $("#btnLimpar").on("click",()=>location.reload());
 
+
+
+/* ========================= EXPORTAÇÃO ========================= */
+
 function obterDadosTabela(){
 
-if(!tabela) return [];
+    if(!tabela) return [];
 
-return tabela.rows({search:'applied'}).data().toArray();
+    return tabela.rows({search:'applied'}).data().toArray();
 
 }
 
 function downloadArquivo(nome,conteudo,tipo){
 
-let blob=new Blob([conteudo],{type:tipo});
+    let blob = new Blob([conteudo],{type:tipo});
 
-let link=document.createElement("a");
+    let link = document.createElement("a");
 
-link.href=URL.createObjectURL(blob);
+    link.href = URL.createObjectURL(blob);
+    link.download = nome;
 
-link.download=nome;
-
-document.body.appendChild(link);
-
-link.click();
-
-document.body.removeChild(link);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
 }
 
+
+
 $("#btnCsv").click(()=>{
-let dados=obterDadosTabela();
-let csv=Papa.unparse(dados);
-downloadArquivo("despesas.csv",csv,"text/csv");
+
+    let dados = obterDadosTabela();
+
+    let csv = Papa.unparse(dados);
+
+    downloadArquivo("despesas.csv",csv,"text/csv");
+
 });
+
+
 
 $("#btnTxt").click(()=>{
-let dados=obterDadosTabela();
-let txt=Papa.unparse(dados,{delimiter:";"});
-downloadArquivo("despesas.txt",txt,"text/plain");
+
+    let dados = obterDadosTabela();
+
+    let txt = Papa.unparse(dados,{delimiter:";"});
+
+    downloadArquivo("despesas.txt",txt,"text/plain");
+
 });
 
+
+
 $("#btnJson").click(()=>{
-let dados=obterDadosTabela();
-let json=JSON.stringify(dados,null,2);
-downloadArquivo("despesas.json",json,"application/json");
+
+    let dados = obterDadosTabela();
+
+    let json = JSON.stringify(dados,null,2);
+
+    downloadArquivo("despesas.json",json,"application/json");
+
 });
+
+
 
 $("#btnXlsx").click(()=>{
 
-let dados=obterDadosTabela();
+    let dados = obterDadosTabela();
 
-let ws=XLSX.utils.json_to_sheet(dados);
+    let ws = XLSX.utils.json_to_sheet(dados);
 
-let total=0;
+    let total = 0;
 
-dados.forEach(r=>{
-total+=r._valorPago;
-});
+    dados.forEach(r=>{
+        total += r._valorPago;
+    });
 
-let linhaTotal=new Array(colunasPermitidas.length).fill("");
+    let linhaTotal = new Array(colunasPermitidas.length).fill("");
 
-linhaTotal[0]="TOTAL VALOR PAGO";
+    linhaTotal[0] = "TOTAL VALOR PAGO";
+    linhaTotal[indiceColunaP] = total;
 
-linhaTotal[indiceColunaP]=total;
+    XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
 
-XLSX.utils.sheet_add_aoa(ws,[linhaTotal],{origin:-1});
+    let wb = XLSX.utils.book_new();
 
-let wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,"Despesas");
 
-XLSX.utils.book_append_sheet(wb,ws,"Despesas");
-
-XLSX.writeFile(wb,"despesas.xlsx");
+    XLSX.writeFile(wb,"despesas.xlsx");
 
 });
 
