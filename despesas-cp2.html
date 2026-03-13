@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-br">
 
@@ -105,6 +106,16 @@ width:80px;
 font-size:.7rem;
 }
 
+a.link-doc{
+color:#0d6efd;
+text-decoration:none;
+font-weight:500;
+}
+
+a.link-doc:hover{
+text-decoration:underline;
+}
+
 </style>
 </head>
 
@@ -204,6 +215,18 @@ objeto:"Objeto - Bens e serviços"
 
 const ordem=Object.keys(campos);
 
+function converterLink(valor){
+
+if(!valor) return "";
+
+if(valor.startsWith("http")){
+return `<a class="link-doc" href="${valor}" target="_blank">Abrir</a>`;
+}
+
+return valor;
+
+}
+
 function parseMoeda(valor){
 if(!valor)return 0;
 return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".") )||0;
@@ -225,10 +248,19 @@ $("#indicadorAtualizacao").html(`Dados atualizados automaticamente em: <b>${linh
 }
 
 dadosOriginais=dadosOriginais.map(r=>{
-let copia={...r};
-copia._valorPago=parseMoeda(Object.values(copia)[indiceColunaP]);
+
+let copia={};
+
+Object.keys(r).forEach(c=>{
+copia[c]=converterLink(r[c]);
+});
+
+copia._valorPago=parseMoeda(Object.values(r)[indiceColunaP]);
+
 delete copia["Atualizacao"];
+
 return copia;
+
 });
 
 colunasPermitidas=Object.keys(dadosOriginais[0]).slice(0,19);
@@ -240,18 +272,24 @@ indexUG[ug].push(r);
 });
 
 carregarUG();
+
 $("#spinnerCsv").fadeOut(200);
+
 }
 
 });
 
 function carregarUG(){
+
 let s=$("#ugFiltro");
+
 s.append('<option value="">Selecione...</option>');
 s.append('<option value="todos">Todos</option>');
+
 Object.keys(indexUG).sort().forEach(v=>{
 s.append(`<option value="${v}">${v}</option>`);
 });
+
 }
 
 function aplicarFiltroAtual(){
@@ -262,11 +300,15 @@ if(!ug)return[];
 let base=(ug==="todos")?dadosOriginais:indexUG[ug];
 
 ordem.slice(1).forEach(f=>{
+
 let v=$("#"+f+"Filtro").val();
+
 if(v) base=base.filter(r=>r[campos[f]]===v);
+
 });
 
 return base;
+
 }
 
 function atualizarFiltros(){
@@ -274,12 +316,15 @@ function atualizarFiltros(){
 ordem.slice(1).forEach(f=>{
 
 let seletor=$("#"+f+"Filtro");
+
 let valorAtual=seletor.val();
+
 let base=aplicarFiltroAtual();
 
 let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
 seletor.empty();
+
 seletor.append('<option value="">Selecione...</option>');
 
 valores.forEach(v=>{
@@ -310,6 +355,7 @@ total+=r._valorPago;
 $("#totalPago").text("Valor pago: "+total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
 
 $("#resumoValores").show();
+
 }
 
 function renderTabela(dados){
@@ -330,7 +376,13 @@ tabela=$("#tabela").DataTable({
 
 data:dados,
 
-columns:colunasPermitidas.map(c=>({title:c,data:c})),
+columns:colunasPermitidas.map(c=>({
+title:c,
+data:c,
+render:function(data){
+return converterLink(data);
+}
+})),
 
 scrollX:true,
 scrollY:"55vh",
@@ -369,6 +421,7 @@ $("#"+f+"Filtro").val("").prop("disabled",false);
 });
 
 aplicarTudo();
+
 });
 
 ordem.slice(1).forEach(f=>{
@@ -377,68 +430,8 @@ $("#"+f+"Filtro").on("change",aplicarTudo);
 
 $("#btnLimpar").on("click",()=>location.reload());
 
-function obterDadosTabela(){
-if(!tabela)return[];
-return tabela.rows({search:'applied'}).data().toArray();
-}
-
-function limparCamposInternos(dados){
-
-return dados.map(item=>{
-let copia={...item};
-delete copia._valorPago;
-return copia;
-});
-
-}
-
-function downloadArquivo(nome,conteudo,tipo){
-let blob=new Blob([conteudo],{type:tipo});
-let link=document.createElement("a");
-link.href=URL.createObjectURL(blob);
-link.download=nome;
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-}
-
-$("#btnCsv").click(()=>{
-
-let dados=limparCamposInternos(obterDadosTabela());
-let csv=Papa.unparse(dados);
-downloadArquivo("despesas.csv",csv,"text/csv");
-
-});
-
-$("#btnTxt").click(()=>{
-
-let dados=limparCamposInternos(obterDadosTabela());
-let txt=Papa.unparse(dados,{delimiter:";"});
-downloadArquivo("despesas.txt",txt,"text/plain");
-
-});
-
-$("#btnJson").click(()=>{
-
-let dados=limparCamposInternos(obterDadosTabela());
-let json=JSON.stringify(dados,null,2);
-downloadArquivo("despesas.json",json,"application/json");
-
-});
-
-$("#btnXlsx").click(()=>{
-
-let dados=limparCamposInternos(obterDadosTabela());
-let ws=XLSX.utils.json_to_sheet(dados);
-
-let wb=XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb,ws,"Despesas");
-
-XLSX.writeFile(wb,"despesas.xlsx");
-
-});
-
 </script>
 
 </body>
 </html>
+```
