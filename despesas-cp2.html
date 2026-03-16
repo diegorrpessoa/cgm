@@ -330,7 +330,25 @@ tabela=$("#tabela").DataTable({
 
 data:dados,
 
-columns:colunasPermitidas.map(c=>({title:c,data:c})),
+columns:colunasPermitidas.map(c=>({
+title:c,
+data:c,
+render:function(data,type,row){
+
+if(type==="display" && typeof data==="string"){
+
+let texto=data.trim();
+
+if(texto.startsWith("http://") || texto.startsWith("https://")){
+return `<a href="${texto}" target="_blank">${texto}</a>`;
+}
+
+}
+
+return data;
+
+}
+})),
 
 scrollX:true,
 scrollY:"55vh",
