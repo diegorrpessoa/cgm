@@ -6,7 +6,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Painel Gerencial de Despesas - Calamidade Pública</title>
+<title>1Painel Gerencial de Despesas - Calamidade Pública</title>
 
 <meta http-equiv="Cache-Control" content="no-store"/>
 <meta http-equiv="Pragma" content="no-cache"/>
@@ -215,8 +215,6 @@ if(!valor)return 0;
 return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".") )||0;
 }
 
-/* ===== FUNÇÃO DE LINKS MELHORADA ===== */
-
 function transformarLinks(texto){
 
 if(!texto) return texto;
@@ -224,19 +222,27 @@ if(!texto) return texto;
 let linhas=texto.toString().split(/\n|\|/);
 
 linhas=linhas.map(l=>{
-
 let t=l.trim();
-
-/* detecta URL dentro do texto */
 return t.replace(/(https?:\/\/[^\s]+)/g,function(url){
-
 return `<a href="${url}" target="_blank">${url}</a>`;
-
 });
-
 });
 
 return linhas.join("<br>");
+
+}
+
+function normalizarQuebrasExportacao(valor){
+
+if(!valor) return valor;
+
+return valor
+.toString()
+.replace(/\r\n/g,"\n")
+.replace(/\n+/g," | ")
+.replace(/\|+/g," | ")
+.replace(/\s+\|\s+/g," | ")
+.trim();
 
 }
 
@@ -432,9 +438,27 @@ return tabela.rows({search:'applied'}).data().toArray();
 function limparCamposInternos(dados){
 
 return dados.map(item=>{
-let copia={...item};
-delete copia._valorPago;
+
+let copia={};
+
+Object.keys(item).forEach(chave=>{
+
+if(chave !== "_valorPago"){
+
+let valor=item[chave];
+
+if(typeof valor==="string"){
+valor=normalizarQuebrasExportacao(valor);
+}
+
+copia[chave]=valor;
+
+}
+
+});
+
 return copia;
+
 });
 
 }
