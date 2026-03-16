@@ -6,7 +6,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>1Painel Gerencial de Despesas - Calamidade Pública</title>
+<title>Painel Gerencial de Despesas - Calamidade Pública</title>
 
 <meta http-equiv="Cache-Control" content="no-store"/>
 <meta http-equiv="Pragma" content="no-cache"/>
@@ -18,7 +18,6 @@
 <style>
 
 body{background:#f8f9fa;}
-
 .dataTables_filter{display:none;}
 
 label{
@@ -80,7 +79,6 @@ background:rgba(255,255,255,.9);
 }
 
 .spinner-border{width:2rem;height:2rem;}
-
 .spinner-text{font-size:.9rem;margin-top:5px;}
 
 .totalizadores{
@@ -215,17 +213,42 @@ if(!valor)return 0;
 return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".") )||0;
 }
 
+/* FUNÇÃO MELHORADA PARA LINKS */
+
 function transformarLinks(texto){
 
 if(!texto) return texto;
 
-let linhas=texto.toString().split(/\n|\|/);
+let linhas = texto.toString().split(/\n|\|/);
 
-linhas=linhas.map(l=>{
-let t=l.trim();
-return t.replace(/(https?:\/\/[^\s]+)/g,function(url){
+linhas = linhas.map(l=>{
+
+let t = l.trim();
+
+if(!t) return "";
+
+let urlMatch = t.match(/(https?:\/\/[^\s]+)/);
+
+if(urlMatch){
+
+let url = urlMatch[0];
+
+let textoAncora = t.replace(url,"").replace(/[-–|]$/,"").trim();
+
+if(textoAncora){
+return `<a href="${url}" target="_blank">${textoAncora}</a>`;
+}
+
 return `<a href="${url}" target="_blank">${url}</a>`;
-});
+
+}
+
+if(t.startsWith("http://") || t.startsWith("https://")){
+return `<a href="${t}" target="_blank">${t}</a>`;
+}
+
+return t;
+
 });
 
 return linhas.join("<br>");
