@@ -6,7 +6,11 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Painel Gerencial de Despesas - Calamidade Pública</title>
+<title>1 Painel Gerencial de Despesas - Calamidade Pública</title>
+
+<meta http-equiv="Cache-Control" content="no-store"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -26,7 +30,9 @@ margin-bottom:2px;
 
 .form-select-sm,table{font-size:.7rem!important;}
 
-table.dataTable td,table.dataTable th{white-space:nowrap;}
+table.dataTable td,table.dataTable th{
+white-space:pre-line;
+}
 
 .dataTables_wrapper .dataTables_paginate{
 margin-top:.5rem;
@@ -193,7 +199,7 @@ let indiceColunaP=15;
 let colunasPermitidas=[];
 let indexUG={};
 
-const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTlGsiFZMCNFlaIq5mj-1uBcry5CKVlKi29x6cQ-GssQ0lzXcUdnWv6q2h3Qpc7dzL06bsOYF_HR41q/pub?output=csv";
+const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTlGsiFZMCNFlaIq5mj-1uBcry5CKVlKi29x6cQ-GssQ0lzXcUdnWv6q2h3Qpc7dzL06bsOYF_HR41q/pub?output=csv&nocache="+new Date().getTime();
 
 const campos={
 ug:"Unidade Gestora (UG)",
@@ -207,6 +213,28 @@ const ordem=Object.keys(campos);
 function parseMoeda(valor){
 if(!valor)return 0;
 return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".") )||0;
+}
+
+function transformarLinks(texto){
+
+if(!texto) return texto;
+
+let linhas=texto.toString().split(/\n|\|/);
+
+linhas=linhas.map(l=>{
+
+let t=l.trim();
+
+if(t.startsWith("http://") || t.startsWith("https://")){
+return `<a href="${t}" target="_blank">${t}</a>`;
+}
+
+return t;
+
+});
+
+return linhas.join("<br>");
+
 }
 
 Papa.parse(urlCSV,{
@@ -241,6 +269,7 @@ indexUG[ug].push(r);
 
 carregarUG();
 $("#spinnerCsv").fadeOut(200);
+
 }
 
 });
@@ -267,6 +296,7 @@ if(v) base=base.filter(r=>r[campos[f]]===v);
 });
 
 return base;
+
 }
 
 function atualizarFiltros(){
@@ -310,6 +340,7 @@ total+=r._valorPago;
 $("#totalPago").text("Valor pago: "+total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
 
 $("#resumoValores").show();
+
 }
 
 function renderTabela(dados){
@@ -335,14 +366,8 @@ title:c,
 data:c,
 render:function(data,type,row){
 
-if(type==="display" && typeof data==="string"){
-
-let texto=data.trim();
-
-if(texto.startsWith("http://") || texto.startsWith("https://")){
-return `<a href="${texto}" target="_blank">${texto}</a>`;
-}
-
+if(type==="display"){
+return transformarLinks(data);
 }
 
 return data;
@@ -387,6 +412,7 @@ $("#"+f+"Filtro").val("").prop("disabled",false);
 });
 
 aplicarTudo();
+
 });
 
 ordem.slice(1).forEach(f=>{
@@ -421,39 +447,29 @@ document.body.removeChild(link);
 }
 
 $("#btnCsv").click(()=>{
-
 let dados=limparCamposInternos(obterDadosTabela());
 let csv=Papa.unparse(dados);
 downloadArquivo("despesas.csv",csv,"text/csv");
-
 });
 
 $("#btnTxt").click(()=>{
-
 let dados=limparCamposInternos(obterDadosTabela());
 let txt=Papa.unparse(dados,{delimiter:";"});
 downloadArquivo("despesas.txt",txt,"text/plain");
-
 });
 
 $("#btnJson").click(()=>{
-
 let dados=limparCamposInternos(obterDadosTabela());
 let json=JSON.stringify(dados,null,2);
 downloadArquivo("despesas.json",json,"application/json");
-
 });
 
 $("#btnXlsx").click(()=>{
-
 let dados=limparCamposInternos(obterDadosTabela());
 let ws=XLSX.utils.json_to_sheet(dados);
-
 let wb=XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb,ws,"Despesas");
-
 XLSX.writeFile(wb,"despesas.xlsx");
-
 });
 
 </script>
