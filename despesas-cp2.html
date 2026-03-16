@@ -6,7 +6,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>1 Painel Gerencial de Despesas - Calamidade Pública</title>
+<title>Painel Gerencial de Despesas - Calamidade Pública</title>
 
 <meta http-equiv="Cache-Control" content="no-store"/>
 <meta http-equiv="Pragma" content="no-cache"/>
@@ -215,6 +215,8 @@ if(!valor)return 0;
 return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".") )||0;
 }
 
+/* ===== FUNÇÃO DE LINKS MELHORADA ===== */
+
 function transformarLinks(texto){
 
 if(!texto) return texto;
@@ -225,11 +227,12 @@ linhas=linhas.map(l=>{
 
 let t=l.trim();
 
-if(t.startsWith("http://") || t.startsWith("https://")){
-return `<a href="${t}" target="_blank">${t}</a>`;
-}
+/* detecta URL dentro do texto */
+return t.replace(/(https?:\/\/[^\s]+)/g,function(url){
 
-return t;
+return `<a href="${url}" target="_blank">${url}</a>`;
+
+});
 
 });
 
@@ -364,7 +367,7 @@ data:dados,
 columns:colunasPermitidas.map(c=>({
 title:c,
 data:c,
-render:function(data,type,row){
+render:function(data,type){
 
 if(type==="display"){
 return transformarLinks(data);
