@@ -499,19 +499,19 @@ document.body.removeChild(link);
 $("#btnCsv").click(()=>{
 let dados=limparCamposInternos(obterDadosTabela());
 let csv=Papa.unparse(dados);
-downloadArquivo("despesas.csv",csv,"text/csv");
+downloadArquivo("despesas-cp.csv",csv,"text/csv");
 });
 
 $("#btnTxt").click(()=>{
 let dados=limparCamposInternos(obterDadosTabela());
 let txt=Papa.unparse(dados,{delimiter:";"});
-downloadArquivo("despesas.txt",txt,"text/plain");
+downloadArquivo("despesas-cp.txt",txt,"text/plain");
 });
 
 $("#btnJson").click(()=>{
 let dados=limparCamposInternos(obterDadosTabela());
 let json=JSON.stringify(dados,null,2);
-downloadArquivo("despesas.json",json,"application/json");
+downloadArquivo("despesas-cp.json",json,"application/json");
 });
 
 $("#btnXlsx").click(()=>{
@@ -519,7 +519,7 @@ let dados=limparCamposInternos(obterDadosTabela());
 let ws=XLSX.utils.json_to_sheet(dados);
 let wb=XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb,ws,"Despesas");
-XLSX.writeFile(wb,"despesas.xlsx");
+XLSX.writeFile(wb,"despesas-cp.xlsx");
 });
 
 </script>
