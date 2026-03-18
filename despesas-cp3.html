@@ -16,7 +16,6 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
 
 <style>
-
 body{background:#f8f9fa;}
 .dataTables_filter{display:none;}
 
@@ -108,7 +107,6 @@ margin-bottom:6px;
 width:80px;
 font-size:.7rem;
 }
-
 </style>
 </head>
 
@@ -208,19 +206,12 @@ objeto:"Objeto - Bens e serviços"
 
 const ordem=Object.keys(campos);
 
-/* FUNÇÃO OTIMIZADA - PADRÃO BRASILEIRO + FUSO */
+/* NOME PADRÃO BR */
 function gerarNomeArquivo(extensao){
+let agora=new Date();
 
-let agora = new Date();
-
-let data = agora.toLocaleDateString("pt-BR", {
-timeZone: "America/Sao_Paulo"
-}).replace(/\//g, "-");
-
-let hora = agora.toLocaleTimeString("pt-BR", {
-timeZone: "America/Sao_Paulo",
-hour12: false
-}).replace(/:/g, "-");
+let data=agora.toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"}).replace(/\//g,"-");
+let hora=agora.toLocaleTimeString("pt-BR",{timeZone:"America/Sao_Paulo",hour12:false}).replace(/:/g,"-");
 
 return `pjf-despesas-cp-${data}-${hora}.${extensao}`;
 }
@@ -233,46 +224,26 @@ return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").rep
 function transformarLinks(texto){
 if(!texto) return texto;
 
-let linhas = texto.toString().split(/\n|\|/);
+return texto.toString().split(/\n|\|/).map(l=>{
+let t=l.trim();
+if(!t)return "";
 
-linhas = linhas.map(l=>{
-let t = l.trim();
-if(!t) return "";
-
-let urlMatch = t.match(/(https?:\/\/[^\s]+)/);
-
-if(urlMatch){
-let url = urlMatch[0];
-let textoAncora = t.replace(url,"").replace(/[-–|]$/,"").trim();
-
-if(textoAncora){
-return `<a href="${url}" target="_blank">${textoAncora}</a>`;
+let url=t.match(/(https?:\/\/[^\s]+)/);
+if(url){
+let u=url[0];
+let a=t.replace(u,"").trim();
+return `<a href="${u}" target="_blank">${a||u}</a>`;
 }
-return `<a href="${url}" target="_blank">${url}</a>`;
-}
-
-if(t.startsWith("http://") || t.startsWith("https://")){
-return `<a href="${t}" target="_blank">${t}</a>`;
-}
-
 return t;
-});
-
-return linhas.join("<br>");
+}).join("<br>");
 }
 
 function normalizarQuebrasExportacao(valor){
-if(!valor) return valor;
-
-return valor
-.toString()
-.replace(/\r\n/g,"\n")
-.replace(/\n+/g," | ")
-.replace(/\|+/g," | ")
-.replace(/\s+\|\s+/g," | ")
-.trim();
+if(!valor)return valor;
+return valor.toString().replace(/\n+/g," | ").replace(/\|+/g," | ").trim();
 }
 
+/* CORREÇÃO DO LOOP */
 Papa.parse(urlCSV,{
 download:true,
 header:true,
@@ -280,7 +251,13 @@ worker:true,
 
 complete:r=>{
 
+try{
+
+if(!r || !r.data || !r.data.length) throw "CSV vazio";
+
 dadosOriginais=r.data.filter(d=>d[campos.ug]);
+
+if(!dadosOriginais.length) throw "Sem dados válidos";
 
 let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
 
@@ -295,6 +272,8 @@ delete copia["Atualizacao"];
 return copia;
 });
 
+if(!dadosOriginais[0]) throw "Erro estrutura";
+
 colunasPermitidas=Object.keys(dadosOriginais[0]).slice(0,19);
 
 dadosOriginais.forEach(r=>{
@@ -304,8 +283,19 @@ indexUG[ug].push(r);
 });
 
 carregarUG();
+
+}catch(e){
+console.error("Erro:",e);
+alert("Erro ao carregar dados. Verifique a fonte.");
+}
+
 $("#spinnerCsv").fadeOut(200);
 
+},
+
+error:e=>{
+console.error("Erro CSV:",e);
+$("#spinnerCsv").fadeOut(200);
 }
 
 });
@@ -335,49 +325,27 @@ return base;
 
 function atualizarFiltros(){
 ordem.slice(1).forEach(f=>{
-let seletor=$("#"+f+"Filtro");
-let valorAtual=seletor.val();
+let s=$("#"+f+"Filtro");
 let base=aplicarFiltroAtual();
-
 let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
 
-seletor.empty();
-seletor.append('<option value="">Selecione...</option>');
-
-valores.forEach(v=>{
-seletor.append(`<option value="${v}">${v}</option>`);
-});
-
-seletor.prop("disabled",valores.length===0);
-
-if(valores.includes(valorAtual)) seletor.val(valorAtual);
-
+s.empty().append('<option value="">Selecione...</option>');
+valores.forEach(v=>s.append(`<option value="${v}">${v}</option>`));
+s.prop("disabled",!valores.length);
 });
 }
 
 function atualizarResumo(dados){
-if(!dados.length){
-$("#resumoValores").hide();
-return;
-}
+if(!dados.length)return $("#resumoValores").hide();
 
-let total=0;
-
-dados.forEach(r=>{
-total+=r._valorPago;
-});
-
+let total=dados.reduce((t,r)=>t+r._valorPago,0);
 $("#totalPago").text("Valor pago: "+total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
-
 $("#resumoValores").show();
 }
 
 function renderTabela(dados){
 
-if(!dados.length){
-$("#tabela").hide();
-return;
-}
+if(!dados.length)return $("#tabela").hide();
 
 $("#tabela").show();
 
@@ -387,35 +355,18 @@ return;
 }
 
 tabela=$("#tabela").DataTable({
-
 data:dados,
-
 columns:colunasPermitidas.map(c=>({
 title:c,
 data:c,
-render:function(data,type){
-if(type==="display"){
-return transformarLinks(data);
-}
-return data;
-}
+render:(d,t)=>t==="display"?transformarLinks(d):d
 })),
-
 scrollX:true,
 scrollY:"55vh",
-scrollCollapse:true,
-
 paging:true,
 pageLength:10,
 lengthChange:false,
-
-deferRender:true,
-processing:true,
-
-language:{
-url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-}
-
+language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
 });
 
 $("#lengthSelector").on("change",function(){
@@ -430,10 +381,8 @@ atualizarResumo(dados);
 renderTabela(dados);
 }
 
-$("#ugFiltro").on("change",function(){
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").val("").prop("disabled",false);
-});
+$("#ugFiltro").on("change",()=>{
+ordem.slice(1).forEach(f=>$("#"+f+"Filtro").val("").prop("disabled",false));
 aplicarTudo();
 });
 
@@ -444,25 +393,20 @@ $("#"+f+"Filtro").on("change",aplicarTudo);
 $("#btnLimpar").on("click",()=>location.reload());
 
 function obterDadosTabela(){
-if(!tabela)return[];
-return tabela.rows({search:'applied'}).data().toArray();
+return tabela ? tabela.rows({search:'applied'}).data().toArray() : [];
 }
 
 function limparCamposInternos(dados){
-return dados.map(item=>{
-let copia={};
-
-Object.keys(item).forEach(chave=>{
-if(chave !== "_valorPago"){
-let valor=item[chave];
-if(typeof valor==="string"){
-valor=normalizarQuebrasExportacao(valor);
-}
-copia[chave]=valor;
+return dados.map(i=>{
+let o={};
+Object.keys(i).forEach(k=>{
+if(k!=="_valorPago"){
+let v=i[k];
+if(typeof v==="string") v=normalizarQuebrasExportacao(v);
+o[k]=v;
 }
 });
-
-return copia;
+return o;
 });
 }
 
@@ -477,26 +421,23 @@ document.body.removeChild(link);
 }
 
 $("#btnCsv").click(()=>{
-let dados=limparCamposInternos(obterDadosTabela());
-let csv=Papa.unparse(dados);
-downloadArquivo(gerarNomeArquivo("csv"),csv,"text/csv");
+let d=limparCamposInternos(obterDadosTabela());
+downloadArquivo(gerarNomeArquivo("csv"),Papa.unparse(d),"text/csv");
 });
 
 $("#btnTxt").click(()=>{
-let dados=limparCamposInternos(obterDadosTabela());
-let txt=Papa.unparse(dados,{delimiter:";"});
-downloadArquivo(gerarNomeArquivo("txt"),txt,"text/plain");
+let d=limparCamposInternos(obterDadosTabela());
+downloadArquivo(gerarNomeArquivo("txt"),Papa.unparse(d,{delimiter:";"}),"text/plain");
 });
 
 $("#btnJson").click(()=>{
-let dados=limparCamposInternos(obterDadosTabela());
-let json=JSON.stringify(dados,null,2);
-downloadArquivo(gerarNomeArquivo("json"),json,"application/json");
+let d=limparCamposInternos(obterDadosTabela());
+downloadArquivo(gerarNomeArquivo("json"),JSON.stringify(d,null,2),"application/json");
 });
 
 $("#btnXlsx").click(()=>{
-let dados=limparCamposInternos(obterDadosTabela());
-let ws=XLSX.utils.json_to_sheet(dados);
+let d=limparCamposInternos(obterDadosTabela());
+let ws=XLSX.utils.json_to_sheet(d);
 let wb=XLSX.utils.book_new();
 XLSX.utils.book_append_sheet(wb,ws,"Despesas");
 XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
