@@ -16,8 +16,33 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
 
 <style>
+
 body{background:#f8f9fa;}
 .dataTables_filter{display:none;}
+
+#loginScreen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+background:#fff;
+z-index:99999;
+}
+
+.login-box{
+width:300px;
+padding:20px;
+border:1px solid #dee2e6;
+border-radius:8px;
+box-shadow:0 4px 12px rgba(0,0,0,.1);
+text-align:center;
+}
+
+#app{display:none;}
 
 label{
 font-weight:600;
@@ -30,36 +55,6 @@ margin-bottom:2px;
 
 table.dataTable td,table.dataTable th{
 white-space:pre-line;
-}
-
-.dataTables_wrapper .dataTables_paginate{
-margin-top:.5rem;
-display:flex;
-justify-content:center;
-gap:4px;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button{
-padding:4px 8px!important;
-font-size:.65rem!important;
-border-radius:6px!important;
-background:#e9ecef!important;
-border:1px solid #dee2e6!important;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.current{
-background:#0d6efd!important;
-color:#fff!important;
-font-weight:bold!important;
-}
-
-.export-group .btn{font-size:.7rem;padding:4px 8px;}
-
-#indicadorAtualizacao{
-font-size:.65rem;
-color:#6c757d;
-text-align:right;
-margin-bottom:8px;
 }
 
 .spinner-overlay{
@@ -77,56 +72,47 @@ z-index:9999;
 background:rgba(255,255,255,.9);
 }
 
-.spinner-border{width:2rem;height:2rem;}
-.spinner-text{font-size:.9rem;margin-top:5px;}
-
-.totalizadores{
-font-size:.7rem;
-background:#fff;
-padding:5px 10px;
-border:1px solid #dee2e6;
-border-radius:4px;
-}
-
-.totalizadores span{
-display:inline-block;
-margin-right:15px;
-font-weight:600;
-}
-
-#lengthSelectorContainer{
-font-size:.7rem;
-display:flex;
-justify-content:flex-end;
-align-items:center;
-gap:6px;
-margin-bottom:6px;
-}
-
-#lengthSelector{
-width:80px;
-font-size:.7rem;
-}
 </style>
 </head>
 
 <body>
 
+<!-- LOGIN -->
+<div id="loginScreen">
+<div class="login-box">
+
+<h6>Acesso restrito</h6>
+
+<input type="password" id="senhaInput" class="form-control mb-2" placeholder="Digite a senha"/>
+
+<button id="btnLogin" class="btn btn-primary w-100">Entrar</button>
+
+<div id="erroLogin" class="text-danger small mt-2" style="display:none;">
+Senha incorreta
+</div>
+
+</div>
+</div>
+
+<!-- SISTEMA -->
+<div id="app">
+
 <div id="spinnerCsv" class="spinner-overlay">
 <div class="spinner-border text-primary"></div>
-<div class="spinner-text">Carregando base de dados...</div>
+<div>Carregando base de dados...</div>
 </div>
 
 <div class="container-fluid mt-3">
 
-<div id="indicadorAtualizacao">
-Dados atualizados automaticamente em...
+<div class="d-flex justify-content-between mb-2">
+<div id="indicadorAtualizacao">Dados atualizados automaticamente...</div>
+<button id="btnLogout" class="btn btn-sm btn-outline-danger">Sair</button>
 </div>
 
 <div class="row gx-2 gy-2 mb-3">
 
 <div class="col-sm-3">
-<label>Unidade Gestora (UG) *</label>
+<label>Unidade Gestora (UG)</label>
 <select id="ugFiltro" class="form-select form-select-sm"></select>
 </div>
 
@@ -136,7 +122,7 @@ Dados atualizados automaticamente em...
 </div>
 
 <div class="col-sm-2">
-<label>CNPJ/CPF Fornecedor</label>
+<label>CNPJ/CPF</label>
 <select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
 </div>
 
@@ -147,17 +133,15 @@ Dados atualizados automaticamente em...
 
 </div>
 
-<div class="totalizadores mb-2" id="resumoValores" style="display:none;">
+<div class="mb-2" id="resumoValores" style="display:none;">
 <span id="totalPago">Valor pago: R$ 0,00</span>
 </div>
 
 <div class="d-flex justify-content-between mb-2">
 
-<button id="btnLimpar" class="btn btn-outline-primary btn-sm">
-Limpar filtros
-</button>
+<button id="btnLimpar" class="btn btn-outline-primary btn-sm">Limpar</button>
 
-<div class="export-group btn-group">
+<div class="btn-group">
 <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
 <button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
 <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
@@ -166,20 +150,15 @@ Limpar filtros
 
 </div>
 
-<div id="lengthSelectorContainer">
-<label>Registros por página:</label>
-<select id="lengthSelector" class="form-select form-select-sm">
+<select id="lengthSelector" class="form-select form-select-sm mb-2" style="width:120px;">
 <option value="10">10</option>
 <option value="25">25</option>
 <option value="50">50</option>
-<option value="100">100</option>
 </select>
-</div>
 
-<div class="table-responsive">
-<table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
-</div>
+<table id="tabela" class="table table-bordered table-sm w-100" style="display:none;"></table>
 
+</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -188,6 +167,43 @@ Limpar filtros
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
+
+/* ================= LOGIN ================= */
+
+const SENHA_CORRETA="123456";
+
+function verificarAcesso(){
+if(sessionStorage.getItem("auth")==="true"){
+$("#loginScreen").hide();
+$("#app").show();
+iniciarSistema();
+}else{
+$("#loginScreen").show();
+$("#app").hide();
+}
+}
+
+$("#btnLogin").click(()=>{
+if($("#senhaInput").val()===SENHA_CORRETA){
+sessionStorage.setItem("auth","true");
+verificarAcesso();
+}else{
+$("#erroLogin").show();
+}
+});
+
+$("#senhaInput").keypress(e=>{
+if(e.which===13) $("#btnLogin").click();
+});
+
+$("#btnLogout").click(()=>{
+sessionStorage.removeItem("auth");
+location.reload();
+});
+
+/* ================= SISTEMA ================= */
+
+function iniciarSistema(){
 
 let tabela;
 let dadosOriginais=[];
@@ -206,73 +222,23 @@ objeto:"Objeto - Bens e serviços"
 
 const ordem=Object.keys(campos);
 
-/* NOME PADRÃO BR */
-function gerarNomeArquivo(extensao){
-let agora=new Date();
-
-let data=agora.toLocaleDateString("pt-BR",{timeZone:"America/Sao_Paulo"}).replace(/\//g,"-");
-let hora=agora.toLocaleTimeString("pt-BR",{timeZone:"America/Sao_Paulo",hour12:false}).replace(/:/g,"-");
-
-return `pjf-despesas-cp-${data}-${hora}.${extensao}`;
+function parseMoeda(v){
+return parseFloat(v?.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".") )||0;
 }
 
-function parseMoeda(valor){
-if(!valor)return 0;
-return parseFloat(valor.toString().replace(/[^\d,.-]/g,"").replace(/\./g,"").replace(",",".") )||0;
-}
-
-function transformarLinks(texto){
-if(!texto) return texto;
-
-return texto.toString().split(/\n|\|/).map(l=>{
-let t=l.trim();
-if(!t)return "";
-
-let url=t.match(/(https?:\/\/[^\s]+)/);
-if(url){
-let u=url[0];
-let a=t.replace(u,"").trim();
-return `<a href="${u}" target="_blank">${a||u}</a>`;
-}
-return t;
-}).join("<br>");
-}
-
-function normalizarQuebrasExportacao(valor){
-if(!valor)return valor;
-return valor.toString().replace(/\n+/g," | ").replace(/\|+/g," | ").trim();
-}
-
-/* CORREÇÃO DO LOOP */
 Papa.parse(urlCSV,{
 download:true,
 header:true,
 worker:true,
-
 complete:r=>{
-
-try{
-
-if(!r || !r.data || !r.data.length) throw "CSV vazio";
 
 dadosOriginais=r.data.filter(d=>d[campos.ug]);
 
-if(!dadosOriginais.length) throw "Sem dados válidos";
-
-let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
-
-if(linhaAtualizacao){
-$("#indicadorAtualizacao").html(`Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`);
-}
-
 dadosOriginais=dadosOriginais.map(r=>{
-let copia={...r};
-copia._valorPago=parseMoeda(Object.values(copia)[indiceColunaP]);
-delete copia["Atualizacao"];
-return copia;
+let c={...r};
+c._valorPago=parseMoeda(Object.values(c)[indiceColunaP]);
+return c;
 });
-
-if(!dadosOriginais[0]) throw "Erro estrutura";
 
 colunasPermitidas=Object.keys(dadosOriginais[0]).slice(0,19);
 
@@ -283,37 +249,25 @@ indexUG[ug].push(r);
 });
 
 carregarUG();
-
-}catch(e){
-console.error("Erro:",e);
-alert("Erro ao carregar dados. Verifique a fonte.");
-}
-
 $("#spinnerCsv").fadeOut(200);
 
-},
-
-error:e=>{
-console.error("Erro CSV:",e);
-$("#spinnerCsv").fadeOut(200);
 }
-
 });
 
 function carregarUG(){
 let s=$("#ugFiltro");
-s.append('<option value="">Selecione...</option>');
+s.append('<option value="">Selecione</option>');
 s.append('<option value="todos">Todos</option>');
-Object.keys(indexUG).sort().forEach(v=>{
+Object.keys(indexUG).forEach(v=>{
 s.append(`<option value="${v}">${v}</option>`);
 });
 }
 
-function aplicarFiltroAtual(){
+function aplicarFiltro(){
 let ug=$("#ugFiltro").val();
 if(!ug)return[];
 
-let base=(ug==="todos")?dadosOriginais:indexUG[ug];
+let base=ug==="todos"?dadosOriginais:indexUG[ug];
 
 ordem.slice(1).forEach(f=>{
 let v=$("#"+f+"Filtro").val();
@@ -323,29 +277,9 @@ if(v) base=base.filter(r=>r[campos[f]]===v);
 return base;
 }
 
-function atualizarFiltros(){
-ordem.slice(1).forEach(f=>{
-let s=$("#"+f+"Filtro");
-let base=aplicarFiltroAtual();
-let valores=[...new Set(base.map(r=>r[campos[f]]).filter(Boolean))].sort();
+function render(dados){
 
-s.empty().append('<option value="">Selecione...</option>');
-valores.forEach(v=>s.append(`<option value="${v}">${v}</option>`));
-s.prop("disabled",!valores.length);
-});
-}
-
-function atualizarResumo(dados){
-if(!dados.length)return $("#resumoValores").hide();
-
-let total=dados.reduce((t,r)=>t+r._valorPago,0);
-$("#totalPago").text("Valor pago: "+total.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}));
-$("#resumoValores").show();
-}
-
-function renderTabela(dados){
-
-if(!dados.length)return $("#tabela").hide();
+if(!dados.length) return $("#tabela").hide();
 
 $("#tabela").show();
 
@@ -356,92 +290,56 @@ return;
 
 tabela=$("#tabela").DataTable({
 data:dados,
-columns:colunasPermitidas.map(c=>({
-title:c,
-data:c,
-render:(d,t)=>t==="display"?transformarLinks(d):d
-})),
-scrollX:true,
-scrollY:"55vh",
-paging:true,
-pageLength:10,
-lengthChange:false,
-language:{url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"}
+columns:colunasPermitidas.map(c=>({title:c,data:c})),
+pageLength:10
 });
 
-$("#lengthSelector").on("change",function(){
-tabela.page.len(this.value).draw();
-});
 }
 
-function aplicarTudo(){
-let dados=aplicarFiltroAtual();
-atualizarFiltros();
-atualizarResumo(dados);
-renderTabela(dados);
+function atualizar(){
+let d=aplicarFiltro();
+render(d);
 }
 
-$("#ugFiltro").on("change",()=>{
-ordem.slice(1).forEach(f=>$("#"+f+"Filtro").val("").prop("disabled",false));
-aplicarTudo();
-});
+$("#ugFiltro").change(atualizar);
 
-ordem.slice(1).forEach(f=>{
-$("#"+f+"Filtro").on("change",aplicarTudo);
-});
-
-$("#btnLimpar").on("click",()=>location.reload());
-
-function obterDadosTabela(){
-return tabela ? tabela.rows({search:'applied'}).data().toArray() : [];
-}
-
-function limparCamposInternos(dados){
-return dados.map(i=>{
-let o={};
-Object.keys(i).forEach(k=>{
-if(k!=="_valorPago"){
-let v=i[k];
-if(typeof v==="string") v=normalizarQuebrasExportacao(v);
-o[k]=v;
-}
-});
-return o;
-});
-}
-
-function downloadArquivo(nome,conteudo,tipo){
-let blob=new Blob([conteudo],{type:tipo});
-let link=document.createElement("a");
-link.href=URL.createObjectURL(blob);
-link.download=nome;
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
-}
+$("#btnLimpar").click(()=>location.reload());
 
 $("#btnCsv").click(()=>{
-let d=limparCamposInternos(obterDadosTabela());
-downloadArquivo(gerarNomeArquivo("csv"),Papa.unparse(d),"text/csv");
-});
-
-$("#btnTxt").click(()=>{
-let d=limparCamposInternos(obterDadosTabela());
-downloadArquivo(gerarNomeArquivo("txt"),Papa.unparse(d,{delimiter:";"}),"text/plain");
+let d=aplicarFiltro();
+download("dados.csv",Papa.unparse(d));
 });
 
 $("#btnJson").click(()=>{
-let d=limparCamposInternos(obterDadosTabela());
-downloadArquivo(gerarNomeArquivo("json"),JSON.stringify(d,null,2),"application/json");
+let d=aplicarFiltro();
+download("dados.json",JSON.stringify(d,null,2));
+});
+
+$("#btnTxt").click(()=>{
+let d=aplicarFiltro();
+download("dados.txt",Papa.unparse(d,{delimiter:";"}));
 });
 
 $("#btnXlsx").click(()=>{
-let d=limparCamposInternos(obterDadosTabela());
+let d=aplicarFiltro();
 let ws=XLSX.utils.json_to_sheet(d);
 let wb=XLSX.utils.book_new();
-XLSX.utils.book_append_sheet(wb,ws,"Despesas");
-XLSX.writeFile(wb,gerarNomeArquivo("xlsx"));
+XLSX.utils.book_append_sheet(wb,ws,"Dados");
+XLSX.writeFile(wb,"dados.xlsx");
 });
+
+function download(nome,conteudo){
+let blob=new Blob([conteudo]);
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download=nome;
+a.click();
+}
+
+}
+
+/* INIT */
+verificarAcesso();
 
 </script>
 
