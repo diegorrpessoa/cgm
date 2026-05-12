@@ -299,7 +299,7 @@ Papa.parse(urlCSV,{
     let linhaAtualizacao=dadosOriginais.find(x=>x["Atualizacao"]);
     if(linhaAtualizacao){
       $("#indicadorAtualizacao").html(
-        `Dados atualizados automaticamente em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
+        `Dados atualizados em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
       );
     }
 
