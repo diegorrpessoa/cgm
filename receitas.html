@@ -12,126 +12,121 @@
 
 <style>
 
-body {
-  background-color: #f8f9fa;
+body{
+  background-color:#f8f9fa;
 }
 
-.dataTables_filter {
-  display: none;
+.dataTables_filter{
+  display:none;
 }
 
-label {
-  font-weight: 600;
-  font-size: 0.72rem !important;
-  color: #343a40;
-  margin-bottom: 2px;
+label{
+  font-weight:600;
+  font-size:0.72rem !important;
+  color:#343a40;
+  margin-bottom:2px;
 }
 
 .form-select-sm,
-table {
-  font-size: 0.7rem !important;
+table{
+  font-size:0.7rem !important;
 }
 
 table.dataTable td,
-table.dataTable th {
-  white-space: nowrap;
+table.dataTable th{
+  white-space:nowrap;
 }
 
 /* Paginação */
-.dataTables_wrapper .dataTables_paginate {
-  margin-top: 0.5rem;
-  display: flex;
-  justify-content: center;
-  gap: 4px;
+.dataTables_wrapper .dataTables_paginate{
+  margin-top:.5rem;
+  display:flex;
+  justify-content:center;
+  gap:4px;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-  padding: 4px 8px !important;
-  font-size: 0.65rem !important;
-  border-radius: 6px !important;
-  background-color: #e9ecef !important;
-  border: 1px solid #dee2e6 !important;
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+  padding:4px 8px !important;
+  font-size:.65rem !important;
+  border-radius:6px !important;
+  background-color:#e9ecef !important;
+  border:1px solid #dee2e6 !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  background-color: #0d6efd !important;
-  color: #fff !important;
-  font-weight: bold !important;
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background-color:#0d6efd !important;
+  color:#fff !important;
+  font-weight:bold !important;
 }
 
-/* Botões exportação */
-.export-group .btn {
-  font-size: 0.7rem;
-  padding: 4px 8px;
+/* Botões */
+.export-group .btn{
+  font-size:.7rem;
+  padding:4px 8px;
 }
 
 /* Atualização */
-#indicadorAtualizacao {
-  font-size: 0.65rem;
-  color: #6c757d;
-  text-align: right;
-  margin-bottom: 8px;
+#indicadorAtualizacao{
+  font-size:.65rem;
+  color:#6c757d;
+  text-align:right;
+  margin-bottom:8px;
 }
 
 /* Spinner */
-.spinner-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-
-  width: 100%;
-  height: 100vh;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-
-  padding-top: 60px;
-
-  z-index: 9999;
-
-  background-color: rgba(255,255,255,0.9);
+.spinner-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:60px;
+  z-index:9999;
+  background-color:rgba(255,255,255,.9);
 }
 
-.spinner-border {
-  width: 2rem;
-  height: 2rem;
+.spinner-border{
+  width:2rem;
+  height:2rem;
 }
 
-.spinner-text {
-  font-size: 0.9rem;
-  margin-top: 5px;
+.spinner-text{
+  font-size:.9rem;
+  margin-top:5px;
 }
 
 /* Totalizadores */
-.totalizadores {
-  font-size: 0.7rem;
-  background: #fff;
-  padding: 5px 10px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
+.totalizadores{
+  font-size:.7rem;
+  background:#fff;
+  padding:5px 10px;
+  border:1px solid #dee2e6;
+  border-radius:4px;
 }
 
-.totalizadores span {
-  display: inline-block;
-  margin-right: 15px;
-  font-weight: 600;
+.totalizadores span{
+  display:inline-block;
+  margin-right:15px;
+  font-weight:600;
 }
 
 /* Registros por página */
-#lengthSelectorContainer {
-  font-size: 0.7rem;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
+#lengthSelectorContainer{
+  font-size:.7rem;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:6px;
+  margin-bottom:6px;
 }
 
-#lengthSelector {
-  width: 80px;
-  font-size: 0.7rem;
+#lengthSelector{
+  width:80px;
+  font-size:.7rem;
 }
 
 </style>
@@ -142,7 +137,9 @@ table.dataTable th {
 <!-- SPINNER -->
 <div id="spinnerCsv" class="spinner-overlay">
   <div class="spinner-border text-primary"></div>
-  <div class="spinner-text">Carregando base de dados...</div>
+  <div class="spinner-text">
+    Carregando base de dados...
+  </div>
 </div>
 
 <div class="container-fluid mt-3">
@@ -159,7 +156,10 @@ table.dataTable th {
 
       <label>Ano *</label>
 
-      <select id="anoFiltro" class="form-select form-select-sm">
+      <select
+        id="anoFiltro"
+        class="form-select form-select-sm"
+      >
         <option value="">Selecione...</option>
       </select>
 
@@ -236,7 +236,7 @@ table.dataTable th {
 
   </div>
 
-  <!-- REGISTROS POR PÁGINA -->
+  <!-- REGISTROS -->
   <div id="lengthSelectorContainer">
 
     <label>Registros por página:</label>
@@ -276,16 +276,17 @@ table.dataTable th {
 
 <script>
 
-let tabela;
+let tabela = null;
+
 let dadosOriginais = [];
 
 const urlCSV =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv";
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv";
 
 const meses = [
   "JANEIRO",
   "FEVEREIRO",
-  "MARÇO",
+  "MARCO",
   "ABRIL",
   "MAIO",
   "JUNHO",
@@ -297,7 +298,7 @@ const meses = [
   "DEZEMBRO"
 ];
 
-/* Nome dinâmico exportação */
+/* Nome exportação */
 function gerarNomeArquivo(ext){
 
   let partes = ["dados-receitas"];
@@ -317,7 +318,7 @@ function gerarNomeArquivo(ext){
     );
   }
 
-  return partes.join("-") + "." + ext;
+  return partes.join("-")+"."+ext;
 
 }
 
@@ -340,22 +341,23 @@ function atualizarResumo(dados){
 
 }
 
-/* CSV carregamento */
-Papa.parse(urlCSV, {
+/* CSV */
+Papa.parse(urlCSV,{
 
-  download: true,
-  header: true,
+  download:true,
+  header:true,
 
-  complete: r => {
+  complete:r=>{
 
     dadosOriginais = r.data.filter(
       d => d.ANO
     );
 
-    /* Data atualização */
-    let linhaAtualizacao = dadosOriginais.find(
-      x => x["Atualizacao"]
-    );
+    /* Atualização */
+    const linhaAtualizacao =
+      dadosOriginais.find(
+        x => x["Atualizacao"]
+      );
 
     if(linhaAtualizacao){
 
@@ -365,10 +367,10 @@ Papa.parse(urlCSV, {
 
     }
 
-    /* Remove coluna Atualizacao */
-    dadosOriginais = dadosOriginais.map(r => {
+    /* Remove coluna atualização */
+    dadosOriginais = dadosOriginais.map(r=>{
 
-      let copia = { ...r };
+      let copia = {...r};
 
       delete copia["Atualizacao"];
 
@@ -384,7 +386,7 @@ Papa.parse(urlCSV, {
 
 });
 
-/* Carregar anos */
+/* Ano */
 function carregarAno(){
 
   let s = $("#anoFiltro");
@@ -396,10 +398,10 @@ function carregarAno(){
   );
 
   [...new Set(
-    dadosOriginais.map(r => r.ANO)
+    dadosOriginais.map(r=>r.ANO)
   )]
   .sort()
-  .forEach(v => {
+  .forEach(v=>{
 
     s.append(
       `<option value="${v}">${v}</option>`
@@ -409,22 +411,24 @@ function carregarAno(){
 
 }
 
-/* Carregar meses */
+/* Meses */
 function carregarMeses(){
 
   let s = $("#mesFiltro");
 
   s.empty();
 
-  s.append(
-    '<option value="">Selecione...</option>'
-  );
+  s.append(`
+    <option value="TODOS">
+      Todos
+    </option>
+  `);
 
-  meses.forEach(m => {
+  meses.forEach(m=>{
 
     s.append(`
       <option value="${m}">
-        ${m.charAt(0) + m.slice(1).toLowerCase()}
+        ${m.charAt(0)+m.slice(1).toLowerCase()}
       </option>
     `);
 
@@ -440,40 +444,47 @@ function aplicarFiltros(){
 
   if(!ano || !mes){
 
-    $("#tabela").hide();
-
-    if(tabela){
-      tabela.clear().draw();
-    }
-
     atualizarResumo([]);
 
     return [];
 
   }
 
-  const dadosFiltrados = dadosOriginais.filter(r =>
-    r.ANO === ano && r[mes]
+  let dadosFiltrados = dadosOriginais.filter(
+    r => r.ANO === ano
   );
 
-  const dados = dadosFiltrados.map(d => {
+  /* TODOS */
+  if(mes === "TODOS"){
 
-    const base = {};
+    atualizarResumo(dadosFiltrados);
 
-    for(const key in d){
+    return dadosFiltrados;
 
-      if(
-        !meses.includes(key) &&
-        key !== "VALOR"
-      ){
-        base[key] = d[key];
+  }
+
+  /* Mês específico */
+  const dados = dadosFiltrados
+    .filter(r => r[mes])
+    .map(d=>{
+
+      const base = {};
+
+      for(const key in d){
+
+        /* Remove meses não selecionados */
+        if(
+          !meses.includes(key) ||
+          key === mes
+        ){
+          base[key] = d[key];
+        }
+
       }
 
-    }
+      return base;
 
-    return base;
-
-  });
+    });
 
   atualizarResumo(dados);
 
@@ -481,61 +492,72 @@ function aplicarFiltros(){
 
 }
 
-/* Render tabela */
+/* Render */
 function renderTabela(dados){
 
   if(!dados.length){
 
-    $("#tabela").hide();
+    if(tabela){
+
+      tabela.destroy();
+
+      tabela = null;
+
+    }
+
+    $("#tabela")
+      .hide()
+      .empty();
 
     return;
 
   }
+
+  /* Destroi */
+  if(tabela){
+
+    tabela.destroy();
+
+    $("#tabela").empty();
+
+    tabela = null;
+
+  }
+
+  /* Colunas dinâmicas */
+  const colunas = Object.keys(dados[0]).map(c=>({
+    title:c,
+    data:c
+  }));
 
   $("#tabela").show();
 
-  if(tabela){
-
-    tabela
-      .clear()
-      .rows.add(dados)
-      .draw();
-
-    return;
-
-  }
-
   tabela = $("#tabela").DataTable({
 
-    data: dados,
+    data:dados,
 
-    columns: Object.keys(dados[0]).map(c => ({
-      title: c,
-      data: c
-    })),
+    columns:colunas,
 
-    scrollX: true,
-    scrollY: "55vh",
-    scrollCollapse: true,
+    destroy:true,
 
-    paging: true,
-    pageLength: 10,
+    scrollX:true,
+    scrollY:"55vh",
+    scrollCollapse:true,
 
-    lengthChange: false,
-    info: true,
+    paging:true,
 
-    language: {
-      url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    pageLength:parseInt(
+      $("#lengthSelector").val()
+    ),
+
+    lengthChange:false,
+    info:true,
+
+    autoWidth:false,
+
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
     }
-
-  });
-
-  $("#lengthSelector").on("change", function(){
-
-    tabela
-      .page
-      .len(this.value)
-      .draw();
 
   });
 
@@ -552,35 +574,65 @@ function aplicarTudo(){
 
 /* Eventos */
 
-$("#anoFiltro").on("change", function(){
+/* Ano */
+$("#anoFiltro").on("change",function(){
 
   const ano = $(this).val();
 
   $("#mesFiltro")
-    .val("")
-    .prop("disabled", !ano);
+    .prop("disabled",!ano);
 
   if(ano){
+
     carregarMeses();
+
+    $("#mesFiltro").val("TODOS");
+
+  }else{
+
+    $("#mesFiltro")
+      .empty()
+      .append(
+        '<option value="">Selecione...</option>'
+      );
+
   }
 
   aplicarTudo();
 
 });
 
+/* Mês */
 $("#mesFiltro").on(
   "change",
   aplicarTudo
 );
 
+/* Registros */
+$("#lengthSelector").on(
+  "change",
+  function(){
+
+    if(tabela){
+
+      tabela
+        .page
+        .len(this.value)
+        .draw();
+
+    }
+
+  }
+);
+
 /* Limpar */
 $("#btnLimpar").on(
   "click",
-  () => location.reload()
+  ()=>location.reload()
 );
 
 /* Download */
-function baixarArquivo(blob, nome){
+function baixarArquivo(blob,nome){
 
   let link = document.createElement("a");
 
@@ -593,22 +645,22 @@ function baixarArquivo(blob, nome){
 }
 
 /* CSV */
-$("#btnCsv").on("click", () => {
+$("#btnCsv").on("click",()=>{
 
   if(!tabela) return;
 
   let csv = Papa.unparse(
     tabela.rows({search:"applied"}).data().toArray(),
     {
-      quotes: true,
-      delimiter: ";"
+      quotes:true,
+      delimiter:";"
     }
   );
 
   baixarArquivo(
 
     new Blob(
-      ["\ufeff" + csv],
+      ["\ufeff"+csv],
       {
         type:"text/csv;charset=utf-8;"
       }
@@ -621,7 +673,7 @@ $("#btnCsv").on("click", () => {
 });
 
 /* JSON */
-$("#btnJson").on("click", () => {
+$("#btnJson").on("click",()=>{
 
   if(!tabela) return;
 
@@ -646,7 +698,7 @@ $("#btnJson").on("click", () => {
 });
 
 /* TXT */
-$("#btnTxt").on("click", () => {
+$("#btnTxt").on("click",()=>{
 
   if(!tabela) return;
 
@@ -656,7 +708,7 @@ $("#btnTxt").on("click", () => {
     .toArray();
 
   let txt = dados
-    .map(o => Object.values(o).join(" | "))
+    .map(o=>Object.values(o).join(" | "))
     .join("\n");
 
   baixarArquivo(
@@ -675,7 +727,7 @@ $("#btnTxt").on("click", () => {
 });
 
 /* XLSX */
-$("#btnXlsx").on("click", () => {
+$("#btnXlsx").on("click",()=>{
 
   if(!tabela) return;
 
