@@ -59,7 +59,7 @@ table.dataTable th{
   font-weight:bold !important;
 }
 
-/* Botões */
+/* Botões exportação */
 .export-group .btn{
   font-size:.7rem;
   padding:4px 8px;
@@ -136,10 +136,13 @@ table.dataTable th{
 
 <!-- SPINNER -->
 <div id="spinnerCsv" class="spinner-overlay">
+
   <div class="spinner-border text-primary"></div>
+
   <div class="spinner-text">
     Carregando base de dados...
   </div>
+
 </div>
 
 <div class="container-fluid mt-3">
@@ -160,7 +163,9 @@ table.dataTable th{
         id="anoFiltro"
         class="form-select form-select-sm"
       >
-        <option value="">Selecione...</option>
+        <option value="">
+          Selecione...
+        </option>
       </select>
 
     </div>
@@ -174,7 +179,9 @@ table.dataTable th{
         class="form-select form-select-sm"
         disabled
       >
-        <option value="">Selecione...</option>
+        <option value="">
+          Selecione...
+        </option>
       </select>
 
     </div>
@@ -187,9 +194,11 @@ table.dataTable th{
     id="resumoValores"
     style="display:none;"
   >
+
     <span id="totalRegistros">
       Registros encontrados: 0
     </span>
+
   </div>
 
   <!-- BOTÕES -->
@@ -286,7 +295,7 @@ const urlCSV =
 const meses = [
   "JANEIRO",
   "FEVEREIRO",
-  "MARÇO",
+  "MARCO",
   "ABRIL",
   "MAIO",
   "JUNHO",
@@ -307,22 +316,26 @@ function gerarNomeArquivo(ext){
   const mes = $("#mesFiltro").val();
 
   if(ano){
+
     partes.push(
       ano.toLowerCase().replace(/\s+/g,"-")
     );
+
   }
 
   if(mes){
+
     partes.push(
       mes.toLowerCase().replace(/\s+/g,"-")
     );
+
   }
 
   return partes.join("-")+"."+ext;
 
 }
 
-/* Atualiza resumo */
+/* Resumo */
 function atualizarResumo(dados){
 
   if(!dados.length){
@@ -334,7 +347,7 @@ function atualizarResumo(dados){
   }
 
   $("#totalRegistros").text(
-    "Registros encontrados: " + dados.length
+    "Registros encontrados: "+dados.length
   );
 
   $("#resumoValores").show();
@@ -367,10 +380,10 @@ Papa.parse(urlCSV,{
 
     }
 
-    /* Remove coluna atualização */
+    /* Remove coluna Atualizacao */
     dadosOriginais = dadosOriginais.map(r=>{
 
-      let copia = {...r};
+      const copia = {...r};
 
       delete copia["Atualizacao"];
 
@@ -386,16 +399,18 @@ Papa.parse(urlCSV,{
 
 });
 
-/* Ano */
+/* Carregar anos */
 function carregarAno(){
 
-  let s = $("#anoFiltro");
+  const s = $("#anoFiltro");
 
   s.empty();
 
-  s.append(
-    '<option value="">Selecione...</option>'
-  );
+  s.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
 
   [...new Set(
     dadosOriginais.map(r=>r.ANO)
@@ -403,20 +418,28 @@ function carregarAno(){
   .sort()
   .forEach(v=>{
 
-    s.append(
-      `<option value="${v}">${v}</option>`
-    );
+    s.append(`
+      <option value="${v}">
+        ${v}
+      </option>
+    `);
 
   });
 
 }
 
-/* Meses */
+/* Carregar meses */
 function carregarMeses(){
 
-  let s = $("#mesFiltro");
+  const s = $("#mesFiltro");
 
   s.empty();
+
+  s.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
 
   s.append(`
     <option value="TODOS">
@@ -442,6 +465,7 @@ function aplicarFiltros(){
   const ano = $("#anoFiltro").val();
   const mes = $("#mesFiltro").val();
 
+  /* Sem seleção */
   if(!ano || !mes){
 
     atualizarResumo([]);
@@ -450,6 +474,7 @@ function aplicarFiltros(){
 
   }
 
+  /* Filtra ano */
   let dadosFiltrados = dadosOriginais.filter(
     r => r.ANO === ano
   );
@@ -472,12 +497,14 @@ function aplicarFiltros(){
 
       for(const key in d){
 
-        /* Remove meses não selecionados */
+        /* Mantém somente o mês selecionado */
         if(
           !meses.includes(key) ||
           key === mes
         ){
+
           base[key] = d[key];
+
         }
 
       }
@@ -492,9 +519,10 @@ function aplicarFiltros(){
 
 }
 
-/* Render */
+/* Render tabela */
 function renderTabela(dados){
 
+  /* Sem dados */
   if(!dados.length){
 
     if(tabela){
@@ -513,7 +541,7 @@ function renderTabela(dados){
 
   }
 
-  /* Destroi */
+  /* Recria completamente */
   if(tabela){
 
     tabela.destroy();
@@ -524,7 +552,6 @@ function renderTabela(dados){
 
   }
 
-  /* Colunas dinâmicas */
   const colunas = Object.keys(dados[0]).map(c=>({
     title:c,
     data:c
@@ -572,8 +599,6 @@ function aplicarTudo(){
 
 }
 
-/* Eventos */
-
 /* Ano */
 $("#anoFiltro").on("change",function(){
 
@@ -586,15 +611,17 @@ $("#anoFiltro").on("change",function(){
 
     carregarMeses();
 
-    $("#mesFiltro").val("TODOS");
+    $("#mesFiltro").val("");
 
   }else{
 
     $("#mesFiltro")
       .empty()
-      .append(
-        '<option value="">Selecione...</option>'
-      );
+      .append(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
 
   }
 
@@ -608,7 +635,7 @@ $("#mesFiltro").on(
   aplicarTudo
 );
 
-/* Registros */
+/* Registros página */
 $("#lengthSelector").on(
   "change",
   function(){
@@ -634,7 +661,7 @@ $("#btnLimpar").on(
 /* Download */
 function baixarArquivo(blob,nome){
 
-  let link = document.createElement("a");
+  const link = document.createElement("a");
 
   link.href = URL.createObjectURL(blob);
 
@@ -649,7 +676,7 @@ $("#btnCsv").on("click",()=>{
 
   if(!tabela) return;
 
-  let csv = Papa.unparse(
+  const csv = Papa.unparse(
     tabela.rows({search:"applied"}).data().toArray(),
     {
       quotes:true,
@@ -677,7 +704,7 @@ $("#btnJson").on("click",()=>{
 
   if(!tabela) return;
 
-  let dados = tabela
+  const dados = tabela
     .rows({search:"applied"})
     .data()
     .toArray();
@@ -702,12 +729,12 @@ $("#btnTxt").on("click",()=>{
 
   if(!tabela) return;
 
-  let dados = tabela
+  const dados = tabela
     .rows({search:"applied"})
     .data()
     .toArray();
 
-  let txt = dados
+  const txt = dados
     .map(o=>Object.values(o).join(" | "))
     .join("\n");
 
@@ -731,14 +758,14 @@ $("#btnXlsx").on("click",()=>{
 
   if(!tabela) return;
 
-  let dados = tabela
+  const dados = tabela
     .rows({search:"applied"})
     .data()
     .toArray();
 
-  let ws = XLSX.utils.json_to_sheet(dados);
+  const ws = XLSX.utils.json_to_sheet(dados);
 
-  let wb = XLSX.utils.book_new();
+  const wb = XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(
     wb,
