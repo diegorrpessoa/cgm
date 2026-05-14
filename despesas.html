@@ -5,7 +5,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-<title>Despesas</title>
+<title>Painel de Despesas</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
@@ -38,7 +38,7 @@ table.dataTable th{
   white-space:nowrap;
 }
 
-/* Indicador atualização */
+/* Atualização */
 #indicadorAtualizacao{
   font-size:.65rem;
   color:#6c757d;
@@ -161,13 +161,13 @@ table.dataTable th{
   font-weight:bold !important;
 }
 
-/* Botões exportação */
+/* Botões */
 .btn-group .btn{
   font-size:.7rem;
   padding:4px 8px;
 }
 
-/* Registros página */
+/* Registros */
 #lengthSelectorContainer{
   margin-top:10px;
   font-size:.75rem;
@@ -188,7 +188,7 @@ table.dataTable th{
 
 <body>
 
-<!-- SPINNER PRINCIPAL -->
+<!-- SPINNER -->
 <div id="spinnerCsv" class="spinner-overlay">
 
   <div class="spinner-border text-primary"></div>
@@ -315,7 +315,7 @@ table.dataTable th{
         id="exportXls"
         class="btn btn-outline-secondary btn-sm"
       >
-        XLS
+        XLSX
       </button>
 
       <button
@@ -433,7 +433,7 @@ const ordemFiltros = [
 ];
 
 /* =========================
-   CARREGAR CSV
+   CARREGAR DADOS
 ========================= */
 
 $(document).ready(function(){
@@ -529,11 +529,11 @@ function inicializarEventos(){
 
     });
 
+    $("#resumoValores").hide();
+
     $("#tabela")
       .hide()
       .empty();
-
-    $("#resumoValores").hide();
 
     if(tabela){
 
@@ -565,6 +565,40 @@ function inicializarEventos(){
   $("#exportJson").on("click",exportarJson);
 
   $("#exportTxt").on("click",exportarTxt);
+
+}
+
+/* =========================
+   NOME EXPORTAÇÃO
+========================= */
+
+function gerarNomeArquivo(ext){
+
+  let partes = ["dados-despesas"];
+
+  ordemFiltros.forEach(f=>{
+
+    const valor = $("#"+f+"Filtro").val();
+
+    if(valor){
+
+      partes.push(
+
+        valor
+          .toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g,"-")
+          .replace(/[^\w-]/g,"")
+
+      );
+
+    }
+
+  });
+
+  return partes.join("-")+"."+ext;
 
 }
 
@@ -738,18 +772,7 @@ function inicializarTabela(dados){
 
       title:c,
 
-      data:c,
-
-      render:
-        typeof dados[0][c] === "string" &&
-        dados[0][c].includes("R$")
-        ? $.fn.dataTable.render.number(
-            ".",
-            ",",
-            2,
-            "R$ "
-          )
-        : null
+      data:c
 
     }));
 
@@ -774,14 +797,19 @@ function inicializarTabela(dados){
     dom:"Bfrtip",
 
     buttons:[
+
       {
         extend:"csvHtml5",
-        className:"d-none"
+        className:"d-none",
+        filename:()=>gerarNomeArquivo("csv").replace(".csv","")
       },
+
       {
         extend:"excelHtml5",
-        className:"d-none"
+        className:"d-none",
+        filename:()=>gerarNomeArquivo("xlsx").replace(".xlsx","")
       }
+
     ],
 
     language:{
@@ -902,7 +930,7 @@ function exportarJson(){
       }
     ),
 
-    "dados.json"
+    gerarNomeArquivo("json")
 
   );
 
@@ -942,11 +970,15 @@ function exportarTxt(){
       }
     ),
 
-    "dados.txt"
+    gerarNomeArquivo("txt")
 
   );
 
 }
+
+/* =========================
+   DOWNLOAD
+========================= */
 
 function baixarArquivo(blob,nome){
 
