@@ -1,347 +1,581 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Planilha de Receitas</title>
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
-  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <style>
-    body {
-      background-color: #f8f9fa;
-      font-size: 0.75rem;
-    }
+<title>Painel de Receitas</title>
 
-    .form-select-sm {
-      font-size: 0.7rem;
-    }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
 
-    .dataTables_filter {
-      display: none !important;
-    }
+<style>
 
-    .table-wrapper {
-      overflow-x: auto;
-    }
+body {
+  background-color: #f8f9fa;
+}
 
-    table.dataTable th,
-    table.dataTable td {
-      white-space: nowrap;
-    }
+.dataTables_filter {
+  display: none;
+}
 
-    .dt-buttons {
-      margin-bottom: 10px;
-    }
+label {
+  font-weight: 600;
+  font-size: 0.72rem !important;
+  color: #343a40;
+  margin-bottom: 2px;
+}
 
-    .filtros {
-      gap: 10px;
-    }
-  </style>
+.form-select-sm,
+table {
+  font-size: 0.7rem !important;
+}
+
+table.dataTable td,
+table.dataTable th {
+  white-space: nowrap;
+}
+
+/* Paginação */
+.dataTables_wrapper .dataTables_paginate {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 4px 8px !important;
+  font-size: 0.65rem !important;
+  border-radius: 6px !important;
+  background-color: #e9ecef !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background-color: #0d6efd !important;
+  color: #fff !important;
+  font-weight: bold !important;
+}
+
+/* Botões exportação */
+.export-group .btn {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+}
+
+/* Atualização */
+#indicadorAtualizacao {
+  font-size: 0.65rem;
+  color: #6c757d;
+  text-align: right;
+  margin-bottom: 8px;
+}
+
+/* Spinner */
+.spinner-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding-top: 60px;
+
+  z-index: 9999;
+
+  background-color: rgba(255,255,255,0.9);
+}
+
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+.spinner-text {
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* Registros por página */
+#lengthSelectorContainer {
+  font-size: 0.7rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+#lengthSelector {
+  width: 80px;
+  font-size: 0.7rem;
+}
+
+</style>
 </head>
 
 <body>
 
-  <div class="container-fluid mt-4">
+<!-- SPINNER -->
+<div id="spinnerCsv" class="spinner-overlay">
+  <div class="spinner-border text-primary"></div>
+  <div class="spinner-text">
+    Carregando base de dados...
+  </div>
+</div>
 
-    <div class="d-flex flex-wrap align-items-end filtros mb-3">
+<div class="container-fluid mt-3">
 
-      <div>
-        <label for="anoFiltro" class="form-label">Ano</label>
+<!-- ATUALIZAÇÃO -->
+<div id="indicadorAtualizacao">
+  Dados atualizados automaticamente
+</div>
 
-        <select id="anoFiltro" class="form-select form-select-sm">
-          <option value="">Selecione</option>
-        </select>
-      </div>
+<!-- FILTROS -->
+<div class="row gx-2 gy-2 mb-3">
 
-      <div>
-        <label for="mesFiltro" class="form-label">Mês</label>
+  <div class="col-sm-2">
+    <label>Ano *</label>
 
-        <select id="mesFiltro" class="form-select form-select-sm" disabled>
-          <option value="">Selecione</option>
-        </select>
-      </div>
+    <select id="anoFiltro" class="form-select form-select-sm">
+      <option value="">Selecione...</option>
+    </select>
+  </div>
 
-      <button
-        id="btnLimpar"
-        class="btn btn-outline-secondary btn-sm ms-2 mt-3"
-        disabled
-      >
-        Limpar Filtros
-      </button>
+  <div class="col-sm-2">
+    <label>Mês *</label>
 
-    </div>
+    <select
+      id="mesFiltro"
+      class="form-select form-select-sm"
+      disabled
+    >
+      <option value="">Selecione...</option>
+    </select>
+  </div>
 
-    <div class="table-wrapper">
-      <table
-        id="tabela"
-        class="table table-bordered table-striped table-sm w-100"
-        style="display:none;"
-      ></table>
-    </div>
+</div>
+
+<!-- BOTÕES -->
+<div class="d-flex justify-content-between mb-2">
+
+  <button
+    id="btnLimpar"
+    class="btn btn-outline-primary btn-sm"
+  >
+    Limpar Filtros
+  </button>
+
+  <div class="export-group btn-group">
+
+    <button
+      id="btnCsv"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      CSV
+    </button>
+
+    <button
+      id="btnXlsx"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      XLSX
+    </button>
+
+    <button
+      id="btnTxt"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      TXT
+    </button>
+
+    <button
+      id="btnJson"
+      class="btn btn-outline-secondary btn-sm"
+    >
+      JSON
+    </button>
 
   </div>
 
-  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</div>
 
-  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+<!-- REGISTROS -->
+<div id="lengthSelectorContainer">
 
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.bootstrap5.min.js"></script>
-  <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+  <label>Registros por página:</label>
 
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <select
+    id="lengthSelector"
+    class="form-select form-select-sm"
+  >
+    <option value="10">10</option>
+    <option value="25">25</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
 
-  <script>
+</div>
 
-    let dadosOriginais = [],
-        tabela;
+<!-- TABELA -->
+<div class="table-responsive">
 
-    const meses = [
-      "JANEIRO",
-      "FEVEREIRO",
-      "MARCO",
-      "ABRIL",
-      "MAIO",
-      "JUNHO",
-      "JULHO",
-      "AGOSTO",
-      "SETEMBRO",
-      "OUTUBRO",
-      "NOVEMBRO",
-      "DEZEMBRO"
-    ];
+  <table
+    id="tabela"
+    class="table table-bordered table-striped table-sm w-100"
+    style="display:none;"
+  ></table>
 
-    $(document).ready(function(){
+</div>
 
-      Papa.parse(
-        "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv",
-        {
-          download: true,
-          header: true,
+</div>
 
-          complete: function(results) {
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
-            dadosOriginais = results.data.filter(r => r.ANO);
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-            const anos = [
-              ...new Set(dadosOriginais.map(r => r.ANO))
-            ].sort();
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-            anos.forEach(ano => {
-              $('#anoFiltro').append(
-                `<option value="${ano}">${ano}</option>`
-              );
-            });
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-          }
-        }
+<script>
+
+let tabela;
+let dadosOriginais = [];
+
+const meses = [
+  "JANEIRO",
+  "FEVEREIRO",
+  "MARCO",
+  "ABRIL",
+  "MAIO",
+  "JUNHO",
+  "JULHO",
+  "AGOSTO",
+  "SETEMBRO",
+  "OUTUBRO",
+  "NOVEMBRO",
+  "DEZEMBRO"
+];
+
+const urlCSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv";
+
+/* Nome exportação */
+function gerarNomeArquivo(ext){
+
+  let partes = ["dados-receitas"];
+
+  const ano = $("#anoFiltro").val();
+  const mes = $("#mesFiltro").val();
+
+  if (ano) {
+    partes.push(ano.toLowerCase());
+  }
+
+  if (mes) {
+    partes.push(mes.toLowerCase());
+  }
+
+  return partes.join("-") + "." + ext;
+
+}
+
+/* CSV */
+Papa.parse(urlCSV, {
+
+  download: true,
+  header: true,
+
+  complete: function(results){
+
+    dadosOriginais = results.data.filter(r => r.ANO);
+
+    const anos = [
+      ...new Set(dadosOriginais.map(r => r.ANO))
+    ].sort();
+
+    anos.forEach(ano => {
+
+      $("#anoFiltro").append(
+        `<option value="${ano}">${ano}</option>`
       );
-
-      $('#anoFiltro').on('change', function(){
-
-        const ano = $(this).val();
-
-        $('#mesFiltro')
-          .val('')
-          .prop('disabled', !ano);
-
-        $('#btnLimpar')
-          .prop('disabled', !ano);
-
-        if (ano) {
-
-          $('#mesFiltro').html(
-            '<option value="">Selecione</option>'
-          );
-
-          meses.forEach(m => {
-
-            $('#mesFiltro').append(
-              `<option value="${m}">
-                ${m.charAt(0) + m.slice(1).toLowerCase()}
-              </option>`
-            );
-
-          });
-
-        } else {
-
-          $('#tabela').hide();
-
-          if (tabela) {
-            tabela.clear().destroy();
-          }
-
-        }
-
-      });
-
-      $('#mesFiltro').on('change', function(){
-
-        const ano = $('#anoFiltro').val();
-        const mes = $(this).val();
-
-        if (!ano || !mes) return;
-
-        const dadosFiltrados = dadosOriginais.filter(r =>
-          r.ANO === ano && r[mes]
-        );
-
-        const dados = dadosFiltrados.map(d => {
-
-          const base = {};
-
-          for (const key in d) {
-
-            // REMOVE colunas de meses e também a coluna VALOR
-            if (
-              !meses.includes(key) &&
-              key !== "VALOR"
-            ) {
-              base[key] = d[key];
-            }
-
-          }
-
-          return base;
-
-        });
-
-        renderTabela(dados);
-
-      });
-
-      $('#btnLimpar').on('click', function(){
-
-        $('#anoFiltro, #mesFiltro').val('');
-
-        $('#mesFiltro')
-          .prop('disabled', true);
-
-        $('#btnLimpar')
-          .prop('disabled', true);
-
-        if (tabela) {
-          tabela.clear().destroy();
-        }
-
-        $('#tabela').hide();
-
-      });
 
     });
 
-    function renderTabela(data){
+    $("#spinnerCsv").fadeOut(200);
 
-      if (tabela) {
-        tabela.destroy();
+  }
+
+});
+
+/* Ano */
+$("#anoFiltro").on("change", function(){
+
+  const ano = $(this).val();
+
+  $("#mesFiltro")
+    .prop("disabled", !ano)
+    .val("");
+
+  $("#tabela").hide();
+
+  if (tabela) {
+    tabela.clear().destroy();
+    tabela = null;
+  }
+
+  $("#mesFiltro").html(
+    '<option value="">Selecione...</option>'
+  );
+
+  if (ano){
+
+    meses.forEach(m => {
+
+      $("#mesFiltro").append(
+        `<option value="${m}">
+          ${m.charAt(0) + m.slice(1).toLowerCase()}
+        </option>`
+      );
+
+    });
+
+  }
+
+});
+
+/* Mês */
+$("#mesFiltro").on("change", aplicarTudo);
+
+/* Aplicar */
+function aplicarTudo(){
+
+  const ano = $("#anoFiltro").val();
+  const mes = $("#mesFiltro").val();
+
+  if (!ano || !mes){
+    $("#tabela").hide();
+    return;
+  }
+
+  const dadosFiltrados = dadosOriginais.filter(r =>
+    r.ANO === ano && r[mes]
+  );
+
+  const dados = dadosFiltrados.map(d => {
+
+    const base = {};
+
+    for (const key in d){
+
+      if (
+        !meses.includes(key) &&
+        key !== "VALOR"
+      ){
+        base[key] = d[key];
       }
-
-      const cols = Object.keys(data[0]).map(k => ({
-        title: k,
-        data: k
-      }));
-
-      tabela = $('#tabela').DataTable({
-
-        data: data,
-
-        columns: cols,
-
-        dom: 'Bfrtip',
-
-        paging: true,
-
-        pageLength: 10,
-
-        ordering: true,
-
-        searching: false,
-
-        buttons: [
-
-          {
-            extend: 'csvHtml5',
-            text: 'CSV',
-            className: 'btn btn-outline-primary btn-sm'
-          },
-
-          {
-            extend: 'excelHtml5',
-            text: 'XLS',
-            className: 'btn btn-outline-success btn-sm'
-          },
-
-          {
-            extend: 'copyHtml5',
-            text: 'TXT',
-            className: 'btn btn-outline-secondary btn-sm'
-          },
-
-          {
-            extend: 'json',
-            text: 'JSON',
-            className: 'btn btn-outline-dark btn-sm'
-          }
-
-        ],
-
-        language: {
-          url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-        }
-
-      });
-
-      $('#tabela').show();
 
     }
 
-    // JSON export personalizado
-    $.fn.dataTable.ext.buttons.json = {
+    return base;
 
-      action: function (e, dt, node, config) {
+  });
 
-        const data = dt.buttons.exportData();
+  renderTabela(dados);
 
-        const json = JSON.stringify(
+}
 
-          data.body.map((row, i) =>
-            Object.fromEntries(
-              data.header.map((key, j) => [key, row[j]])
-            )
-          ),
+/* Render tabela */
+function renderTabela(dados){
 
-          null,
-          2
+  if (!dados.length){
+    $("#tabela").hide();
+    return;
+  }
 
-        );
+  $("#tabela").show();
 
-        const blob = new Blob(
-          [json],
-          { type: "application/json" }
-        );
+  if (tabela){
+    tabela.clear().rows.add(dados).draw();
+    return;
+  }
 
-        const url = URL.createObjectURL(blob);
+  tabela = $("#tabela").DataTable({
 
-        const a = document.createElement('a');
+    data: dados,
 
-        a.href = url;
-        a.download = 'dados.json';
+    columns: Object.keys(dados[0]).map(c => ({
+      title: c,
+      data: c
+    })),
 
-        a.click();
+    scrollX: true,
+    scrollY: "55vh",
+    scrollCollapse: true,
 
-        URL.revokeObjectURL(url);
+    paging: true,
+    pageLength: 10,
 
-      }
+    lengthChange: false,
+    info: true,
 
-    };
+    language: {
+      url: "https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
 
-  </script>
+  });
+
+  $("#lengthSelector").on("change", function(){
+    tabela.page.len(this.value).draw();
+  });
+
+}
+
+/* Limpar */
+$("#btnLimpar").on("click", () => {
+
+  $("#anoFiltro").val("");
+
+  $("#mesFiltro")
+    .val("")
+    .prop("disabled", true)
+    .html('<option value="">Selecione...</option>');
+
+  if (tabela){
+    tabela.clear().destroy();
+    tabela = null;
+  }
+
+  $("#tabela").hide();
+
+});
+
+/* Download */
+function baixarArquivo(blob, nome){
+
+  let link = document.createElement("a");
+
+  link.href = URL.createObjectURL(blob);
+
+  link.download = nome;
+
+  link.click();
+
+}
+
+/* CSV */
+$("#btnCsv").on("click", () => {
+
+  if (!tabela) return;
+
+  let csv = Papa.unparse(
+    tabela.rows({search:"applied"}).data().toArray(),
+    {
+      quotes: true,
+      delimiter: ";"
+    }
+  );
+
+  baixarArquivo(
+
+    new Blob(
+      ["\ufeff" + csv],
+      {type:"text/csv;charset=utf-8;"}
+    ),
+
+    gerarNomeArquivo("csv")
+
+  );
+
+});
+
+/* JSON */
+$("#btnJson").on("click", () => {
+
+  if (!tabela) return;
+
+  let dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  baixarArquivo(
+
+    new Blob(
+      [JSON.stringify(dados, null, 2)],
+      {type:"application/json"}
+    ),
+
+    gerarNomeArquivo("json")
+
+  );
+
+});
+
+/* TXT */
+$("#btnTxt").on("click", () => {
+
+  if (!tabela) return;
+
+  let dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  let txt = dados
+    .map(o => Object.values(o).join(" | "))
+    .join("\n");
+
+  baixarArquivo(
+
+    new Blob(
+      [txt],
+      {type:"text/plain"}
+    ),
+
+    gerarNomeArquivo("txt")
+
+  );
+
+});
+
+/* XLSX */
+$("#btnXlsx").on("click", () => {
+
+  if (!tabela) return;
+
+  let dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  let ws = XLSX.utils.json_to_sheet(dados);
+
+  let wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    "Receitas"
+  );
+
+  XLSX.writeFile(
+    wb,
+    gerarNomeArquivo("xlsx")
+  );
+
+});
+
+</script>
 
 </body>
 </html>
