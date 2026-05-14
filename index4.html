@@ -104,6 +104,21 @@ table.dataTable th {
   margin-top: 5px;
 }
 
+/* Totalizadores */
+.totalizadores {
+  font-size: 0.7rem;
+  background: #fff;
+  padding: 5px 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.totalizadores span {
+  display: inline-block;
+  margin-right: 15px;
+  font-weight: 600;
+}
+
 /* Registros por página */
 #lengthSelectorContainer {
   font-size: 0.7rem;
@@ -127,114 +142,95 @@ table.dataTable th {
 <!-- SPINNER -->
 <div id="spinnerCsv" class="spinner-overlay">
   <div class="spinner-border text-primary"></div>
-  <div class="spinner-text">
-    Carregando base de dados...
-  </div>
+  <div class="spinner-text">Carregando base de dados...</div>
 </div>
 
 <div class="container-fluid mt-3">
 
-<!-- ATUALIZAÇÃO -->
-<div id="indicadorAtualizacao">
-  Dados atualizados automaticamente
-</div>
+  <!-- INDICADOR -->
+  <div id="indicadorAtualizacao">
+    Dados carregados da base pública CSV
+  </div>
 
-<!-- FILTROS -->
-<div class="row gx-2 gy-2 mb-3">
+  <!-- FILTROS -->
+  <div class="row gx-2 gy-2 mb-3">
 
-  <div class="col-sm-2">
-    <label>Ano *</label>
+    <div class="col-sm-2">
+      <label>Ano *</label>
 
-    <select id="anoFiltro" class="form-select form-select-sm">
-      <option value="">Selecione...</option>
+      <select id="anoFiltro" class="form-select form-select-sm">
+        <option value="">Selecione...</option>
+      </select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Mês *</label>
+
+      <select id="mesFiltro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- TOTALIZADOR -->
+  <div class="totalizadores mb-2" id="resumoValores" style="display:none;">
+    <span id="totalRegistros">Registros encontrados: 0</span>
+  </div>
+
+  <!-- BOTÕES -->
+  <div class="d-flex justify-content-between mb-2">
+
+    <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
+      Limpar Filtros
+    </button>
+
+    <div class="export-group btn-group">
+
+      <button id="btnCsv" class="btn btn-outline-secondary btn-sm">
+        CSV
+      </button>
+
+      <button id="btnXlsx" class="btn btn-outline-secondary btn-sm">
+        XLSX
+      </button>
+
+      <button id="btnTxt" class="btn btn-outline-secondary btn-sm">
+        TXT
+      </button>
+
+      <button id="btnJson" class="btn btn-outline-secondary btn-sm">
+        JSON
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- REGISTROS POR PÁGINA -->
+  <div id="lengthSelectorContainer">
+
+    <label>Registros por página:</label>
+
+    <select id="lengthSelector" class="form-select form-select-sm">
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
     </select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>Mês *</label>
-
-    <select
-      id="mesFiltro"
-      class="form-select form-select-sm"
-      disabled
-    >
-      <option value="">Selecione...</option>
-    </select>
-  </div>
-
-</div>
-
-<!-- BOTÕES -->
-<div class="d-flex justify-content-between mb-2">
-
-  <button
-    id="btnLimpar"
-    class="btn btn-outline-primary btn-sm"
-  >
-    Limpar Filtros
-  </button>
-
-  <div class="export-group btn-group">
-
-    <button
-      id="btnCsv"
-      class="btn btn-outline-secondary btn-sm"
-    >
-      CSV
-    </button>
-
-    <button
-      id="btnXlsx"
-      class="btn btn-outline-secondary btn-sm"
-    >
-      XLSX
-    </button>
-
-    <button
-      id="btnTxt"
-      class="btn btn-outline-secondary btn-sm"
-    >
-      TXT
-    </button>
-
-    <button
-      id="btnJson"
-      class="btn btn-outline-secondary btn-sm"
-    >
-      JSON
-    </button>
 
   </div>
 
-</div>
+  <!-- TABELA -->
+  <div class="table-responsive">
 
-<!-- REGISTROS -->
-<div id="lengthSelectorContainer">
+    <table
+      id="tabela"
+      class="table table-bordered table-striped table-sm w-100"
+      style="display:none;"
+    ></table>
 
-  <label>Registros por página:</label>
-
-  <select
-    id="lengthSelector"
-    class="form-select form-select-sm"
-  >
-    <option value="10">10</option>
-    <option value="25">25</option>
-    <option value="50">50</option>
-    <option value="100">100</option>
-  </select>
-
-</div>
-
-<!-- TABELA -->
-<div class="table-responsive">
-
-  <table
-    id="tabela"
-    class="table table-bordered table-striped table-sm w-100"
-    style="display:none;"
-  ></table>
-
-</div>
+  </div>
 
 </div>
 
@@ -251,6 +247,9 @@ table.dataTable th {
 let tabela;
 let dadosOriginais = [];
 
+const urlCSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv";
+
 const meses = [
   "JANEIRO",
   "FEVEREIRO",
@@ -266,10 +265,7 @@ const meses = [
   "DEZEMBRO"
 ];
 
-const urlCSV =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv";
-
-/* Nome exportação */
+/* Nome dinâmico exportação */
 function gerarNomeArquivo(ext){
 
   let partes = ["dados-receitas"];
@@ -289,27 +285,33 @@ function gerarNomeArquivo(ext){
 
 }
 
-/* CSV */
+/* Atualiza resumo */
+function atualizarResumo(dados){
+
+  if(!dados.length){
+    $("#resumoValores").hide();
+    return;
+  }
+
+  $("#totalRegistros").text(
+    "Registros encontrados: " + dados.length
+  );
+
+  $("#resumoValores").show();
+
+}
+
+/* Carregamento CSV */
 Papa.parse(urlCSV, {
 
   download: true,
   header: true,
 
-  complete: function(results){
+  complete: r => {
 
-    dadosOriginais = results.data.filter(r => r.ANO);
+    dadosOriginais = r.data.filter(d => d.ANO);
 
-    const anos = [
-      ...new Set(dadosOriginais.map(r => r.ANO))
-    ].sort();
-
-    anos.forEach(ano => {
-
-      $("#anoFiltro").append(
-        `<option value="${ano}">${ano}</option>`
-      );
-
-    });
+    carregarAno();
 
     $("#spinnerCsv").fadeOut(200);
 
@@ -317,54 +319,60 @@ Papa.parse(urlCSV, {
 
 });
 
-/* Ano */
-$("#anoFiltro").on("change", function(){
+/* Carregar anos */
+function carregarAno(){
 
-  const ano = $(this).val();
+  let s = $("#anoFiltro");
 
-  $("#mesFiltro")
-    .prop("disabled", !ano)
-    .val("");
+  s.empty();
 
-  $("#tabela").hide();
+  s.append('<option value="">Selecione...</option>');
 
-  if (tabela) {
-    tabela.clear().destroy();
-    tabela = null;
-  }
-
-  $("#mesFiltro").html(
-    '<option value="">Selecione...</option>'
-  );
-
-  if (ano){
-
-    meses.forEach(m => {
-
-      $("#mesFiltro").append(
-        `<option value="${m}">
-          ${m.charAt(0) + m.slice(1).toLowerCase()}
-        </option>`
-      );
-
+  [...new Set(dadosOriginais.map(r => r.ANO))]
+    .sort()
+    .forEach(v => {
+      s.append(`<option value="${v}">${v}</option>`);
     });
 
-  }
+}
 
-});
+/* Carregar meses */
+function carregarMeses(){
 
-/* Mês */
-$("#mesFiltro").on("change", aplicarTudo);
+  let s = $("#mesFiltro");
 
-/* Aplicar */
-function aplicarTudo(){
+  s.empty();
+
+  s.append('<option value="">Selecione...</option>');
+
+  meses.forEach(m => {
+
+    s.append(`
+      <option value="${m}">
+        ${m.charAt(0) + m.slice(1).toLowerCase()}
+      </option>
+    `);
+
+  });
+
+}
+
+/* Aplicar filtros */
+function aplicarFiltros(){
 
   const ano = $("#anoFiltro").val();
   const mes = $("#mesFiltro").val();
 
-  if (!ano || !mes){
+  if(!ano || !mes){
     $("#tabela").hide();
-    return;
+
+    if(tabela){
+      tabela.clear().draw();
+    }
+
+    atualizarResumo([]);
+
+    return [];
   }
 
   const dadosFiltrados = dadosOriginais.filter(r =>
@@ -375,9 +383,9 @@ function aplicarTudo(){
 
     const base = {};
 
-    for (const key in d){
+    for(const key in d){
 
-      if (
+      if(
         !meses.includes(key) &&
         key !== "VALOR"
       ){
@@ -390,23 +398,28 @@ function aplicarTudo(){
 
   });
 
-  renderTabela(dados);
+  atualizarResumo(dados);
+
+  return dados;
 
 }
 
 /* Render tabela */
 function renderTabela(dados){
 
-  if (!dados.length){
+  if(!dados.length){
     $("#tabela").hide();
     return;
   }
 
   $("#tabela").show();
 
-  if (tabela){
+  if(tabela){
+
     tabela.clear().rows.add(dados).draw();
+
     return;
+
   }
 
   tabela = $("#tabela").DataTable({
@@ -435,29 +448,44 @@ function renderTabela(dados){
   });
 
   $("#lengthSelector").on("change", function(){
+
     tabela.page.len(this.value).draw();
+
   });
 
 }
 
-/* Limpar */
-$("#btnLimpar").on("click", () => {
+/* Aplicar tudo */
+function aplicarTudo(){
 
-  $("#anoFiltro").val("");
+  const dados = aplicarFiltros();
+
+  renderTabela(dados);
+
+}
+
+/* Eventos */
+
+$("#anoFiltro").on("change", function(){
+
+  const ano = $(this).val();
 
   $("#mesFiltro")
     .val("")
-    .prop("disabled", true)
-    .html('<option value="">Selecione...</option>');
+    .prop("disabled", !ano);
 
-  if (tabela){
-    tabela.clear().destroy();
-    tabela = null;
+  if(ano){
+    carregarMeses();
   }
 
-  $("#tabela").hide();
+  aplicarTudo();
 
 });
+
+$("#mesFiltro").on("change", aplicarTudo);
+
+/* Limpar */
+$("#btnLimpar").on("click", () => location.reload());
 
 /* Download */
 function baixarArquivo(blob, nome){
@@ -475,7 +503,7 @@ function baixarArquivo(blob, nome){
 /* CSV */
 $("#btnCsv").on("click", () => {
 
-  if (!tabela) return;
+  if(!tabela) return;
 
   let csv = Papa.unparse(
     tabela.rows({search:"applied"}).data().toArray(),
@@ -501,17 +529,14 @@ $("#btnCsv").on("click", () => {
 /* JSON */
 $("#btnJson").on("click", () => {
 
-  if (!tabela) return;
+  if(!tabela) return;
 
-  let dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  let dados = tabela.rows({search:"applied"}).data().toArray();
 
   baixarArquivo(
 
     new Blob(
-      [JSON.stringify(dados, null, 2)],
+      [JSON.stringify(dados,null,2)],
       {type:"application/json"}
     ),
 
@@ -524,12 +549,9 @@ $("#btnJson").on("click", () => {
 /* TXT */
 $("#btnTxt").on("click", () => {
 
-  if (!tabela) return;
+  if(!tabela) return;
 
-  let dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  let dados = tabela.rows({search:"applied"}).data().toArray();
 
   let txt = dados
     .map(o => Object.values(o).join(" | "))
@@ -551,7 +573,7 @@ $("#btnTxt").on("click", () => {
 /* XLSX */
 $("#btnXlsx").on("click", () => {
 
-  if (!tabela) return;
+  if(!tabela) return;
 
   let dados = tabela
     .rows({search:"applied"})
