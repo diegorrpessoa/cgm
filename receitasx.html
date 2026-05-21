@@ -99,21 +99,6 @@ table.dataTable th{
   margin-top:5px;
 }
 
-/* Totalizadores */
-.totalizadores{
-  font-size:.7rem;
-  background:#fff;
-  padding:5px 10px;
-  border:1px solid #dee2e6;
-  border-radius:4px;
-}
-
-.totalizadores span{
-  display:inline-block;
-  margin-right:15px;
-  font-weight:600;
-}
-
 /* Registros por página */
 #lengthSelectorContainer{
   font-size:.7rem;
@@ -156,130 +141,59 @@ table.dataTable th{
   <div class="row gx-2 gy-2 mb-3">
 
     <div class="col-sm-2">
-
       <label>Ano *</label>
-
-      <select
-        id="anoFiltro"
-        class="form-select form-select-sm"
-      >
-        <option value="">
-          Selecione...
-        </option>
+      <select id="anoFiltro" class="form-select form-select-sm">
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Mês *</label>
-
-      <select
-        id="mesFiltro"
-        class="form-select form-select-sm"
-        disabled
-      >
-        <option value="">
-          Selecione...
-        </option>
+      <select id="mesFiltro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Categoria Econômica</label>
-
-      <select
-        id="categoriaFiltro"
-        class="form-select form-select-sm"
-        disabled
-      >
-        <option value="">
-          Todos
-        </option>
+      <select id="categoriaFiltro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Origem</label>
-
-      <select
-        id="origemFiltro"
-        class="form-select form-select-sm"
-        disabled
-      >
-        <option value="">
-          Todos
-        </option>
+      <select id="origemFiltro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Espécie</label>
-
-      <select
-        id="especieFiltro"
-        class="form-select form-select-sm"
-        disabled
-      >
-        <option value="">
-          Todos
-        </option>
+      <select id="especieFiltro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Desdobramento 1</label>
-
-      <select
-        id="des1Filtro"
-        class="form-select form-select-sm"
-        disabled
-      >
-        <option value="">
-          Todos
-        </option>
+      <select id="desdobramento1Filtro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Desdobramento 2</label>
-
-      <select
-        id="des2Filtro"
-        class="form-select form-select-sm"
-        disabled
-      >
-        <option value="">
-          Todos
-        </option>
+      <select id="desdobramento2Filtro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Desdobramento 3</label>
-
-      <select
-        id="des3Filtro"
-        class="form-select form-select-sm"
-        disabled
-      >
-        <option value="">
-          Todos
-        </option>
+      <select id="desdobramento3Filtro" class="form-select form-select-sm" disabled>
+        <option value="">Selecione...</option>
       </select>
-
     </div>
 
   </div>
@@ -359,17 +273,13 @@ table.dataTable th{
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 
 let tabela = null;
-
 let dadosOriginais = [];
 
 const urlCSV =
@@ -404,15 +314,15 @@ const filtros = [
     coluna:"ESPECIE"
   },
   {
-    id:"des1Filtro",
+    id:"desdobramento1Filtro",
     coluna:"DESDOBRAMENTO 1"
   },
   {
-    id:"des2Filtro",
+    id:"desdobramento2Filtro",
     coluna:"DESDOBRAMENTO 2"
   },
   {
-    id:"des3Filtro",
+    id:"desdobramento3Filtro",
     coluna:"DESDOBRAMENTO 3"
   }
 ];
@@ -426,19 +336,15 @@ function gerarNomeArquivo(ext){
   const mes = $("#mesFiltro").val();
 
   if(ano){
-
     partes.push(
       ano.toLowerCase().replace(/\s+/g,"-")
     );
-
   }
 
-  if(mes){
-
+  if(mes && mes !== "TODOS"){
     partes.push(
       mes.toLowerCase().replace(/\s+/g,"-")
     );
-
   }
 
   filtros.forEach(f=>{
@@ -476,7 +382,6 @@ Papa.parse(urlCSV,{
       d => d.ANO
     );
 
-    /* Atualização */
     const linhaAtualizacao =
       dadosOriginais.find(
         x => x["Atualizacao"]
@@ -490,7 +395,6 @@ Papa.parse(urlCSV,{
 
     }
 
-    /* Remove coluna Atualizacao */
     dadosOriginais = dadosOriginais.map(r=>{
 
       const copia = {...r};
@@ -569,8 +473,54 @@ function carregarMeses(){
 
 }
 
-/* Base filtros */
-function obterBaseFiltros(ignorarId=null){
+/* Reset filtros adicionais */
+function resetFiltrosAdicionais(){
+
+  filtros.forEach(f=>{
+
+    $("#"+f.id)
+      .empty()
+      .append(`
+        <option value="">
+          Selecione...
+        </option>
+      `)
+      .val("")
+      .prop("disabled",true);
+
+  });
+
+}
+
+/* Popular filtro */
+function popularFiltro(id,valores){
+
+  const seletor = $("#"+id);
+
+  seletor.empty();
+
+  seletor.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
+
+  valores.forEach(v=>{
+
+    seletor.append(`
+      <option value="${v}">
+        ${v}
+      </option>
+    `);
+
+  });
+
+  seletor.prop("disabled",false);
+
+}
+
+/* Dados base */
+function obterBaseMes(){
 
   const ano = $("#anoFiltro").val();
   const mes = $("#mesFiltro").val();
@@ -583,80 +533,67 @@ function obterBaseFiltros(ignorarId=null){
     r => r.ANO === ano
   );
 
-  filtros.forEach(f=>{
+  if(mes !== "TODOS"){
 
-    if(f.id === ignorarId){
-      return;
-    }
+    base = base.filter(
+      r => r[mes]
+    );
 
-    const valor = $("#"+f.id).val();
-
-    if(valor){
-
-      base = base.filter(
-        r => r[f.coluna] === valor
-      );
-
-    }
-
-  });
+  }
 
   return base;
 
 }
 
-/* Atualiza filtros encadeados */
+/* Atualizar filtros encadeados */
 function atualizarFiltrosEncadeados(){
 
-  filtros.forEach(f=>{
+  let baseAtual = obterBaseMes();
 
-    const seletor = $("#"+f.id);
+  filtros.forEach((filtro,index)=>{
 
+    const seletor = $("#"+filtro.id);
     const valorAtual = seletor.val();
 
-    const base = obterBaseFiltros(f.id);
+    let baseFiltro = [...baseAtual];
 
-    let valores = [
-      ...new Set(
-        base
-          .map(r=>r[f.coluna])
-          .filter(Boolean)
-      )
-    ];
+    filtros.slice(0,index).forEach(fAnterior=>{
 
-    valores.sort((a,b)=>
-      a.localeCompare(
-        b,
-        "pt-BR",
-        {numeric:true}
-      )
-    );
+      const valorAnterior =
+        $("#"+fAnterior.id).val();
 
-    seletor.empty();
+      if(valorAnterior){
 
-    seletor.append(`
-      <option value="">
-        Todos
-      </option>
-    `);
+        baseFiltro = baseFiltro.filter(
+          r => r[fAnterior.coluna] === valorAnterior
+        );
 
-    valores.forEach(v=>{
-
-      seletor.append(`
-        <option value="${v}">
-          ${v}
-        </option>
-      `);
+      }
 
     });
 
-    seletor.prop(
-      "disabled",
-      !$("#mesFiltro").val()
+    const valores = [
+      ...new Set(
+        baseFiltro
+          .map(r=>r[filtro.coluna])
+          .filter(Boolean)
+      )
+    ].sort((a,b)=>
+      a.localeCompare(b,'pt-BR')
     );
 
-    if(valores.includes(valorAtual)){
+    popularFiltro(
+      filtro.id,
+      valores
+    );
+
+    if(
+      valorAtual &&
+      valores.includes(valorAtual)
+    ){
+
       seletor.val(valorAtual);
+
     }
 
   });
@@ -673,17 +610,16 @@ function aplicarFiltros(){
     return [];
   }
 
-  let dadosFiltrados = dadosOriginais.filter(
-    r => r.ANO === ano
-  );
+  let dados = obterBaseMes();
 
   filtros.forEach(f=>{
 
-    const valor = $("#"+f.id).val();
+    const valor =
+      $("#"+f.id).val();
 
     if(valor){
 
-      dadosFiltrados = dadosFiltrados.filter(
+      dados = dados.filter(
         r => r[f.coluna] === valor
       );
 
@@ -691,17 +627,9 @@ function aplicarFiltros(){
 
   });
 
-  /* TODOS */
-  if(mes === "TODOS"){
+  if(mes !== "TODOS"){
 
-    return dadosFiltrados;
-
-  }
-
-  /* Mês específico */
-  return dadosFiltrados
-    .filter(r => r[mes])
-    .map(d=>{
+    dados = dados.map(d=>{
 
       const base = {};
 
@@ -721,6 +649,10 @@ function aplicarFiltros(){
       return base;
 
     });
+
+  }
+
+  return dados;
 
 }
 
@@ -812,19 +744,7 @@ $("#anoFiltro").on("change",function(){
   $("#mesFiltro")
     .prop("disabled",!ano);
 
-  filtros.forEach(f=>{
-
-    $("#"+f.id)
-      .prop("disabled",true)
-      .val("")
-      .empty()
-      .append(`
-        <option value="">
-          Todos
-        </option>
-      `);
-
-  });
+  resetFiltrosAdicionais();
 
   if(ano){
 
@@ -844,26 +764,51 @@ $("#anoFiltro").on("change",function(){
 
   }
 
-  aplicarTudo();
+  renderTabela([]);
 
 });
 
 /* Mês */
 $("#mesFiltro").on("change",function(){
 
-  atualizarFiltrosEncadeados();
+  const valor = $(this).val();
+
+  /* AJUSTE SOLICITADO */
+  if(valor === "TODOS"){
+
+    resetFiltrosAdicionais();
+
+  }else{
+
+    atualizarFiltrosEncadeados();
+
+  }
 
   aplicarTudo();
 
 });
 
 /* Filtros encadeados */
-filtros.forEach(f=>{
+filtros.forEach((filtro,index)=>{
 
-  $("#"+f.id).on(
-    "change",
-    aplicarTudo
-  );
+  $("#"+filtro.id).on("change",function(){
+
+    filtros
+      .slice(index+1)
+      .forEach(f=>{
+
+        $("#"+f.id)
+          .val("");
+
+      });
+
+    atualizarFiltrosEncadeados();
+
+    const dados = aplicarFiltros();
+
+    renderTabela(dados);
+
+  });
 
 });
 
