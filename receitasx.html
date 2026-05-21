@@ -186,20 +186,103 @@ table.dataTable th{
 
     </div>
 
+    <div class="col-sm-2">
+
+      <label>Categoria Econômica</label>
+
+      <select
+        id="categoriaFiltro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Todos
+        </option>
+      </select>
+
+    </div>
+
+    <div class="col-sm-2">
+
+      <label>Origem</label>
+
+      <select
+        id="origemFiltro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Todos
+        </option>
+      </select>
+
+    </div>
+
+    <div class="col-sm-2">
+
+      <label>Espécie</label>
+
+      <select
+        id="especieFiltro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Todos
+        </option>
+      </select>
+
+    </div>
+
+    <div class="col-sm-2">
+
+      <label>Desdobramento 1</label>
+
+      <select
+        id="des1Filtro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Todos
+        </option>
+      </select>
+
+    </div>
+
+    <div class="col-sm-2">
+
+      <label>Desdobramento 2</label>
+
+      <select
+        id="des2Filtro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Todos
+        </option>
+      </select>
+
+    </div>
+
+    <div class="col-sm-2">
+
+      <label>Desdobramento 3</label>
+
+      <select
+        id="des3Filtro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Todos
+        </option>
+      </select>
+
+    </div>
+
   </div>
-
-  <!-- TOTALIZADOR
-  <div
-    class="totalizadores mb-2"
-    id="resumoValores"
-    style="display:none;"
-  >
-
-    <span id="totalRegistros">
-      Registros encontrados: 0
-    </span>
-
-  </div>-->
 
   <!-- BOTÕES -->
   <div class="d-flex justify-content-between mb-2">
@@ -307,6 +390,33 @@ const meses = [
   "DEZEMBRO"
 ];
 
+const filtros = [
+  {
+    id:"categoriaFiltro",
+    coluna:"CATEGORIA ECONOMICA"
+  },
+  {
+    id:"origemFiltro",
+    coluna:"ORIGEM"
+  },
+  {
+    id:"especieFiltro",
+    coluna:"ESPECIE"
+  },
+  {
+    id:"des1Filtro",
+    coluna:"DESDOBRAMENTO 1"
+  },
+  {
+    id:"des2Filtro",
+    coluna:"DESDOBRAMENTO 2"
+  },
+  {
+    id:"des3Filtro",
+    coluna:"DESDOBRAMENTO 3"
+  }
+];
+
 /* Nome exportação */
 function gerarNomeArquivo(ext){
 
@@ -331,26 +441,26 @@ function gerarNomeArquivo(ext){
 
   }
 
+  filtros.forEach(f=>{
+
+    const valor = $("#"+f.id).val();
+
+    if(valor){
+
+      partes.push(
+        valor
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g,"-")
+          .replace(/[^\w-]/g,"")
+      );
+
+    }
+
+  });
+
   return partes.join("-")+"."+ext;
-
-}
-
-/* Resumo */
-function atualizarResumo(dados){
-
-  if(!dados.length){
-
-    $("#resumoValores").hide();
-
-    return;
-
-  }
-
-  $("#totalRegistros").text(
-    "Registros encontrados: "+dados.length
-  );
-
-  $("#resumoValores").show();
 
 }
 
@@ -459,37 +569,137 @@ function carregarMeses(){
 
 }
 
+/* Base filtros */
+function obterBaseFiltros(ignorarId=null){
+
+  const ano = $("#anoFiltro").val();
+  const mes = $("#mesFiltro").val();
+
+  if(!ano || !mes){
+    return [];
+  }
+
+  let base = dadosOriginais.filter(
+    r => r.ANO === ano
+  );
+
+  filtros.forEach(f=>{
+
+    if(f.id === ignorarId){
+      return;
+    }
+
+    const valor = $("#"+f.id).val();
+
+    if(valor){
+
+      base = base.filter(
+        r => r[f.coluna] === valor
+      );
+
+    }
+
+  });
+
+  return base;
+
+}
+
+/* Atualiza filtros encadeados */
+function atualizarFiltrosEncadeados(){
+
+  filtros.forEach(f=>{
+
+    const seletor = $("#"+f.id);
+
+    const valorAtual = seletor.val();
+
+    const base = obterBaseFiltros(f.id);
+
+    let valores = [
+      ...new Set(
+        base
+          .map(r=>r[f.coluna])
+          .filter(Boolean)
+      )
+    ];
+
+    valores.sort((a,b)=>
+      a.localeCompare(
+        b,
+        "pt-BR",
+        {numeric:true}
+      )
+    );
+
+    seletor.empty();
+
+    seletor.append(`
+      <option value="">
+        Todos
+      </option>
+    `);
+
+    valores.forEach(v=>{
+
+      seletor.append(`
+        <option value="${v}">
+          ${v}
+        </option>
+      `);
+
+    });
+
+    seletor.prop(
+      "disabled",
+      !$("#mesFiltro").val()
+    );
+
+    if(valores.includes(valorAtual)){
+      seletor.val(valorAtual);
+    }
+
+  });
+
+}
+
 /* Aplicar filtros */
 function aplicarFiltros(){
 
   const ano = $("#anoFiltro").val();
   const mes = $("#mesFiltro").val();
 
-  /* Sem seleção */
   if(!ano || !mes){
-
-    atualizarResumo([]);
-
     return [];
-
   }
 
-  /* Filtra ano */
   let dadosFiltrados = dadosOriginais.filter(
     r => r.ANO === ano
   );
 
+  filtros.forEach(f=>{
+
+    const valor = $("#"+f.id).val();
+
+    if(valor){
+
+      dadosFiltrados = dadosFiltrados.filter(
+        r => r[f.coluna] === valor
+      );
+
+    }
+
+  });
+
   /* TODOS */
   if(mes === "TODOS"){
-
-    atualizarResumo(dadosFiltrados);
 
     return dadosFiltrados;
 
   }
 
   /* Mês específico */
-  const dados = dadosFiltrados
+  return dadosFiltrados
     .filter(r => r[mes])
     .map(d=>{
 
@@ -497,7 +707,6 @@ function aplicarFiltros(){
 
       for(const key in d){
 
-        /* Mantém somente o mês selecionado */
         if(
           !meses.includes(key) ||
           key === mes
@@ -513,16 +722,11 @@ function aplicarFiltros(){
 
     });
 
-  atualizarResumo(dados);
-
-  return dados;
-
 }
 
 /* Render tabela */
 function renderTabela(dados){
 
-  /* Sem dados */
   if(!dados.length){
 
     if(tabela){
@@ -541,7 +745,6 @@ function renderTabela(dados){
 
   }
 
-  /* Recria completamente */
   if(tabela){
 
     tabela.destroy();
@@ -593,6 +796,8 @@ function renderTabela(dados){
 /* Aplicar tudo */
 function aplicarTudo(){
 
+  atualizarFiltrosEncadeados();
+
   const dados = aplicarFiltros();
 
   renderTabela(dados);
@@ -606,6 +811,20 @@ $("#anoFiltro").on("change",function(){
 
   $("#mesFiltro")
     .prop("disabled",!ano);
+
+  filtros.forEach(f=>{
+
+    $("#"+f.id)
+      .prop("disabled",true)
+      .val("")
+      .empty()
+      .append(`
+        <option value="">
+          Todos
+        </option>
+      `);
+
+  });
 
   if(ano){
 
@@ -630,10 +849,23 @@ $("#anoFiltro").on("change",function(){
 });
 
 /* Mês */
-$("#mesFiltro").on(
-  "change",
-  aplicarTudo
-);
+$("#mesFiltro").on("change",function(){
+
+  atualizarFiltrosEncadeados();
+
+  aplicarTudo();
+
+});
+
+/* Filtros encadeados */
+filtros.forEach(f=>{
+
+  $("#"+f.id).on(
+    "change",
+    aplicarTudo
+  );
+
+});
 
 /* Registros página */
 $("#lengthSelector").on(
