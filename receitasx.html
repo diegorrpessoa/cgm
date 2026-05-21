@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Painel de Receitas</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+
+<style>
+
+body{
+  background-color:#f8f9fa;
+}
+
+.dataTables_filter{
+  display:none;
+}
+
+label{
+  font-weight:600;
+  font-size:0.72rem !important;
+  color:#343a40;
+  margin-bottom:2px;
+}
+
+.form-select-sm,
+table{
+  font-size:0.7rem !important;
+}
+
+table.dataTable td,
+table.dataTable th{
+  white-space:nowrap;
+}
+
+/* Paginação */
+.dataTables_wrapper .dataTables_paginate{
+  margin-top:.5rem;
+  display:flex;
+  justify-content:center;
+  gap:4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+  padding:4px 8px !important;
+  font-size:.65rem !important;
+  border-radius:6px !important;
+  background-color:#e9ecef !important;
+  border:1px solid #dee2e6 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background-color:#0d6efd !important;
+  color:#fff !important;
+  font-weight:bold !important;
+}
+
+/* Botões exportação */
+.export-group .btn{
+  font-size:.7rem;
+  padding:4px 8px;
+}
+
+/* Atualização */
+#indicadorAtualizacao{
+  font-size:.65rem;
+  color:#6c757d;
+  text-align:right;
+  margin-bottom:8px;
+}
+
+/* Spinner */
+.spinner-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:60px;
+  z-index:9999;
+  background-color:rgba(255,255,255,.9);
+}
+
+.spinner-border{
+  width:2rem;
+  height:2rem;
+}
+
+.spinner-text{
+  font-size:.9rem;
+  margin-top:5px;
+}
+
+/* Totalizadores */
+.totalizadores{
+  font-size:.7rem;
+  background:#fff;
+  padding:5px 10px;
+  border:1px solid #dee2e6;
+  border-radius:4px;
+}
+
+.totalizadores span{
+  display:inline-block;
+  margin-right:15px;
+  font-weight:600;
+}
+
+/* Registros por página */
+#lengthSelectorContainer{
+  font-size:.7rem;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:6px;
+  margin-bottom:6px;
+}
+
+#lengthSelector{
+  width:80px;
+  font-size:.7rem;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SPINNER -->
+<div id="spinnerCsv" class="spinner-overlay">
+
+  <div class="spinner-border text-primary"></div>
+
+  <div class="spinner-text">
+    Carregando base de dados...
+  </div>
+
+</div>
+
+<div class="container-fluid mt-3">
+
+  <!-- INDICADOR -->
+  <div id="indicadorAtualizacao">
+    Dados atualizados em...
+  </div>
+
+  <!-- FILTROS -->
+  <div class="row gx-2 gy-2 mb-3">
+
+    <div class="col-sm-2">
+
+      <label>Ano *</label>
+
+      <select
+        id="anoFiltro"
+        class="form-select form-select-sm"
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
+
+    </div>
+
+    <div class="col-sm-2">
+
+      <label>Mês *</label>
+
+      <select
+        id="mesFiltro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
+
+    </div>
+
+  </div>
+
+  <!-- TOTALIZADOR
+  <div
+    class="totalizadores mb-2"
+    id="resumoValores"
+    style="display:none;"
+  >
+
+    <span id="totalRegistros">
+      Registros encontrados: 0
+    </span>
+
+  </div>-->
+
+  <!-- BOTÕES -->
+  <div class="d-flex justify-content-between mb-2">
+
+    <button
+      id="btnLimpar"
+      class="btn btn-outline-primary btn-sm"
+    >
+      Limpar Filtros
+    </button>
+
+    <div class="export-group btn-group">
+
+      <button
+        id="btnCsv"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        CSV
+      </button>
+
+      <button
+        id="btnXlsx"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        XLSX
+      </button>
+
+      <button
+        id="btnTxt"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        TXT
+      </button>
+
+      <button
+        id="btnJson"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        JSON
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- REGISTROS -->
+  <div id="lengthSelectorContainer">
+
+    <label>Registros por página:</label>
+
+    <select
+      id="lengthSelector"
+      class="form-select form-select-sm"
+    >
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+
+  </div>
+
+  <!-- TABELA -->
+  <div class="table-responsive">
+
+    <table
+      id="tabela"
+      class="table table-bordered table-striped table-sm w-100"
+      style="display:none;"
+    ></table>
+
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+
+let tabela = null;
+
+let dadosOriginais = [];
+
+const urlCSV =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS9iiIBNEZs9OFuuKDy8N-P6fBDuqxpEYObhYWoR7YDi4DxsHQ7fZEHXs91FYLxCJEJpoJBaEeVYt0t/pub?gid=1659253784&single=true&output=csv";
+
+const meses = [
+  "JANEIRO",
+  "FEVEREIRO",
+  "MARÇO",
+  "ABRIL",
+  "MAIO",
+  "JUNHO",
+  "JULHO",
+  "AGOSTO",
+  "SETEMBRO",
+  "OUTUBRO",
+  "NOVEMBRO",
+  "DEZEMBRO"
+];
+
+/* Nome exportação */
+function gerarNomeArquivo(ext){
+
+  let partes = ["dados-receitas"];
+
+  const ano = $("#anoFiltro").val();
+  const mes = $("#mesFiltro").val();
+
+  if(ano){
+
+    partes.push(
+      ano.toLowerCase().replace(/\s+/g,"-")
+    );
+
+  }
+
+  if(mes){
+
+    partes.push(
+      mes.toLowerCase().replace(/\s+/g,"-")
+    );
+
+  }
+
+  return partes.join("-")+"."+ext;
+
+}
+
+/* Resumo */
+function atualizarResumo(dados){
+
+  if(!dados.length){
+
+    $("#resumoValores").hide();
+
+    return;
+
+  }
+
+  $("#totalRegistros").text(
+    "Registros encontrados: "+dados.length
+  );
+
+  $("#resumoValores").show();
+
+}
+
+/* CSV */
+Papa.parse(urlCSV,{
+
+  download:true,
+  header:true,
+
+  complete:r=>{
+
+    dadosOriginais = r.data.filter(
+      d => d.ANO
+    );
+
+    /* Atualização */
+    const linhaAtualizacao =
+      dadosOriginais.find(
+        x => x["Atualizacao"]
+      );
+
+    if(linhaAtualizacao){
+
+      $("#indicadorAtualizacao").html(
+        `Dados atualizados em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
+      );
+
+    }
+
+    /* Remove coluna Atualizacao */
+    dadosOriginais = dadosOriginais.map(r=>{
+
+      const copia = {...r};
+
+      delete copia["Atualizacao"];
+
+      return copia;
+
+    });
+
+    carregarAno();
+
+    $("#spinnerCsv").fadeOut(200);
+
+  }
+
+});
+
+/* Carregar anos */
+function carregarAno(){
+
+  const s = $("#anoFiltro");
+
+  s.empty();
+
+  s.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
+
+  [...new Set(
+    dadosOriginais.map(r=>r.ANO)
+  )]
+  .sort()
+  .forEach(v=>{
+
+    s.append(`
+      <option value="${v}">
+        ${v}
+      </option>
+    `);
+
+  });
+
+}
+
+/* Carregar meses */
+function carregarMeses(){
+
+  const s = $("#mesFiltro");
+
+  s.empty();
+
+  s.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
+
+  s.append(`
+    <option value="TODOS">
+      Todos
+    </option>
+  `);
+
+  meses.forEach(m=>{
+
+    s.append(`
+      <option value="${m}">
+        ${m.charAt(0)+m.slice(1).toLowerCase()}
+      </option>
+    `);
+
+  });
+
+}
+
+/* Aplicar filtros */
+function aplicarFiltros(){
+
+  const ano = $("#anoFiltro").val();
+  const mes = $("#mesFiltro").val();
+
+  /* Sem seleção */
+  if(!ano || !mes){
+
+    atualizarResumo([]);
+
+    return [];
+
+  }
+
+  /* Filtra ano */
+  let dadosFiltrados = dadosOriginais.filter(
+    r => r.ANO === ano
+  );
+
+  /* TODOS */
+  if(mes === "TODOS"){
+
+    atualizarResumo(dadosFiltrados);
+
+    return dadosFiltrados;
+
+  }
+
+  /* Mês específico */
+  const dados = dadosFiltrados
+    .filter(r => r[mes])
+    .map(d=>{
+
+      const base = {};
+
+      for(const key in d){
+
+        /* Mantém somente o mês selecionado */
+        if(
+          !meses.includes(key) ||
+          key === mes
+        ){
+
+          base[key] = d[key];
+
+        }
+
+      }
+
+      return base;
+
+    });
+
+  atualizarResumo(dados);
+
+  return dados;
+
+}
+
+/* Render tabela */
+function renderTabela(dados){
+
+  /* Sem dados */
+  if(!dados.length){
+
+    if(tabela){
+
+      tabela.destroy();
+
+      tabela = null;
+
+    }
+
+    $("#tabela")
+      .hide()
+      .empty();
+
+    return;
+
+  }
+
+  /* Recria completamente */
+  if(tabela){
+
+    tabela.destroy();
+
+    $("#tabela").empty();
+
+    tabela = null;
+
+  }
+
+  const colunas = Object.keys(dados[0]).map(c=>({
+    title:c,
+    data:c
+  }));
+
+  $("#tabela").show();
+
+  tabela = $("#tabela").DataTable({
+
+    data:dados,
+
+    columns:colunas,
+
+    destroy:true,
+
+    scrollX:true,
+    scrollY:"55vh",
+    scrollCollapse:true,
+
+    paging:true,
+
+    pageLength:parseInt(
+      $("#lengthSelector").val()
+    ),
+
+    lengthChange:false,
+    info:true,
+
+    autoWidth:false,
+
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
+
+  });
+
+}
+
+/* Aplicar tudo */
+function aplicarTudo(){
+
+  const dados = aplicarFiltros();
+
+  renderTabela(dados);
+
+}
+
+/* Ano */
+$("#anoFiltro").on("change",function(){
+
+  const ano = $(this).val();
+
+  $("#mesFiltro")
+    .prop("disabled",!ano);
+
+  if(ano){
+
+    carregarMeses();
+
+    $("#mesFiltro").val("");
+
+  }else{
+
+    $("#mesFiltro")
+      .empty()
+      .append(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
+
+  }
+
+  aplicarTudo();
+
+});
+
+/* Mês */
+$("#mesFiltro").on(
+  "change",
+  aplicarTudo
+);
+
+/* Registros página */
+$("#lengthSelector").on(
+  "change",
+  function(){
+
+    if(tabela){
+
+      tabela
+        .page
+        .len(this.value)
+        .draw();
+
+    }
+
+  }
+);
+
+/* Limpar */
+$("#btnLimpar").on(
+  "click",
+  ()=>location.reload()
+);
+
+/* Download */
+function baixarArquivo(blob,nome){
+
+  const link = document.createElement("a");
+
+  link.href = URL.createObjectURL(blob);
+
+  link.download = nome;
+
+  link.click();
+
+}
+
+/* CSV */
+$("#btnCsv").on("click",()=>{
+
+  if(!tabela) return;
+
+  const csv = Papa.unparse(
+    tabela.rows({search:"applied"}).data().toArray(),
+    {
+      quotes:true,
+      delimiter:";"
+    }
+  );
+
+  baixarArquivo(
+
+    new Blob(
+      ["\ufeff"+csv],
+      {
+        type:"text/csv;charset=utf-8;"
+      }
+    ),
+
+    gerarNomeArquivo("csv")
+
+  );
+
+});
+
+/* JSON */
+$("#btnJson").on("click",()=>{
+
+  if(!tabela) return;
+
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  baixarArquivo(
+
+    new Blob(
+      [JSON.stringify(dados,null,2)],
+      {
+        type:"application/json"
+      }
+    ),
+
+    gerarNomeArquivo("json")
+
+  );
+
+});
+
+/* TXT */
+$("#btnTxt").on("click",()=>{
+
+  if(!tabela) return;
+
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  const txt = dados
+    .map(o=>Object.values(o).join(" | "))
+    .join("\n");
+
+  baixarArquivo(
+
+    new Blob(
+      [txt],
+      {
+        type:"text/plain"
+      }
+    ),
+
+    gerarNomeArquivo("txt")
+
+  );
+
+});
+
+/* XLSX */
+$("#btnXlsx").on("click",()=>{
+
+  if(!tabela) return;
+
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  const ws = XLSX.utils.json_to_sheet(dados);
+
+  const wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    "Receitas"
+  );
+
+  XLSX.writeFile(
+    wb,
+    gerarNomeArquivo("xlsx")
+  );
+
+});
+
+</script>
+
+</body>
+</html>
