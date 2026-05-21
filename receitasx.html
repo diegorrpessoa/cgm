@@ -22,7 +22,7 @@ body{
 
 label{
   font-weight:600;
-  font-size:0.72rem !important;
+  font-size:.72rem !important;
   color:#343a40;
   margin-bottom:2px;
 }
@@ -49,17 +49,17 @@ table.dataTable th{
   padding:4px 8px !important;
   font-size:.65rem !important;
   border-radius:6px !important;
-  background:#e9ecef !important;
+  background-color:#e9ecef !important;
   border:1px solid #dee2e6 !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{
-  background:#0d6efd !important;
+  background-color:#0d6efd !important;
   color:#fff !important;
   font-weight:bold !important;
 }
 
-/* Botões */
+/* Botões exportação */
 .export-group .btn{
   font-size:.7rem;
   padding:4px 8px;
@@ -86,7 +86,7 @@ table.dataTable th{
   justify-content:flex-start;
   padding-top:60px;
   z-index:9999;
-  background:rgba(255,255,255,.9);
+  background-color:rgba(255,255,255,.9);
 }
 
 .spinner-border{
@@ -99,7 +99,7 @@ table.dataTable th{
   margin-top:5px;
 }
 
-/* Registros */
+/* Registros por página */
 #lengthSelectorContainer{
   font-size:.7rem;
   display:flex;
@@ -140,6 +140,7 @@ table.dataTable th{
   <!-- FILTROS -->
   <div class="row gx-2 gy-2 mb-3">
 
+    <!-- ANO -->
     <div class="col-sm-2">
       <label>Ano *</label>
 
@@ -153,6 +154,7 @@ table.dataTable th{
       </select>
     </div>
 
+    <!-- MÊS -->
     <div class="col-sm-2">
       <label>Mês *</label>
 
@@ -167,6 +169,7 @@ table.dataTable th{
       </select>
     </div>
 
+    <!-- CATEGORIA -->
     <div class="col-sm-2">
       <label>Categoria Econômica</label>
 
@@ -181,6 +184,7 @@ table.dataTable th{
       </select>
     </div>
 
+    <!-- ORIGEM -->
     <div class="col-sm-2">
       <label>Origem</label>
 
@@ -195,6 +199,7 @@ table.dataTable th{
       </select>
     </div>
 
+    <!-- ESPÉCIE -->
     <div class="col-sm-2">
       <label>Espécie</label>
 
@@ -209,6 +214,7 @@ table.dataTable th{
       </select>
     </div>
 
+    <!-- DESDOBRAMENTO 1 -->
     <div class="col-sm-2">
       <label>Desdobramento 1</label>
 
@@ -223,6 +229,7 @@ table.dataTable th{
       </select>
     </div>
 
+    <!-- DESDOBRAMENTO 2 -->
     <div class="col-sm-2">
       <label>Desdobramento 2</label>
 
@@ -237,6 +244,7 @@ table.dataTable th{
       </select>
     </div>
 
+    <!-- DESDOBRAMENTO 3 -->
     <div class="col-sm-2">
       <label>Desdobramento 3</label>
 
@@ -359,36 +367,31 @@ const meses = [
   "DEZEMBRO"
 ];
 
-const filtros = [
-  {
-    id:"categoriaFiltro",
-    coluna:"CATEGORIA ECONOMICA",
-    colunaNome:"NOME CATEGORIA ECONOMICA"
-  },
-  {
-    id:"origemFiltro",
-    coluna:"ORIGEM"
-  },
-  {
-    id:"especieFiltro",
-    coluna:"ESPECIE"
-  },
-  {
-    id:"des1Filtro",
-    coluna:"DESDOBRAMENTO 1"
-  },
-  {
-    id:"des2Filtro",
-    coluna:"DESDOBRAMENTO 2"
-  },
-  {
-    id:"des3Filtro",
-    coluna:"DESDOBRAMENTO 3"
-  }
+/* CAMPOS */
+const campos = {
+  ano:"ANO",
+  mes:"MES_REFERENCIA",
+  categoria:"CATEGORIA ECONOMICA",
+  origem:"ORIGEM",
+  especie:"ESPECIE",
+  des1:"DESDOBRAMENTO 1",
+  des2:"DESDOBRAMENTO 2",
+  des3:"DESDOBRAMENTO 3"
+};
+
+const ordemFiltros = [
+  "ano",
+  "mes",
+  "categoria",
+  "origem",
+  "especie",
+  "des1",
+  "des2",
+  "des3"
 ];
 
 /* =========================
-   CARREGAMENTO CSV
+   CARREGAR CSV
 ========================= */
 
 Papa.parse(urlCSV,{
@@ -434,6 +437,49 @@ Papa.parse(urlCSV,{
 });
 
 /* =========================
+   UTIL
+========================= */
+
+function normalizarTexto(texto){
+
+  return texto
+    ?.toString()
+    .trim() || "";
+
+}
+
+function gerarNomeArquivo(ext){
+
+  let partes = ["dados-receitas"];
+
+  ordemFiltros.forEach(f=>{
+
+    const val =
+      $("#"+f+"Filtro").val();
+
+    if(
+      val &&
+      val !== "TODOS"
+    ){
+
+      partes.push(
+        val
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/[^\w\s-]/g,"")
+          .replace(/\s+/g,"-")
+      );
+
+    }
+
+  });
+
+  return partes.join("-")+"."+ext;
+
+}
+
+/* =========================
    CARREGAR ANO
 ========================= */
 
@@ -449,9 +495,11 @@ function carregarAno(){
     </option>
   `);
 
-  [...new Set(
-    dadosOriginais.map(r=>r.ANO)
-  )]
+  [
+    ...new Set(
+      dadosOriginais.map(r=>r.ANO)
+    )
+  ]
   .sort()
   .forEach(v=>{
 
@@ -466,235 +514,209 @@ function carregarAno(){
 }
 
 /* =========================
-   CARREGAR MESES
+   FILTRO BASE
 ========================= */
 
-function carregarMeses(){
+function aplicarFiltrosBase(
+  ignorarFiltro = null
+){
 
-  const s = $("#mesFiltro");
+  let base = [...dadosOriginais];
 
-  s.empty();
+  ordemFiltros.forEach(f=>{
 
-  s.append(`
-    <option value="">
-      Selecione...
-    </option>
-  `);
+    if(f === ignorarFiltro) return;
 
-  s.append(`
-    <option value="TODOS">
-      Todos
-    </option>
-  `);
+    const valor =
+      $("#"+f+"Filtro").val();
 
-  meses.forEach(m=>{
+    if(
+      !valor ||
+      valor === "TODOS"
+    ) return;
 
-    s.append(`
-      <option value="${m}">
-        ${m.charAt(0)+m.slice(1).toLowerCase()}
-      </option>
-    `);
+    if(f === "mes"){
+
+      base = base.filter(
+        r => normalizarTexto(
+          r[campos[f]]
+        ) === valor
+      );
+
+    }else{
+
+      base = base.filter(
+        r => normalizarTexto(
+          r[campos[f]]
+        ) === valor
+      );
+
+    }
 
   });
+
+  return base;
 
 }
 
 /* =========================
-   RESET FILTROS
+   POPULAR FILTRO
 ========================= */
 
-function resetarFiltrosExtras(){
+function popularFiltro(
+  filtro
+){
 
-  filtros.forEach(f=>{
+  const seletor =
+    $("#"+filtro+"Filtro");
 
-    $("#"+f.id)
-      .val("")
-      .prop("disabled",true)
-      .empty()
-      .append(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
+  const valorAtual =
+    seletor.val();
 
-  });
-
-}
-
-/* =========================
-   POPULAR FILTROS
-========================= */
-
-function popularFiltro(config,dadosBase){
-
-  const select = $("#"+config.id);
-
-  const valorAtual = select.val();
-
-  select.empty();
-
-  select.append(`
-    <option value="">
-      Selecione...
-    </option>
-  `);
-
-  select.append(`
-    <option value="TODOS">
-      Todos
-    </option>
-  `);
+  const base =
+    aplicarFiltrosBase(filtro);
 
   let valores = [];
 
-  /* Categoria econômica com código + descrição */
-  if(config.colunaNome){
+  /* MÊS */
+  if(filtro === "mes"){
 
-    valores = [
-      ...new Map(
-
-        dadosBase
-          .filter(r=>r[config.coluna])
-          .map(r=>{
-
-            const codigo = r[config.coluna];
-            const nome = r[config.colunaNome] || "";
-
-            return [
-              codigo,
-              {
-                valor:codigo,
-                texto:nome
-                  ? `${codigo} - ${nome}`
-                  : codigo
-              }
-            ];
-
-          })
-
-      ).values()
-    ];
-
-    valores.sort((a,b)=>
-      a.texto.localeCompare(
-        b.texto,
-        "pt-BR",
-        {numeric:true}
+    valores = meses.filter(m=>
+      base.some(r=>
+        normalizarTexto(
+          r[campos.mes]
+        ) === m
       )
     );
 
-    valores.forEach(item=>{
+  }else if(filtro === "categoria"){
 
-      select.append(`
-        <option value="${item.valor}">
-          ${item.texto}
-        </option>
-      `);
+    valores = [
+      ...new Set(
+        base
+          .map(r=>{
 
-    });
+            const codigo =
+              normalizarTexto(
+                r["CATEGORIA ECONOMICA"]
+              );
+
+            const nome =
+              normalizarTexto(
+                r["NOME CATEGORIA ECONOMICA"]
+              );
+
+            if(nome){
+
+              return `${codigo} - ${nome}`;
+
+            }
+
+            return codigo;
+
+          })
+          .filter(Boolean)
+      )
+    ].sort();
 
   }else{
 
     valores = [
       ...new Set(
-        dadosBase
-          .map(r=>r[config.coluna])
+        base
+          .map(r=>
+            normalizarTexto(
+              r[campos[filtro]]
+            )
+          )
           .filter(Boolean)
       )
-    ];
-
-    valores.sort((a,b)=>
-      a.localeCompare(
-        b,
-        "pt-BR",
-        {numeric:true}
-      )
-    );
-
-    valores.forEach(v=>{
-
-      select.append(`
-        <option value="${v}">
-          ${v}
-        </option>
-      `);
-
-    });
+    ].sort();
 
   }
 
-  select.prop("disabled",false);
+  seletor.empty();
+
+  seletor.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
 
   if(
-    valorAtual &&
-    (
-      valores.some(v=>
-        typeof v === "object"
-          ? v.valor === valorAtual
-          : v === valorAtual
-      )
-      || valorAtual === "TODOS"
-    )
+    filtro !== "ano"
   ){
 
-    select.val(valorAtual);
+    seletor.append(`
+      <option value="TODOS">
+        Todos
+      </option>
+    `);
+
+  }
+
+  valores.forEach(v=>{
+
+    seletor.append(`
+      <option value="${v}">
+        ${v}
+      </option>
+    `);
+
+  });
+
+  seletor.prop(
+    "disabled",
+    valores.length === 0
+  );
+
+  if(
+    valores.includes(valorAtual)
+    ||
+    valorAtual === "TODOS"
+  ){
+
+    seletor.val(valorAtual);
 
   }
 
 }
 
 /* =========================
-   ATUALIZAR FILTROS
+   ATUALIZAR TODOS FILTROS
 ========================= */
 
-function atualizarFiltrosEncadeados(){
+function atualizarTodosFiltros(){
 
-  let base = dadosOriginais.filter(
-    r => r.ANO === $("#anoFiltro").val()
-  );
+  ordemFiltros
+    .slice(1)
+    .forEach(f=>{
 
-  const mes = $("#mesFiltro").val();
+      popularFiltro(f);
 
-  if(
-    mes &&
-    mes !== "TODOS"
-  ){
+    });
 
-    base = base.filter(
-      r => r[mes]
-    );
+}
 
-  }
+/* =========================
+   RESET TODOS
+========================= */
 
-  filtros.forEach((f,index)=>{
+function resetarFiltrosExceto(
+  filtroAtual
+){
 
-    let dadosFiltro = [...base];
+  ordemFiltros.forEach(f=>{
 
-    for(let i=0;i<index;i++){
+    if(
+      f !== "ano" &&
+      f !== filtroAtual
+    ){
 
-      const filtroAnterior = filtros[i];
-
-      const valorAnterior =
-        $("#"+filtroAnterior.id).val();
-
-      if(
-        valorAnterior &&
-        valorAnterior !== "TODOS"
-      ){
-
-        dadosFiltro = dadosFiltro.filter(
-          r =>
-            r[filtroAnterior.coluna] === valorAnterior
-        );
-
-      }
+      $("#"+f+"Filtro")
+        .val("");
 
     }
-
-    popularFiltro(
-      f,
-      dadosFiltro
-    );
 
   });
 
@@ -706,67 +728,56 @@ function atualizarFiltrosEncadeados(){
 
 function aplicarFiltros(){
 
-  const ano = $("#anoFiltro").val();
-  const mes = $("#mesFiltro").val();
+  const ano =
+    $("#anoFiltro").val();
 
-  if(!ano || !mes){
+  if(!ano){
+
     return [];
+
   }
 
-  let dados = dadosOriginais.filter(
-    r => r.ANO === ano
-  );
+  let dados =
+    aplicarFiltrosBase();
 
-  if(mes !== "TODOS"){
+  const mes =
+    $("#mesFiltro").val();
 
-    dados = dados
-      .filter(r => r[mes])
-      .map(d=>{
+  if(
+    mes &&
+    mes !== "TODOS"
+  ){
 
-        const base = {};
+    dados = dados.map(d=>{
 
-        for(const key in d){
+      const base = {};
 
-          if(
-            !meses.includes(key) ||
-            key === mes
-          ){
+      for(const key in d){
 
-            base[key] = d[key];
+        if(
+          !meses.includes(key)
+          ||
+          key === mes
+        ){
 
-          }
+          base[key] = d[key];
 
         }
 
-        return base;
+      }
 
-      });
+      return base;
+
+    });
 
   }
-
-  filtros.forEach(f=>{
-
-    const valor = $("#"+f.id).val();
-
-    if(
-      valor &&
-      valor !== "TODOS"
-    ){
-
-      dados = dados.filter(
-        r => r[f.coluna] === valor
-      );
-
-    }
-
-  });
 
   return dados;
 
 }
 
 /* =========================
-   RENDER TABELA
+   TABELA
 ========================= */
 
 function renderTabela(dados){
@@ -795,14 +806,13 @@ function renderTabela(dados){
 
     $("#tabela").empty();
 
-    tabela = null;
-
   }
 
-  const colunas = Object.keys(dados[0]).map(c=>({
-    title:c,
-    data:c
-  }));
+  const colunas =
+    Object.keys(dados[0]).map(c=>({
+      title:c,
+      data:c
+    }));
 
   $("#tabela").show();
 
@@ -825,6 +835,7 @@ function renderTabela(dados){
     ),
 
     lengthChange:false,
+
     info:true,
 
     autoWidth:false,
@@ -843,160 +854,77 @@ function renderTabela(dados){
 
 function aplicarTudo(){
 
-  const dados = aplicarFiltros();
+  atualizarTodosFiltros();
+
+  const dados =
+    aplicarFiltros();
 
   renderTabela(dados);
 
 }
 
 /* =========================
-   EVENTO ANO
+   EVENTOS
 ========================= */
 
-$("#anoFiltro").on("change",function(){
+/* ANO */
+$("#anoFiltro").on(
+  "change",
+  function(){
 
-  const ano = $(this).val();
+    const ano =
+      $(this).val();
 
-  $("#mesFiltro")
-    .prop("disabled",!ano);
+    ordemFiltros
+      .slice(1)
+      .forEach(f=>{
 
-  resetarFiltrosExtras();
+        $("#"+f+"Filtro")
+          .val("")
+          .prop("disabled",!ano);
 
-  if(ano){
+      });
 
-    carregarMeses();
+    if(ano){
 
-    $("#mesFiltro").val("");
+      atualizarTodosFiltros();
 
-  }else{
-
-    $("#mesFiltro")
-      .empty()
-      .append(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
-
-  }
-
-  aplicarTudo();
-
-});
-
-/* =========================
-   EVENTO MÊS
-========================= */
-
-$("#mesFiltro").on("change",function(){
-
-  const valor = $(this).val();
-
-  if(!valor){
-
-    resetarFiltrosExtras();
+    }
 
     aplicarTudo();
 
-    return;
-
   }
+);
 
-  filtros.forEach(f=>{
+/* DEMAIS FILTROS */
+ordemFiltros
+  .slice(1)
+  .forEach(f=>{
 
-    $("#"+f.id)
-      .val("")
-      .prop("disabled",false);
+    $("#"+f+"Filtro").on(
+      "change",
+      function(){
 
-  });
+        const valor =
+          $(this).val();
 
-  atualizarFiltrosEncadeados();
+        /* TODOS */
+        if(valor === "TODOS"){
 
-  aplicarTudo();
+          resetarFiltrosExceto(f);
 
-});
-
-/* =========================
-   EVENTOS FILTROS
-========================= */
-
-filtros.forEach((f,index)=>{
-
-  $("#"+f.id).on("change",function(){
-
-    const valorSelecionado = $(this).val();
-
-    /* SEM SELEÇÃO */
-    if(!valorSelecionado){
-
-      filtros.forEach((outro,outroIndex)=>{
-
-        if(outroIndex > index){
-
-          $("#"+outro.id)
-            .val("")
-            .prop("disabled",false);
+          $(this).val("TODOS");
 
         }
 
-      });
-
-      atualizarFiltrosEncadeados();
-
-      aplicarTudo();
-
-      return;
-
-    }
-
-    /* TODOS */
-    if(valorSelecionado === "TODOS"){
-
-      filtros.forEach(outro=>{
-
-        if(outro.id !== f.id){
-
-          $("#"+outro.id)
-            .val("")
-            .prop("disabled",false);
-
-        }
-
-      });
-
-      atualizarFiltrosEncadeados();
-
-      aplicarTudo();
-
-      return;
-
-    }
-
-    /* ENCADEAMENTO */
-    filtros.forEach((outro,outroIndex)=>{
-
-      if(outroIndex > index){
-
-        $("#"+outro.id)
-          .val("")
-          .prop("disabled",false);
+        aplicarTudo();
 
       }
-
-    });
-
-    atualizarFiltrosEncadeados();
-
-    aplicarTudo();
+    );
 
   });
 
-});
-
-/* =========================
-   PAGINAÇÃO
-========================= */
-
+/* REGISTROS */
 $("#lengthSelector").on(
   "change",
   function(){
@@ -1013,10 +941,7 @@ $("#lengthSelector").on(
   }
 );
 
-/* =========================
-   LIMPAR
-========================= */
-
+/* LIMPAR */
 $("#btnLimpar").on(
   "click",
   ()=>location.reload()
@@ -1028,72 +953,15 @@ $("#btnLimpar").on(
 
 function baixarArquivo(blob,nome){
 
-  const link = document.createElement("a");
+  const link =
+    document.createElement("a");
 
-  link.href = URL.createObjectURL(blob);
+  link.href =
+    URL.createObjectURL(blob);
 
   link.download = nome;
 
   link.click();
-
-}
-
-/* =========================
-   NOME EXPORTAÇÃO
-========================= */
-
-function gerarNomeArquivo(ext){
-
-  let partes = ["dados-receitas"];
-
-  const ano = $("#anoFiltro").val();
-  const mes = $("#mesFiltro").val();
-
-  if(ano){
-
-    partes.push(
-      ano.toLowerCase().replace(/\s+/g,"-")
-    );
-
-  }
-
-  if(
-    mes &&
-    mes !== "TODOS"
-  ){
-
-    partes.push(
-      mes.toLowerCase().replace(/\s+/g,"-")
-    );
-
-  }
-
-  filtros.forEach(f=>{
-
-    const valor = $("#"+f.id).val();
-
-    if(
-      valor &&
-      valor !== "TODOS"
-    ){
-
-      partes.push(
-
-        valor
-          .toString()
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g,"")
-          .replace(/\s+/g,"-")
-          .replace(/[^\w-]/g,"")
-
-      );
-
-    }
-
-  });
-
-  return partes.join("-")+"."+ext;
 
 }
 
@@ -1106,11 +974,17 @@ $("#btnCsv").on("click",()=>{
   if(!tabela) return;
 
   const csv = Papa.unparse(
-    tabela.rows({search:"applied"}).data().toArray(),
+
+    tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray(),
+
     {
       quotes:true,
       delimiter:";"
     }
+
   );
 
   baixarArquivo(
@@ -1201,9 +1075,11 @@ $("#btnXlsx").on("click",()=>{
     .data()
     .toArray();
 
-  const ws = XLSX.utils.json_to_sheet(dados);
+  const ws =
+    XLSX.utils.json_to_sheet(dados);
 
-  const wb = XLSX.utils.book_new();
+  const wb =
+    XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(
     wb,
