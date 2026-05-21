@@ -1,240 +1,386 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
+
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
 <title>Painel de Emendas - IN 05/2025 - TCE/MG</title>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
 
 <style>
-body { background-color: #f8f9fa; }
-.dataTables_filter { display: none; }
 
-label {
-  font-weight: 600;
-  font-size: 0.72rem !important;
-  color: #343a40;
-  margin-bottom: 2px;
+body{
+  background-color:#f8f9fa;
 }
 
-.form-select-sm, table {
-  font-size: 0.7rem !important;
+.dataTables_filter{
+  display:none;
 }
 
-table.dataTable td, table.dataTable th {
-  white-space: nowrap;
+/* Fonte geral */
+.form-label,
+.form-select-sm,
+.form-control-sm,
+.table th,
+.table td{
+  font-size:.65rem !important;
 }
 
-/* Paginação */
-.dataTables_wrapper .dataTables_paginate {
-  margin-top: 0.5rem;
-  display: flex;
-  justify-content: center;
-  gap: 4px;
+.xsmall{
+  font-size:.6rem !important;
 }
 
-.dataTables_wrapper .dataTables_paginate .paginate_button {
-  padding: 4px 8px !important;
-  font-size: 0.65rem !important;
-  border-radius: 6px !important;
-  background-color: #e9ecef !important;
-  border: 1px solid #dee2e6 !important;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button.current {
-  background-color: #0d6efd !important;
-  color: #fff !important;
-  font-weight: bold !important;
-}
-
-/* Botões exportação */
-.export-group .btn {
-  font-size: 0.7rem;
-  padding: 4px 8px;
+/* Tabela */
+table.dataTable td,
+table.dataTable th{
+  white-space:nowrap;
 }
 
 /* Atualização */
-#indicadorAtualizacao {
-  font-size: 0.65rem;
-  color: #6c757d;
-  text-align: right;
-  margin-bottom: 8px;
+#indicadorAtualizacao{
+  font-size:.65rem;
+  color:#6c757d;
+  text-align:right;
+  margin-bottom:8px;
 }
 
-/* Spinner gov.br */
-.spinner-overlay {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 60px;
-  z-index: 9999;
-  background-color: rgba(255,255,255,0.9);
+/* Spinner */
+.spinner-overlay,
+.spinner-overlay-filtro{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:60px;
+  z-index:9999;
 }
 
-.spinner-border {
-  width: 2rem;
-  height: 2rem;
+.spinner-overlay{
+  background-color:rgba(255,255,255,.9);
 }
 
-.spinner-text {
-  font-size: 0.9rem;
-  margin-top: 5px;
+.spinner-overlay-filtro{
+  background-color:rgba(255,255,255,.5);
+  z-index:9998;
 }
 
-/* Totalizador */
-.totalizadores {
-  font-size: 0.7rem;
-  background: #fff;
-  padding: 5px 10px;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
+.spinner-border{
+  width:2rem;
+  height:2rem;
 }
 
-.totalizadores span {
-  display: inline-block;
-  margin-right: 15px;
-  font-weight: 600;
+.spinner-text{
+  font-size:.9rem;
+  margin-top:5px;
 }
 
-/* Registros por página externo */
-#lengthSelectorContainer {
-  font-size: 0.7rem;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
+/* Labels */
+.row label{
+  font-weight:600;
+  font-size:.72rem !important;
+  color:#343a40;
+  margin-bottom:2px;
+  padding-left:2px;
 }
 
-#lengthSelector {
-  width: 80px;
-  font-size: 0.7rem;
+/* Inputs */
+.form-select-sm,
+.form-control-sm{
+  border-radius:4px !important;
+  padding:2px 6px !important;
+  background-color:#fff !important;
+  border:1px solid #ced4da !important;
+  font-size:.7rem !important;
 }
+
+/* Totalizadores */
+.totalizadores{
+  font-size:.7rem;
+  background:#fff;
+  padding:5px 10px;
+  border:1px solid #dee2e6;
+  border-radius:4px;
+}
+
+.totalizadores span{
+  display:inline-block;
+  margin-right:15px;
+  font-weight:500;
+}
+
+/* Wrapper tabela */
+.table-wrapper{
+  overflow-x:auto;
+}
+
+/* Info tabela */
+.dataTables_info{
+  font-size:.65rem !important;
+  color:#6c757d !important;
+  margin-top:8px;
+  padding-left:5px;
+}
+
+/* Paginação */
+.dataTables_wrapper .dataTables_paginate{
+  margin-top:.5rem;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:4px;
+  padding:6px 0;
+  font-size:.7rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+  padding:4px 8px !important;
+  margin:0 2px !important;
+  font-size:.65rem !important;
+  border-radius:6px !important;
+  background-color:#e9ecef !important;
+  border:1px solid #dee2e6 !important;
+  color:#212529 !important;
+  transition:background-color .2s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover{
+  background-color:#d0d7df !important;
+  color:#212529 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background-color:#0d6efd !important;
+  color:#fff !important;
+  font-weight:bold !important;
+}
+
+/* Botões */
+.btn-group .btn{
+  font-size:.7rem;
+  padding:4px 8px;
+}
+
+/* Registros */
+#lengthSelectorContainer{
+  margin-top:10px;
+  font-size:.75rem;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+}
+
+#lengthSelector{
+  width:70px;
+  font-size:.75rem;
+  padding:2px 4px;
+}
+
 </style>
 </head>
 
 <body>
 
-<!-- SPINNER -->
+<!-- SPINNER PRINCIPAL -->
 <div id="spinnerCsv" class="spinner-overlay">
+
   <div class="spinner-border text-primary"></div>
-  <div class="spinner-text">Carregando base de dados...</div>
+
+  <div class="spinner-text">
+    Carregando base de dados...
+  </div>
+
+</div>
+
+<!-- SPINNER FILTROS -->
+<div
+  id="spinnerFiltro"
+  class="spinner-overlay-filtro"
+  style="display:none;"
+>
+
+  <div class="spinner-border text-secondary"></div>
+
+  <div class="spinner-text">
+    Atualizando filtros...
+  </div>
+
 </div>
 
 <div class="container-fluid mt-3">
 
-<div id="indicadorAtualizacao">
-  Dados atualizados em...
-</div>
-
-<!-- FILTROS -->
-<div class="row gx-2 gy-2 mb-3">
-
-  <div class="col-sm-2">
-    <label>Ano *</label>
-    <select id="anoFiltro" class="form-select form-select-sm"></select>
+  <!-- ATUALIZAÇÃO -->
+  <div id="indicadorAtualizacao">
+    Dados atualizados em...
   </div>
 
-  <div class="col-sm-2">
-    <label>Origem</label>
-    <select id="origemFiltro" class="form-select form-select-sm" disabled></select>
+  <!-- FILTROS -->
+  <div class="row gx-2 gy-2 mb-3">
+
+    <div class="col-sm-2">
+      <label>Ano *</label>
+      <select id="anoFiltro" class="form-select form-select-sm"></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Origem</label>
+      <select id="origemFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Tipo</label>
+      <select id="tipoFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Autoria</label>
+      <select id="autoriaFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Número</label>
+      <select id="numeroFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Objeto</label>
+      <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Recebedor</label>
+      <select id="recebedorFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>CNPJ</label>
+      <select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Natureza</label>
+      <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Função</label>
+      <select id="funcaoFiltro" class="form-select form-select-sm" disabled></select>
+    </div>
+
   </div>
 
-  <div class="col-sm-2">
-    <label>Tipo</label>
-    <select id="tipoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>Autoria</label>
-    <select id="autoriaFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>Número</label>
-    <select id="numeroFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>Objeto</label>
-    <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>Recebedor</label>
-    <select id="recebedorFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>CNPJ</label>
-    <select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>Natureza</label>
-    <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-  <div class="col-sm-2">
-    <label>Função</label>
-    <select id="funcaoFiltro" class="form-select form-select-sm" disabled></select>
-  </div>
-
-</div>
-
-<!-- TOTALIZADOR -->
-<div class="totalizadores mb-2" id="resumoValores" style="display:none;">
-  <span id="totalPrevisto">Valor previsto: R$ 0,00</span>
-</div>
-
-<!-- BOTÕES -->
-<div class="d-flex justify-content-between mb-2">
-
-  <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
-    Limpar Filtros
-  </button>
-
-  <div class="export-group btn-group">
-    <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
-    <button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
-    <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
-    <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
-  </div>
-
-</div>
-
-<!-- REGISTROS POR PÁGINA -->
-<div id="lengthSelectorContainer">
-  <label>Registros por página:</label>
-  <select id="lengthSelector" class="form-select form-select-sm">
-    <option value="10">10</option>
-    <option value="25">25</option>
-    <option value="50">50</option>
-    <option value="100">100</option>
-  </select>
-</div>
-
-<!-- TABELA -->
-<div class="table-responsive">
-  <table
-    id="tabela"
-    class="table table-bordered table-striped table-sm w-100"
+  <!-- TOTALIZADORES -->
+  <div
+    class="totalizadores mb-2"
+    id="resumoValores"
     style="display:none;"
-  ></table>
-</div>
+  >
+
+    <span id="totalPrevisto">
+      Valor previsto: R$ 0,00
+    </span>
+
+  </div>
+
+  <!-- BOTÕES -->
+  <div class="d-flex justify-content-between mb-2">
+
+    <button
+      id="btnLimpar"
+      class="btn btn-outline-primary btn-sm"
+    >
+      Limpar Filtros
+    </button>
+
+    <div class="btn-group">
+
+      <button
+        id="exportCsv"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        CSV
+      </button>
+
+      <button
+        id="exportXls"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        XLSX
+      </button>
+
+      <button
+        id="exportJson"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        JSON
+      </button>
+
+      <button
+        id="exportTxt"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        TXT
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- TABELA -->
+  <div class="table-wrapper">
+
+    <table
+      id="tabela"
+      class="table table-bordered table-striped table-sm xsmall w-100"
+      style="display:none;"
+    ></table>
+
+  </div>
+
+  <!-- REGISTROS -->
+  <div id="lengthSelectorContainer">
+
+    <label for="lengthSelector">
+      Registros por página:
+    </label>
+
+    <select
+      id="lengthSelector"
+      class="form-select form-select-sm d-inline-block"
+    >
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+
+  </div>
 
 </div>
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
@@ -259,62 +405,395 @@ const campos = {
   funcao:"Função de Governo Função programática"
 };
 
-const ordem = Object.keys(campos);
+const ordemFiltros = [
+  "ano",
+  "origem",
+  "tipo",
+  "autoria",
+  "numero",
+  "objeto",
+  "recebedor",
+  "cnpj",
+  "natureza",
+  "funcao"
+];
 
 /* =========================
-   NOME EXPORTAÇÃO
+   CARREGAR CSV
 ========================= */
 
-function gerarNomeArquivo(ext){
+$(document).ready(function(){
 
-  let partes = ["dados-emendas-pjf"];
+  Papa.parse(urlCSV,{
 
-  ordem.forEach(f=>{
+    download:true,
+    header:true,
+    skipEmptyLines:true,
 
-    let val = $("#"+f+"Filtro").val();
+    complete:function(resultado){
 
-    if(
-      val &&
-      val !== "TODOS"
-    ){
-
-      partes.push(
-
-        val
-          .toString()
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g,"")
-          .replace(/\s+/g,"-")
-          .replace(/[^\w-]/g,"")
-
+      dadosOriginais = resultado.data.filter(
+        r => r["Ano"]
       );
+
+      const linhaAtualizacao = dadosOriginais.find(
+        r => r["Atualizacao"]
+      );
+
+      if(linhaAtualizacao){
+
+        $("#indicadorAtualizacao").html(
+          `Dados atualizados em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
+        );
+
+      }
+
+      dadosOriginais = dadosOriginais.map(r=>{
+
+        const copia = {...r};
+
+        delete copia["Atualizacao"];
+
+        return copia;
+
+      });
+
+      popularFiltro(
+        "anoFiltro",
+        campos.ano,
+        dadosOriginais
+      );
+
+      $("#spinnerCsv").fadeOut(200);
+
+      inicializarEventos();
+
+    },
+
+    error:function(){
+
+      $("#spinnerCsv").hide();
+
+      alert("Erro ao carregar os dados.");
 
     }
 
   });
 
-  return partes.join("-")+"."+ext;
+});
+
+/* =========================
+   EVENTOS
+========================= */
+
+function inicializarEventos(){
+
+  ordemFiltros.forEach(f=>{
+
+    $("#"+f+"Filtro").on("change",()=>{
+
+      $("#spinnerFiltro").show();
+
+      setTimeout(()=>{
+
+        atualizarFiltros();
+
+        const dados = aplicarFiltros();
+
+        inicializarTabela(dados);
+
+        $("#spinnerFiltro").hide();
+
+      },100);
+
+    });
+
+  });
+
+  $("#btnLimpar").on("click",limparFiltros);
+
+  $("#lengthSelector").on("change",function(){
+
+    if(tabela){
+
+      tabela
+        .page
+        .len(parseInt(this.value))
+        .draw();
+
+    }
+
+  });
+
+  $("#exportCsv").on("click",()=>$(".buttons-csv").click());
+
+  $("#exportXls").on("click",()=>$(".buttons-excel").click());
+
+  $("#exportJson").on("click",exportarJson);
+
+  $("#exportTxt").on("click",exportarTxt);
 
 }
 
 /* =========================
-   MOEDA
+   POPULAR FILTROS
 ========================= */
 
-function parseMoeda(valor){
+function popularFiltro(id,campo,dados,valorAtual=""){
 
-  if(!valor) return 0;
+  const seletor = $("#"+id);
 
-  return parseFloat(
+  seletor.empty();
 
-    valor
-      .toString()
-      .replace(/[^\d,.-]/g,"")
-      .replace(/\./g,"")
-      .replace(",", ".")
+  seletor.append(`
+    <option value="">
+      Todos
+    </option>
+  `);
 
-  ) || 0;
+  let valores = [
+    ...new Set(
+      dados
+        .map(r=>r[campo])
+        .filter(Boolean)
+    )
+  ];
+
+  valores.sort((a,b)=>
+    a.toString().localeCompare(
+      b.toString(),
+      "pt-BR",
+      {numeric:true}
+    )
+  );
+
+  valores.forEach(v=>{
+
+    seletor.append(`
+      <option value="${v}">
+        ${v}
+      </option>
+    `);
+
+  });
+
+  seletor.prop("disabled",false);
+
+  if(valorAtual && valores.includes(valorAtual)){
+    seletor.val(valorAtual);
+  }
+
+}
+
+/* =========================
+   APLICAR FILTROS
+========================= */
+
+function aplicarFiltros(){
+
+  return ordemFiltros.reduce((base,filtro)=>{
+
+    const valor =
+      $("#"+filtro+"Filtro").val();
+
+    if(!valor){
+      return base;
+    }
+
+    return base.filter(
+      r => r[campos[filtro]] === valor
+    );
+
+  },dadosOriginais);
+
+}
+
+/* =========================
+   FILTRO IGNORANDO
+========================= */
+
+function aplicarFiltroIgnorando(filtroIgnorado){
+
+  return ordemFiltros.reduce((base,filtro)=>{
+
+    if(filtro === filtroIgnorado){
+      return base;
+    }
+
+    const valor =
+      $("#"+filtro+"Filtro").val();
+
+    if(!valor){
+      return base;
+    }
+
+    return base.filter(
+      r => r[campos[filtro]] === valor
+    );
+
+  },dadosOriginais);
+
+}
+
+/* =========================
+   ATUALIZAR FILTROS
+========================= */
+
+function atualizarFiltros(){
+
+  ordemFiltros.forEach((filtro,index)=>{
+
+    if(index === 0){
+      return;
+    }
+
+    const seletor =
+      $("#"+filtro+"Filtro");
+
+    const valorAtual =
+      seletor.val();
+
+    const base =
+      aplicarFiltroIgnorando(filtro);
+
+    popularFiltro(
+      filtro+"Filtro",
+      campos[filtro],
+      base,
+      valorAtual
+    );
+
+  });
+
+}
+
+/* =========================
+   LIMPAR FILTROS
+========================= */
+
+function limparFiltros(){
+
+  ordemFiltros.forEach((filtro,index)=>{
+
+    $("#"+filtro+"Filtro")
+      .val("")
+      .prop("disabled",index !== 0);
+
+  });
+
+  $("#resumoValores").hide();
+
+  $("#tabela")
+    .hide()
+    .empty();
+
+  if(tabela){
+
+    tabela.destroy();
+
+    tabela = null;
+
+  }
+
+  atualizarFiltros();
+
+}
+
+/* =========================
+   TABELA
+========================= */
+
+function inicializarTabela(dados){
+
+  if(!dados.length){
+
+    $("#tabela")
+      .hide()
+      .empty();
+
+    $("#resumoValores").hide();
+
+    if(tabela){
+
+      tabela.destroy();
+
+      tabela = null;
+
+    }
+
+    return;
+
+  }
+
+  $("#tabela").show();
+
+  const pageLength =
+    parseInt(
+      $("#lengthSelector").val()
+    ) || 10;
+
+  if(tabela){
+
+    tabela.destroy();
+
+    $("#tabela").empty();
+
+  }
+
+  const colunas =
+    Object.keys(dados[0]).map(c=>({
+
+      title:c,
+
+      data:c
+
+    }));
+
+  tabela = $("#tabela").DataTable({
+
+    data:dados,
+
+    columns:colunas,
+
+    destroy:true,
+
+    pageLength:pageLength,
+
+    searching:true,
+
+    ordering:true,
+
+    autoWidth:false,
+
+    scrollX:true,
+
+    dom:"Bfrtip",
+
+    buttons:[
+
+      {
+        extend:"csvHtml5",
+        className:"d-none",
+        bom:true,
+        fieldSeparator:";",
+        filename:()=>gerarNomeArquivo("csv").replace(".csv","")
+      },
+
+      {
+        extend:"excelHtml5",
+        className:"d-none",
+        filename:()=>gerarNomeArquivo("xlsx").replace(".xlsx","")
+      }
+
+    ],
+
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
+
+  });
+
+  atualizarResumo(dados);
 
 }
 
@@ -322,7 +801,7 @@ function parseMoeda(valor){
    TOTALIZADOR
 ========================= */
 
-function atualizarResumoPrevisto(dados){
+function atualizarResumo(dados){
 
   if(!dados.length){
 
@@ -361,463 +840,38 @@ function atualizarResumoPrevisto(dados){
 }
 
 /* =========================
-   CARREGAMENTO CSV
+   PARSE MOEDA
 ========================= */
 
-Papa.parse(urlCSV,{
+function parseMoeda(valor){
 
-  download:true,
-
-  header:true,
-
-  fastMode:true,
-
-  complete:r=>{
-
-    dadosOriginais = r.data.filter(
-      d => d[campos.ano]
-    );
-
-    const linhaAtualizacao =
-      dadosOriginais.find(
-        x => x["Atualizacao"]
-      );
-
-    if(linhaAtualizacao){
-
-      $("#indicadorAtualizacao").html(
-
-        `Dados atualizados em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
-
-      );
-
-    }
-
-    dadosOriginais = dadosOriginais.map(r=>{
-
-      let copia = {...r};
-
-      delete copia["Atualizacao"];
-
-      return copia;
-
-    });
-
-    carregarAno();
-
-    $("#spinnerCsv").fadeOut(200);
-
+  if(!valor){
+    return 0;
   }
 
-});
+  return parseFloat(
 
-/* =========================
-   CARREGA ANO
-========================= */
+    valor
+      .toString()
+      .replace(/[^\d,-]/g,"")
+      .replace(/\./g,"")
+      .replace(",", ".")
 
-function carregarAno(){
-
-  let s = $("#anoFiltro");
-
-  s.empty();
-
-  s.append(`
-    <option value="">
-      Selecione...
-    </option>
-  `);
-
-  s.append(`
-    <option value="TODOS">
-      Todos
-    </option>
-  `);
-
-  [...new Set(
-
-    dadosOriginais.map(
-      r=>r[campos.ano]
-    )
-
-  )]
-  .sort()
-  .forEach(v=>{
-
-    s.append(`
-      <option value="${v}">
-        ${v}
-      </option>
-    `);
-
-  });
+  ) || 0;
 
 }
 
 /* =========================
-   FILTRO ATUAL
+   EXPORTAÇÕES
 ========================= */
 
-function aplicarFiltroAtual(){
+function exportarJson(){
 
-  let ano = $("#anoFiltro").val();
-
-  if(!ano) return [];
-
-  let base = (ano==="TODOS")
-
-    ? [...dadosOriginais]
-
-    : dadosOriginais.filter(
-        r => r[campos.ano] === ano
-      );
-
-  ordem.slice(1).forEach(f=>{
-
-    let v = $("#"+f+"Filtro").val();
-
-    if(
-      v &&
-      v !== "TODOS"
-    ){
-
-      base = base.filter(
-        r => r[campos[f]] === v
-      );
-
-    }
-
-  });
-
-  return base;
-
-}
-
-/* =========================
-   FILTRO IGNORANDO
-========================= */
-
-function aplicarFiltroIgnorando(filtroIgnorado){
-
-  let ano = $("#anoFiltro").val();
-
-  if(!ano) return [];
-
-  let base = (ano==="TODOS")
-
-    ? [...dadosOriginais]
-
-    : dadosOriginais.filter(
-        r => r[campos.ano] === ano
-      );
-
-  ordem.slice(1).forEach(f=>{
-
-    if(f===filtroIgnorado) return;
-
-    let v = $("#"+f+"Filtro").val();
-
-    if(
-      v &&
-      v !== "TODOS"
-    ){
-
-      base = base.filter(
-        r => r[campos[f]] === v
-      );
-
-    }
-
-  });
-
-  return base;
-
-}
-
-/* =========================
-   FILTROS ENCADEADOS
-========================= */
-
-function atualizarFiltrosEncadeados(){
-
-  ordem.slice(1).forEach(f=>{
-
-    let seletor = $("#"+f+"Filtro");
-
-    let valorAtual = seletor.val();
-
-    let base =
-      aplicarFiltroIgnorando(f);
-
-    let valores = [...new Set(
-
-      base
-        .map(r=>r[campos[f]])
-        .filter(Boolean)
-
-    )].sort();
-
-    seletor.empty();
-
-    seletor.append(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
-
-    seletor.append(`
-      <option value="TODOS">
-        Todos
-      </option>
-    `);
-
-    valores.forEach(v=>{
-
-      seletor.append(`
-        <option value="${v}">
-          ${v}
-        </option>
-      `);
-
-    });
-
-    seletor.prop(
-      "disabled",
-      valores.length===0
-    );
-
-    if(
-      valorAtual==="TODOS" ||
-      valores.includes(valorAtual)
-    ){
-
-      seletor.val(valorAtual);
-
-    }else{
-
-      seletor.val("");
-
-    }
-
-  });
-
-}
-
-/* =========================
-   TABELA
-========================= */
-
-function renderTabela(dados){
-
-  if(!dados.length){
-
-    $("#tabela")
-      .hide()
-      .empty();
-
-    $("#resumoValores").hide();
-
-    if(tabela){
-
-      tabela.destroy();
-
-      tabela = null;
-
-    }
-
+  if(!tabela){
     return;
-
   }
 
-  $("#tabela").show();
-
-  if(tabela){
-
-    tabela.clear();
-
-    tabela.rows.add(dados);
-
-    tabela.draw(false);
-
-    return;
-
-  }
-
-  tabela = $("#tabela").DataTable({
-
-    data:dados,
-
-    columns:Object.keys(dados[0]).map(c=>({
-      title:c,
-      data:c
-    })),
-
-    deferRender:true,
-
-    processing:true,
-
-    scrollX:true,
-
-    scrollY:"55vh",
-
-    scrollCollapse:true,
-
-    paging:true,
-
-    pageLength:10,
-
-    lengthChange:false,
-
-    info:true,
-
-    autoWidth:false,
-
-    language:{
-      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-    }
-
-  });
-
-}
-
-/* =========================
-   APLICAR TUDO
-========================= */
-
-function aplicarTudo(){
-
-  const dados =
-    aplicarFiltroAtual();
-
-  atualizarFiltrosEncadeados();
-
-  atualizarResumoPrevisto(dados);
-
-  renderTabela(dados);
-
-}
-
-/* =========================
-   EVENTOS
-========================= */
-
-$("#anoFiltro").on("change",function(){
-
-  ordem.slice(1).forEach(f=>{
-
-    $("#"+f+"Filtro")
-      .empty()
-      .append(`
-        <option value="">
-          Selecione...
-        </option>
-      `)
-      .append(`
-        <option value="TODOS">
-          Todos
-        </option>
-      `)
-      .prop("disabled",false)
-      .val("");
-
-  });
-
-  aplicarTudo();
-
-});
-
-ordem.slice(1).forEach(f=>{
-
-  $("#"+f+"Filtro").on(
-    "change",
-    aplicarTudo
-  );
-
-});
-
-/* Registros por página */
-$("#lengthSelector").on("change",function(){
-
-  if(tabela){
-
-    tabela
-      .page
-      .len(this.value)
-      .draw();
-
-  }
-
-});
-
-/* Limpar */
-$("#btnLimpar").on(
-  "click",
-  ()=>location.reload()
-);
-
-/* =========================
-   DOWNLOAD
-========================= */
-
-function baixarArquivo(blob,nome){
-
-  let link =
-    document.createElement("a");
-
-  link.href =
-    URL.createObjectURL(blob);
-
-  link.download = nome;
-
-  link.click();
-
-}
-
-/* =========================
-   EXPORTAÇÃO CSV
-========================= */
-
-$("#btnCsv").on("click",()=>{
-
-  if(!tabela) return;
-
-  let csv = Papa.unparse(
-
-    tabela
-      .rows({search:"applied"})
-      .data()
-      .toArray(),
-
-    {
-      quotes:true,
-      delimiter:";"
-    }
-
-  );
-
-  baixarArquivo(
-
-    new Blob(
-      ["\ufeff"+csv],
-      {
-        type:"text/csv;charset=utf-8;"
-      }
-    ),
-
-    gerarNomeArquivo("csv")
-
-  );
-
-});
-
-/* =========================
-   EXPORTAÇÃO JSON
-========================= */
-
-$("#btnJson").on("click",()=>{
-
-  if(!tabela) return;
-
-  let dados = tabela
+  const dados = tabela
     .rows({search:"applied"})
     .data()
     .toArray();
@@ -835,24 +889,36 @@ $("#btnJson").on("click",()=>{
 
   );
 
-});
+}
 
-/* =========================
-   EXPORTAÇÃO TXT
-========================= */
+function exportarTxt(){
 
-$("#btnTxt").on("click",()=>{
+  if(!tabela){
+    return;
+  }
 
-  if(!tabela) return;
-
-  let dados = tabela
+  const dados = tabela
     .rows({search:"applied"})
     .data()
     .toArray();
 
-  let txt = dados
-    .map(o=>Object.values(o).join(" | "))
-    .join("\n");
+  if(!dados.length){
+    return;
+  }
+
+  const colunas =
+    Object.keys(dados[0]);
+
+  const txt =
+    colunas.join(";") +
+    "\n" +
+    dados
+      .map(l=>
+        colunas
+          .map(c=>l[c])
+          .join(";")
+      )
+      .join("\n");
 
   baixarArquivo(
 
@@ -867,39 +933,64 @@ $("#btnTxt").on("click",()=>{
 
   );
 
-});
+}
 
 /* =========================
-   EXPORTAÇÃO XLSX
+   DOWNLOAD
 ========================= */
 
-$("#btnXlsx").on("click",()=>{
+function baixarArquivo(blob,nome){
 
-  if(!tabela) return;
+  const link =
+    document.createElement("a");
 
-  let dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  link.href =
+    URL.createObjectURL(blob);
 
-  let ws =
-    XLSX.utils.json_to_sheet(dados);
+  link.download = nome;
 
-  let wb =
-    XLSX.utils.book_new();
+  document.body.appendChild(link);
 
-  XLSX.utils.book_append_sheet(
-    wb,
-    ws,
-    "Emendas"
-  );
+  link.click();
 
-  XLSX.writeFile(
-    wb,
-    gerarNomeArquivo("xlsx")
-  );
+  document.body.removeChild(link);
 
-});
+}
+
+/* =========================
+   NOME ARQUIVO
+========================= */
+
+function gerarNomeArquivo(ext){
+
+  let partes = ["dados-emendas"];
+
+  ordemFiltros.forEach(f=>{
+
+    const valor =
+      $("#"+f+"Filtro").val();
+
+    if(valor){
+
+      partes.push(
+
+        valor
+          .toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g,"-")
+          .replace(/[^\w-]/g,"")
+
+      );
+
+    }
+
+  });
+
+  return partes.join("-")+"."+ext;
+
+}
 
 </script>
 
