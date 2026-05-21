@@ -29,7 +29,7 @@ label{
 
 .form-select-sm,
 table{
-  font-size:0.7rem !important;
+  font-size:.7rem !important;
 }
 
 table.dataTable td,
@@ -49,17 +49,17 @@ table.dataTable th{
   padding:4px 8px !important;
   font-size:.65rem !important;
   border-radius:6px !important;
-  background-color:#e9ecef !important;
+  background:#e9ecef !important;
   border:1px solid #dee2e6 !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{
-  background-color:#0d6efd !important;
+  background:#0d6efd !important;
   color:#fff !important;
   font-weight:bold !important;
 }
 
-/* Botões exportação */
+/* Botões */
 .export-group .btn{
   font-size:.7rem;
   padding:4px 8px;
@@ -86,7 +86,7 @@ table.dataTable th{
   justify-content:flex-start;
   padding-top:60px;
   z-index:9999;
-  background-color:rgba(255,255,255,.9);
+  background:rgba(255,255,255,.9);
 }
 
 .spinner-border{
@@ -99,22 +99,7 @@ table.dataTable th{
   margin-top:5px;
 }
 
-/* Totalizadores */
-.totalizadores{
-  font-size:.7rem;
-  background:#fff;
-  padding:5px 10px;
-  border:1px solid #dee2e6;
-  border-radius:4px;
-}
-
-.totalizadores span{
-  display:inline-block;
-  margin-right:15px;
-  font-weight:600;
-}
-
-/* Registros por página */
+/* Registros */
 #lengthSelectorContainer{
   font-size:.7rem;
   display:flex;
@@ -156,7 +141,6 @@ table.dataTable th{
   <div class="row gx-2 gy-2 mb-3">
 
     <div class="col-sm-2">
-
       <label>Ano *</label>
 
       <select
@@ -167,11 +151,9 @@ table.dataTable th{
           Selecione...
         </option>
       </select>
-
     </div>
 
     <div class="col-sm-2">
-
       <label>Mês *</label>
 
       <select
@@ -183,23 +165,93 @@ table.dataTable th{
           Selecione...
         </option>
       </select>
+    </div>
 
+    <div class="col-sm-2">
+      <label>Categoria Econômica</label>
+
+      <select
+        id="categoriaFiltro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Origem</label>
+
+      <select
+        id="origemFiltro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Espécie</label>
+
+      <select
+        id="especieFiltro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Desdobramento 1</label>
+
+      <select
+        id="des1Filtro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Desdobramento 2</label>
+
+      <select
+        id="des2Filtro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
+    </div>
+
+    <div class="col-sm-2">
+      <label>Desdobramento 3</label>
+
+      <select
+        id="des3Filtro"
+        class="form-select form-select-sm"
+        disabled
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
     </div>
 
   </div>
-
-  <!-- TOTALIZADOR
-  <div
-    class="totalizadores mb-2"
-    id="resumoValores"
-    style="display:none;"
-  >
-
-    <span id="totalRegistros">
-      Registros encontrados: 0
-    </span>
-
-  </div>-->
 
   <!-- BOTÕES -->
   <div class="d-flex justify-content-between mb-2">
@@ -307,54 +359,38 @@ const meses = [
   "DEZEMBRO"
 ];
 
-/* Nome exportação */
-function gerarNomeArquivo(ext){
-
-  let partes = ["dados-receitas"];
-
-  const ano = $("#anoFiltro").val();
-  const mes = $("#mesFiltro").val();
-
-  if(ano){
-
-    partes.push(
-      ano.toLowerCase().replace(/\s+/g,"-")
-    );
-
+const filtros = [
+  {
+    id:"categoriaFiltro",
+    coluna:"CATEGORIA ECONOMICA",
+    colunaNome:"NOME CATEGORIA ECONOMICA"
+  },
+  {
+    id:"origemFiltro",
+    coluna:"ORIGEM"
+  },
+  {
+    id:"especieFiltro",
+    coluna:"ESPECIE"
+  },
+  {
+    id:"des1Filtro",
+    coluna:"DESDOBRAMENTO 1"
+  },
+  {
+    id:"des2Filtro",
+    coluna:"DESDOBRAMENTO 2"
+  },
+  {
+    id:"des3Filtro",
+    coluna:"DESDOBRAMENTO 3"
   }
+];
 
-  if(mes){
+/* =========================
+   CARREGAMENTO CSV
+========================= */
 
-    partes.push(
-      mes.toLowerCase().replace(/\s+/g,"-")
-    );
-
-  }
-
-  return partes.join("-")+"."+ext;
-
-}
-
-/* Resumo */
-function atualizarResumo(dados){
-
-  if(!dados.length){
-
-    $("#resumoValores").hide();
-
-    return;
-
-  }
-
-  $("#totalRegistros").text(
-    "Registros encontrados: "+dados.length
-  );
-
-  $("#resumoValores").show();
-
-}
-
-/* CSV */
 Papa.parse(urlCSV,{
 
   download:true,
@@ -366,7 +402,6 @@ Papa.parse(urlCSV,{
       d => d.ANO
     );
 
-    /* Atualização */
     const linhaAtualizacao =
       dadosOriginais.find(
         x => x["Atualizacao"]
@@ -380,7 +415,6 @@ Papa.parse(urlCSV,{
 
     }
 
-    /* Remove coluna Atualizacao */
     dadosOriginais = dadosOriginais.map(r=>{
 
       const copia = {...r};
@@ -399,7 +433,10 @@ Papa.parse(urlCSV,{
 
 });
 
-/* Carregar anos */
+/* =========================
+   CARREGAR ANO
+========================= */
+
 function carregarAno(){
 
   const s = $("#anoFiltro");
@@ -428,7 +465,10 @@ function carregarAno(){
 
 }
 
-/* Carregar meses */
+/* =========================
+   CARREGAR MESES
+========================= */
+
 function carregarMeses(){
 
   const s = $("#mesFiltro");
@@ -459,70 +499,278 @@ function carregarMeses(){
 
 }
 
-/* Aplicar filtros */
+/* =========================
+   RESET FILTROS
+========================= */
+
+function resetarFiltrosExtras(){
+
+  filtros.forEach(f=>{
+
+    $("#"+f.id)
+      .val("")
+      .prop("disabled",true)
+      .empty()
+      .append(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
+
+  });
+
+}
+
+/* =========================
+   POPULAR FILTROS
+========================= */
+
+function popularFiltro(config,dadosBase){
+
+  const select = $("#"+config.id);
+
+  const valorAtual = select.val();
+
+  select.empty();
+
+  select.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
+
+  select.append(`
+    <option value="TODOS">
+      Todos
+    </option>
+  `);
+
+  let valores = [];
+
+  /* Categoria econômica com código + descrição */
+  if(config.colunaNome){
+
+    valores = [
+      ...new Map(
+
+        dadosBase
+          .filter(r=>r[config.coluna])
+          .map(r=>{
+
+            const codigo = r[config.coluna];
+            const nome = r[config.colunaNome] || "";
+
+            return [
+              codigo,
+              {
+                valor:codigo,
+                texto:nome
+                  ? `${codigo} - ${nome}`
+                  : codigo
+              }
+            ];
+
+          })
+
+      ).values()
+    ];
+
+    valores.sort((a,b)=>
+      a.texto.localeCompare(
+        b.texto,
+        "pt-BR",
+        {numeric:true}
+      )
+    );
+
+    valores.forEach(item=>{
+
+      select.append(`
+        <option value="${item.valor}">
+          ${item.texto}
+        </option>
+      `);
+
+    });
+
+  }else{
+
+    valores = [
+      ...new Set(
+        dadosBase
+          .map(r=>r[config.coluna])
+          .filter(Boolean)
+      )
+    ];
+
+    valores.sort((a,b)=>
+      a.localeCompare(
+        b,
+        "pt-BR",
+        {numeric:true}
+      )
+    );
+
+    valores.forEach(v=>{
+
+      select.append(`
+        <option value="${v}">
+          ${v}
+        </option>
+      `);
+
+    });
+
+  }
+
+  select.prop("disabled",false);
+
+  if(
+    valorAtual &&
+    (
+      valores.some(v=>
+        typeof v === "object"
+          ? v.valor === valorAtual
+          : v === valorAtual
+      )
+      || valorAtual === "TODOS"
+    )
+  ){
+
+    select.val(valorAtual);
+
+  }
+
+}
+
+/* =========================
+   ATUALIZAR FILTROS
+========================= */
+
+function atualizarFiltrosEncadeados(){
+
+  let base = dadosOriginais.filter(
+    r => r.ANO === $("#anoFiltro").val()
+  );
+
+  const mes = $("#mesFiltro").val();
+
+  if(
+    mes &&
+    mes !== "TODOS"
+  ){
+
+    base = base.filter(
+      r => r[mes]
+    );
+
+  }
+
+  filtros.forEach((f,index)=>{
+
+    let dadosFiltro = [...base];
+
+    for(let i=0;i<index;i++){
+
+      const filtroAnterior = filtros[i];
+
+      const valorAnterior =
+        $("#"+filtroAnterior.id).val();
+
+      if(
+        valorAnterior &&
+        valorAnterior !== "TODOS"
+      ){
+
+        dadosFiltro = dadosFiltro.filter(
+          r =>
+            r[filtroAnterior.coluna] === valorAnterior
+        );
+
+      }
+
+    }
+
+    popularFiltro(
+      f,
+      dadosFiltro
+    );
+
+  });
+
+}
+
+/* =========================
+   APLICAR FILTROS
+========================= */
+
 function aplicarFiltros(){
 
   const ano = $("#anoFiltro").val();
   const mes = $("#mesFiltro").val();
 
-  /* Sem seleção */
   if(!ano || !mes){
-
-    atualizarResumo([]);
-
     return [];
-
   }
 
-  /* Filtra ano */
-  let dadosFiltrados = dadosOriginais.filter(
+  let dados = dadosOriginais.filter(
     r => r.ANO === ano
   );
 
-  /* TODOS */
-  if(mes === "TODOS"){
+  if(mes !== "TODOS"){
 
-    atualizarResumo(dadosFiltrados);
+    dados = dados
+      .filter(r => r[mes])
+      .map(d=>{
 
-    return dadosFiltrados;
+        const base = {};
 
-  }
+        for(const key in d){
 
-  /* Mês específico */
-  const dados = dadosFiltrados
-    .filter(r => r[mes])
-    .map(d=>{
+          if(
+            !meses.includes(key) ||
+            key === mes
+          ){
 
-      const base = {};
+            base[key] = d[key];
 
-      for(const key in d){
-
-        /* Mantém somente o mês selecionado */
-        if(
-          !meses.includes(key) ||
-          key === mes
-        ){
-
-          base[key] = d[key];
+          }
 
         }
 
-      }
+        return base;
 
-      return base;
+      });
 
-    });
+  }
 
-  atualizarResumo(dados);
+  filtros.forEach(f=>{
+
+    const valor = $("#"+f.id).val();
+
+    if(
+      valor &&
+      valor !== "TODOS"
+    ){
+
+      dados = dados.filter(
+        r => r[f.coluna] === valor
+      );
+
+    }
+
+  });
 
   return dados;
 
 }
 
-/* Render tabela */
+/* =========================
+   RENDER TABELA
+========================= */
+
 function renderTabela(dados){
 
-  /* Sem dados */
   if(!dados.length){
 
     if(tabela){
@@ -541,7 +789,6 @@ function renderTabela(dados){
 
   }
 
-  /* Recria completamente */
   if(tabela){
 
     tabela.destroy();
@@ -590,7 +837,10 @@ function renderTabela(dados){
 
 }
 
-/* Aplicar tudo */
+/* =========================
+   APLICAR TUDO
+========================= */
+
 function aplicarTudo(){
 
   const dados = aplicarFiltros();
@@ -599,13 +849,18 @@ function aplicarTudo(){
 
 }
 
-/* Ano */
+/* =========================
+   EVENTO ANO
+========================= */
+
 $("#anoFiltro").on("change",function(){
 
   const ano = $(this).val();
 
   $("#mesFiltro")
     .prop("disabled",!ano);
+
+  resetarFiltrosExtras();
 
   if(ano){
 
@@ -629,13 +884,119 @@ $("#anoFiltro").on("change",function(){
 
 });
 
-/* Mês */
-$("#mesFiltro").on(
-  "change",
-  aplicarTudo
-);
+/* =========================
+   EVENTO MÊS
+========================= */
 
-/* Registros página */
+$("#mesFiltro").on("change",function(){
+
+  const valor = $(this).val();
+
+  if(!valor){
+
+    resetarFiltrosExtras();
+
+    aplicarTudo();
+
+    return;
+
+  }
+
+  filtros.forEach(f=>{
+
+    $("#"+f.id)
+      .val("")
+      .prop("disabled",false);
+
+  });
+
+  atualizarFiltrosEncadeados();
+
+  aplicarTudo();
+
+});
+
+/* =========================
+   EVENTOS FILTROS
+========================= */
+
+filtros.forEach((f,index)=>{
+
+  $("#"+f.id).on("change",function(){
+
+    const valorSelecionado = $(this).val();
+
+    /* SEM SELEÇÃO */
+    if(!valorSelecionado){
+
+      filtros.forEach((outro,outroIndex)=>{
+
+        if(outroIndex > index){
+
+          $("#"+outro.id)
+            .val("")
+            .prop("disabled",false);
+
+        }
+
+      });
+
+      atualizarFiltrosEncadeados();
+
+      aplicarTudo();
+
+      return;
+
+    }
+
+    /* TODOS */
+    if(valorSelecionado === "TODOS"){
+
+      filtros.forEach(outro=>{
+
+        if(outro.id !== f.id){
+
+          $("#"+outro.id)
+            .val("")
+            .prop("disabled",false);
+
+        }
+
+      });
+
+      atualizarFiltrosEncadeados();
+
+      aplicarTudo();
+
+      return;
+
+    }
+
+    /* ENCADEAMENTO */
+    filtros.forEach((outro,outroIndex)=>{
+
+      if(outroIndex > index){
+
+        $("#"+outro.id)
+          .val("")
+          .prop("disabled",false);
+
+      }
+
+    });
+
+    atualizarFiltrosEncadeados();
+
+    aplicarTudo();
+
+  });
+
+});
+
+/* =========================
+   PAGINAÇÃO
+========================= */
+
 $("#lengthSelector").on(
   "change",
   function(){
@@ -652,13 +1013,19 @@ $("#lengthSelector").on(
   }
 );
 
-/* Limpar */
+/* =========================
+   LIMPAR
+========================= */
+
 $("#btnLimpar").on(
   "click",
   ()=>location.reload()
 );
 
-/* Download */
+/* =========================
+   DOWNLOAD
+========================= */
+
 function baixarArquivo(blob,nome){
 
   const link = document.createElement("a");
@@ -671,7 +1038,69 @@ function baixarArquivo(blob,nome){
 
 }
 
-/* CSV */
+/* =========================
+   NOME EXPORTAÇÃO
+========================= */
+
+function gerarNomeArquivo(ext){
+
+  let partes = ["dados-receitas"];
+
+  const ano = $("#anoFiltro").val();
+  const mes = $("#mesFiltro").val();
+
+  if(ano){
+
+    partes.push(
+      ano.toLowerCase().replace(/\s+/g,"-")
+    );
+
+  }
+
+  if(
+    mes &&
+    mes !== "TODOS"
+  ){
+
+    partes.push(
+      mes.toLowerCase().replace(/\s+/g,"-")
+    );
+
+  }
+
+  filtros.forEach(f=>{
+
+    const valor = $("#"+f.id).val();
+
+    if(
+      valor &&
+      valor !== "TODOS"
+    ){
+
+      partes.push(
+
+        valor
+          .toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g,"-")
+          .replace(/[^\w-]/g,"")
+
+      );
+
+    }
+
+  });
+
+  return partes.join("-")+"."+ext;
+
+}
+
+/* =========================
+   CSV
+========================= */
+
 $("#btnCsv").on("click",()=>{
 
   if(!tabela) return;
@@ -699,7 +1128,10 @@ $("#btnCsv").on("click",()=>{
 
 });
 
-/* JSON */
+/* =========================
+   JSON
+========================= */
+
 $("#btnJson").on("click",()=>{
 
   if(!tabela) return;
@@ -724,7 +1156,10 @@ $("#btnJson").on("click",()=>{
 
 });
 
-/* TXT */
+/* =========================
+   TXT
+========================= */
+
 $("#btnTxt").on("click",()=>{
 
   if(!tabela) return;
@@ -753,7 +1188,10 @@ $("#btnTxt").on("click",()=>{
 
 });
 
-/* XLSX */
+/* =========================
+   XLSX
+========================= */
+
 $("#btnXlsx").on("click",()=>{
 
   if(!tabela) return;
