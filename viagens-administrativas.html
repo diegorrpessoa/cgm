@@ -370,8 +370,6 @@ let tabela = null;
 
 let dadosOriginais = [];
 
-let dataAtualizacao = "";
-
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vRSU7O5ILvb7beN3GLxKMqjEQa_zXJ5o5BmLZmF_SsW9zbb0fokHPnVJHFxjL3x9ZZYlJgik4l027aA/pub?gid=1659253784&single=true&output=csv";
 
@@ -392,6 +390,17 @@ const ordemFiltros = [
   "mes",
   "unidade",
   "favorecido"
+
+];
+
+/* COLUNAS REMOVIDAS */
+const colunasOcultas = [
+
+  "ATUALIZACAO",
+  "ATUALIZAÇÃO",
+  "Atualizacao",
+  "Atualização",
+  "P"
 
 ];
 
@@ -445,9 +454,7 @@ function carregarDados(){
         !resultado.data.length
       ){
 
-        $("#spinnerCsv").hide();
-
-        alert(
+        finalizarErro(
           "A base de dados retornou vazia."
         );
 
@@ -455,15 +462,16 @@ function carregarDados(){
 
       }
 
-      /* CAPTURA DATA ATUALIZAÇÃO */
       const primeiraLinha =
-        resultado.data[0];
+        resultado.data[0] || {};
 
-      dataAtualizacao =
+      const dataAtualizacao =
+
         primeiraLinha["ATUALIZACAO"] ||
         primeiraLinha["ATUALIZAÇÃO"] ||
         primeiraLinha["Atualizacao"] ||
         primeiraLinha["Atualização"] ||
+        primeiraLinha["P"] ||
         "";
 
       if(dataAtualizacao){
@@ -474,7 +482,6 @@ function carregarDados(){
 
       }
 
-      /* REMOVE COLUNA P */
       dadosOriginais =
         resultado.data
           .filter(r=>r["ANO"])
@@ -482,10 +489,11 @@ function carregarDados(){
 
             const novo = {...r};
 
-            delete novo["ATUALIZACAO"];
-            delete novo["ATUALIZAÇÃO"];
-            delete novo["Atualizacao"];
-            delete novo["Atualização"];
+            colunasOcultas.forEach(c=>{
+
+              delete novo[c];
+
+            });
 
             return novo;
 
@@ -506,15 +514,25 @@ function carregarDados(){
 
     error:function(){
 
-      $("#spinnerCsv").hide();
-
-      alert(
+      finalizarErro(
         "Não foi possível carregar a base de dados CSV."
       );
 
     }
 
   });
+
+}
+
+/* =========================
+   ERRO
+========================= */
+
+function finalizarErro(msg){
+
+  $("#spinnerCsv").hide();
+
+  alert(msg);
 
 }
 
@@ -536,10 +554,9 @@ function inicializarEventos(){
 
           atualizarFiltros();
 
-          const dados =
-            aplicarFiltros();
-
-          renderTabela(dados);
+          renderTabela(
+            aplicarFiltros()
+          );
 
           $("#spinnerFiltros").hide();
 
@@ -599,18 +616,23 @@ function inicializarEventos(){
 
 function limparFiltros(){
 
-  ordemFiltros.forEach(f=>{
+  $("#anoFiltro").val("");
 
-    $("#"+f+"Filtro").val("");
-
-    if(f !== "ano"){
+  ordemFiltros
+    .slice(1)
+    .forEach(f=>{
 
       $("#"+f+"Filtro")
-        .prop("disabled",true);
+        .val("")
+        .prop("disabled",true)
+        .empty()
+        .append(`
+          <option value="">
+            Selecione...
+          </option>
+        `);
 
-    }
-
-  });
+    });
 
   $("#tabela")
     .hide()
@@ -636,7 +658,7 @@ function popularFiltro(
   id,
   campo,
   dados,
-  obrigatorio=false
+  isAno=false
 ){
 
   const select =
@@ -647,15 +669,36 @@ function popularFiltro(
 
   select.empty();
 
-  select.append(`
+  /* ANO */
+  if(isAno){
 
-    <option value="">
-      ${obrigatorio
-        ? "Selecione..."
-        : "Todos"}
-    </option>
+    select.append(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
 
-  `);
+    select.append(`
+      <option value="__TODOS__">
+        Todos
+      </option>
+    `);
+
+  }else{
+
+    select.append(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
+
+    select.append(`
+      <option value="__TODOS__">
+        Todos
+      </option>
+    `);
+
+  }
 
   let valores = [
 
@@ -703,11 +746,9 @@ function popularFiltro(
   valores.forEach(v=>{
 
     select.append(`
-
       <option value="${v}">
         ${v}
       </option>
-
     `);
 
   });
@@ -718,19 +759,12 @@ function popularFiltro(
 
   }
 
-  if(
-    obrigatorio ||
-    $("#anoFiltro").val()
-  ){
-
-    select.prop("disabled",false);
-
-  }
+  select.prop("disabled",false);
 
 }
 
 /* =========================
-   FILTROS ENCADEADOS
+   FILTROS
 ========================= */
 
 function atualizarFiltros(){
@@ -749,6 +783,11 @@ function atualizarFiltros(){
           .empty()
           .append(`
             <option value="">
+              Selecione...
+            </option>
+          `)
+          .append(`
+            <option value="__TODOS__">
               Todos
             </option>
           `);
@@ -795,7 +834,10 @@ function obterDadosBase(indiceAtual){
         const valor =
           $("#"+f+"Filtro").val();
 
-        if(!valor){
+        if(
+          !valor ||
+          valor === "__TODOS__"
+        ){
 
           return true;
 
@@ -838,7 +880,10 @@ function aplicarFiltros(){
         const valor =
           $("#"+f+"Filtro").val();
 
-        if(!valor){
+        if(
+          !valor ||
+          valor === "__TODOS__"
+        ){
 
           return true;
 
@@ -1042,7 +1087,10 @@ function gerarNomeArquivo(ext){
     const valor =
       $("#"+f+"Filtro").val();
 
-    if(valor){
+    if(
+      valor &&
+      valor !== "__TODOS__"
+    ){
 
       partes.push(
 
