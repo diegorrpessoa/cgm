@@ -377,7 +377,7 @@ let tabela = null;
 let dadosOriginais = [];
 
 const urlCSV =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRSU7O5ILvb7beN3GLxKMqjEQa_zXJ5o5BmLZmF_SsW9zbb0fokHPnVJHFxjL3x9ZZYlJgik4l027aA/pub?gid=0&single=true&output=csv";
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vRSU7O5ILvb7beN3GLxKMqjEQa_zXJ5o5BmLZmF_SsW9zbb0fokHPnVJHFxjL3x9ZZYlJgik4l027aA/pub?gid=1166814370&single=true&output=csv";
 
 /* CAMPOS */
 const campos = {
@@ -443,32 +443,55 @@ function carregarDados(){
 
     complete:function(resultado){
 
-      dadosOriginais = resultado.data.filter(
-        r => r["ANO"]
-      );
+  if(
+    !resultado ||
+    !resultado.data ||
+    !resultado.data.length
+  ){
 
-      carregarAtualizacao();
+    $("#spinnerCsv").hide();
 
-      popularFiltro(
-        "anoFiltro",
-        campos.ano,
-        dadosOriginais,
-        true
-      );
+    alert(
+      "A base de dados retornou vazia."
+    );
 
-      inicializarEventos();
+    return;
 
-      $("#spinnerCsv").fadeOut(200);
+  }
 
-    },
+  dadosOriginais = resultado.data.filter(
+    r => r["ANO"]
+  );
 
-    error:function(){
+  carregarAtualizacao();
 
-      alert(
-        "Erro ao carregar a base de dados."
-      );
+  popularFiltro(
+    "anoFiltro",
+    campos.ano,
+    dadosOriginais,
+    true
+  );
 
-    }
+  inicializarEventos();
+
+  $("#spinnerCsv").fadeOut(200);
+
+},
+
+    error:function(erro){
+
+  console.error(
+    "Erro ao carregar CSV:",
+    erro
+  );
+
+  $("#spinnerCsv").hide();
+
+  alert(
+    "Não foi possível carregar a base de dados CSV."
+  );
+
+}
 
   });
 
