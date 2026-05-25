@@ -38,7 +38,6 @@ table.dataTable th{
   white-space:nowrap;
 }
 
-/* Atualização */
 #indicadorAtualizacao{
   font-size:.65rem;
   color:#6c757d;
@@ -46,7 +45,6 @@ table.dataTable th{
   margin-bottom:8px;
 }
 
-/* Spinner */
 .spinner-overlay,
 .spinner-overlay-filtros{
   position:fixed;
@@ -81,7 +79,6 @@ table.dataTable th{
   margin-top:5px;
 }
 
-/* Labels */
 .row label{
   font-weight:600;
   font-size:.72rem !important;
@@ -90,7 +87,6 @@ table.dataTable th{
   padding-left:2px;
 }
 
-/* Inputs */
 .form-select-sm,
 .form-control-sm{
   border-radius:4px !important;
@@ -100,7 +96,6 @@ table.dataTable th{
   font-size:.7rem !important;
 }
 
-/* Totalizadores */
 .totalizadores{
   font-size:.7rem;
   background:#fff;
@@ -115,12 +110,10 @@ table.dataTable th{
   font-weight:500;
 }
 
-/* Tabela */
 .table-wrapper{
   overflow-x:auto;
 }
 
-/* Info tabela */
 .dataTables_info{
   font-size:.65rem !important;
   color:#6c757d !important;
@@ -128,7 +121,6 @@ table.dataTable th{
   padding-left:5px;
 }
 
-/* Paginação */
 .dataTables_wrapper .dataTables_paginate{
   margin-top:.5rem;
   display:flex;
@@ -161,13 +153,11 @@ table.dataTable th{
   font-weight:bold !important;
 }
 
-/* Botões */
 .btn-group .btn{
   font-size:.7rem;
   padding:4px 8px;
 }
 
-/* Registros */
 #lengthSelectorContainer{
   margin-top:10px;
   font-size:.75rem;
@@ -188,7 +178,6 @@ table.dataTable th{
 
 <body>
 
-<!-- SPINNER -->
 <div id="spinnerCsv" class="spinner-overlay">
 
   <div class="spinner-border text-primary"></div>
@@ -199,7 +188,6 @@ table.dataTable th{
 
 </div>
 
-<!-- SPINNER FILTROS -->
 <div
   id="spinnerFiltros"
   class="spinner-overlay-filtros"
@@ -216,12 +204,10 @@ table.dataTable th{
 
 <div class="container-fluid mt-3">
 
-  <!-- ATUALIZAÇÃO -->
   <div id="indicadorAtualizacao">
     Dados atualizados em...
   </div>
 
-  <!-- FILTROS -->
   <div class="row gx-2 gy-2 mb-3">
 
     <div class="col-sm-2">
@@ -261,7 +247,6 @@ table.dataTable th{
 
   </div>
 
-  <!-- TOTALIZADOR -->
   <div
     class="totalizadores mb-2"
     id="resumoValores"
@@ -274,7 +259,6 @@ table.dataTable th{
 
   </div>
 
-  <!-- BOTÕES -->
   <div class="d-flex justify-content-between mb-2">
 
     <button
@@ -318,7 +302,6 @@ table.dataTable th{
 
   </div>
 
-  <!-- TABELA -->
   <div class="table-wrapper">
 
     <table
@@ -329,7 +312,6 @@ table.dataTable th{
 
   </div>
 
-  <!-- REGISTROS -->
   <div id="lengthSelectorContainer">
 
     <label for="lengthSelector">
@@ -373,7 +355,6 @@ let dadosOriginais = [];
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vRSU7O5ILvb7beN3GLxKMqjEQa_zXJ5o5BmLZmF_SsW9zbb0fokHPnVJHFxjL3x9ZZYlJgik4l027aA/pub?gid=1659253784&single=true&output=csv";
 
-/* CAMPOS */
 const campos = {
 
   ano:"ANO",
@@ -383,7 +364,6 @@ const campos = {
 
 };
 
-/* FILTROS */
 const ordemFiltros = [
 
   "ano",
@@ -393,18 +373,6 @@ const ordemFiltros = [
 
 ];
 
-/* COLUNAS REMOVIDAS */
-const colunasOcultas = [
-
-  "ATUALIZACAO",
-  "ATUALIZAÇÃO",
-  "Atualizacao",
-  "Atualização",
-  "P"
-
-];
-
-/* MESES */
 const mesesOrdem = [
 
   "JANEIRO",
@@ -422,19 +390,11 @@ const mesesOrdem = [
 
 ];
 
-/* =========================
-   INICIALIZAÇÃO
-========================= */
-
 $(document).ready(function(){
 
   carregarDados();
 
 });
-
-/* =========================
-   CARREGAR DADOS
-========================= */
 
 function carregarDados(){
 
@@ -454,7 +414,9 @@ function carregarDados(){
         !resultado.data.length
       ){
 
-        finalizarErro(
+        $("#spinnerCsv").hide();
+
+        alert(
           "A base de dados retornou vazia."
         );
 
@@ -463,7 +425,7 @@ function carregarDados(){
       }
 
       const primeiraLinha =
-        resultado.data[0] || {};
+        resultado.data[0];
 
       const dataAtualizacao =
 
@@ -471,7 +433,6 @@ function carregarDados(){
         primeiraLinha["ATUALIZAÇÃO"] ||
         primeiraLinha["Atualizacao"] ||
         primeiraLinha["Atualização"] ||
-        primeiraLinha["P"] ||
         "";
 
       if(dataAtualizacao){
@@ -489,11 +450,10 @@ function carregarDados(){
 
             const novo = {...r};
 
-            colunasOcultas.forEach(c=>{
-
-              delete novo[c];
-
-            });
+            delete novo["ATUALIZACAO"];
+            delete novo["ATUALIZAÇÃO"];
+            delete novo["Atualizacao"];
+            delete novo["Atualização"];
 
             return novo;
 
@@ -514,7 +474,9 @@ function carregarDados(){
 
     error:function(){
 
-      finalizarErro(
+      $("#spinnerCsv").hide();
+
+      alert(
         "Não foi possível carregar a base de dados CSV."
       );
 
@@ -523,22 +485,6 @@ function carregarDados(){
   });
 
 }
-
-/* =========================
-   ERRO
-========================= */
-
-function finalizarErro(msg){
-
-  $("#spinnerCsv").hide();
-
-  alert(msg);
-
-}
-
-/* =========================
-   EVENTOS
-========================= */
 
 function inicializarEventos(){
 
@@ -554,9 +500,10 @@ function inicializarEventos(){
 
           atualizarFiltros();
 
-          renderTabela(
-            aplicarFiltros()
-          );
+          const dados =
+            aplicarFiltros();
+
+          renderTabela(dados);
 
           $("#spinnerFiltros").hide();
 
@@ -610,29 +557,20 @@ function inicializarEventos(){
 
 }
 
-/* =========================
-   LIMPAR FILTROS
-========================= */
-
 function limparFiltros(){
 
-  $("#anoFiltro").val("");
+  ordemFiltros.forEach(f=>{
 
-  ordemFiltros
-    .slice(1)
-    .forEach(f=>{
+    $("#"+f+"Filtro").val("");
+
+    if(f !== "ano"){
 
       $("#"+f+"Filtro")
-        .val("")
-        .prop("disabled",true)
-        .empty()
-        .append(`
-          <option value="">
-            Selecione...
-          </option>
-        `);
+        .prop("disabled",true);
 
-    });
+    }
+
+  });
 
   $("#tabela")
     .hide()
@@ -650,10 +588,6 @@ function limparFiltros(){
 
 }
 
-/* =========================
-   POPULAR FILTROS
-========================= */
-
 function popularFiltro(
   id,
   campo,
@@ -668,37 +602,6 @@ function popularFiltro(
     select.val();
 
   select.empty();
-
-  /* ANO */
-  if(isAno){
-
-    select.append(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
-
-    select.append(`
-      <option value="__TODOS__">
-        Todos
-      </option>
-    `);
-
-  }else{
-
-    select.append(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
-
-    select.append(`
-      <option value="__TODOS__">
-        Todos
-      </option>
-    `);
-
-  }
 
   let valores = [
 
@@ -743,12 +646,52 @@ function popularFiltro(
 
   }
 
+  /* ANO */
+  if(isAno){
+
+    select.append(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
+
+    select.append(`
+      <option value="TODOS">
+        Todos
+      </option>
+    `);
+
+  }else{
+
+    select.append(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
+
+    /* SOMENTE EXIBE TODOS
+       QUANDO EXISTIR MAIS
+       DE UMA OPÇÃO */
+    if(valores.length > 1){
+
+      select.append(`
+        <option value="TODOS">
+          Todos
+        </option>
+      `);
+
+    }
+
+  }
+
   valores.forEach(v=>{
 
     select.append(`
+
       <option value="${v}">
         ${v}
       </option>
+
     `);
 
   });
@@ -759,13 +702,16 @@ function popularFiltro(
 
   }
 
-  select.prop("disabled",false);
+  if(
+    isAno ||
+    $("#anoFiltro").val()
+  ){
+
+    select.prop("disabled",false);
+
+  }
 
 }
-
-/* =========================
-   FILTROS
-========================= */
 
 function atualizarFiltros(){
 
@@ -780,15 +726,9 @@ function atualizarFiltros(){
 
         $("#"+f+"Filtro")
           .prop("disabled",true)
-          .empty()
-          .append(`
+          .html(`
             <option value="">
               Selecione...
-            </option>
-          `)
-          .append(`
-            <option value="__TODOS__">
-              Todos
             </option>
           `);
 
@@ -819,10 +759,6 @@ function atualizarFiltros(){
 
 }
 
-/* =========================
-   BASE FILTROS
-========================= */
-
 function obterDadosBase(indiceAtual){
 
   return dadosOriginais.filter(registro=>{
@@ -836,7 +772,7 @@ function obterDadosBase(indiceAtual){
 
         if(
           !valor ||
-          valor === "__TODOS__"
+          valor === "TODOS"
         ){
 
           return true;
@@ -854,10 +790,6 @@ function obterDadosBase(indiceAtual){
   });
 
 }
-
-/* =========================
-   APLICAR FILTROS
-========================= */
 
 function aplicarFiltros(){
 
@@ -882,7 +814,7 @@ function aplicarFiltros(){
 
         if(
           !valor ||
-          valor === "__TODOS__"
+          valor === "TODOS"
         ){
 
           return true;
@@ -902,10 +834,6 @@ function aplicarFiltros(){
   return dados;
 
 }
-
-/* =========================
-   TABELA
-========================= */
 
 function renderTabela(dados){
 
@@ -1008,10 +936,6 @@ function renderTabela(dados){
 
 }
 
-/* =========================
-   RESUMO
-========================= */
-
 function atualizarResumo(dados){
 
   if(!dados.length){
@@ -1050,10 +974,6 @@ function atualizarResumo(dados){
 
 }
 
-/* =========================
-   MOEDA
-========================= */
-
 function parseMoeda(valor){
 
   if(!valor) return 0;
@@ -1070,10 +990,6 @@ function parseMoeda(valor){
 
 }
 
-/* =========================
-   EXPORTAÇÃO
-========================= */
-
 function gerarNomeArquivo(ext){
 
   const partes = [
@@ -1089,7 +1005,7 @@ function gerarNomeArquivo(ext){
 
     if(
       valor &&
-      valor !== "__TODOS__"
+      valor !== "TODOS"
     ){
 
       partes.push(
@@ -1111,10 +1027,6 @@ function gerarNomeArquivo(ext){
   return partes.join("-")+"."+ext;
 
 }
-
-/* =========================
-   EXPORTAR JSON
-========================= */
 
 function exportarJson(){
 
@@ -1145,10 +1057,6 @@ function exportarJson(){
   );
 
 }
-
-/* =========================
-   EXPORTAR TXT
-========================= */
 
 function exportarTxt(){
 
@@ -1194,10 +1102,6 @@ function exportarTxt(){
   );
 
 }
-
-/* =========================
-   DOWNLOAD
-========================= */
 
 function baixarArquivo(blob,nome){
 
