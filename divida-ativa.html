@@ -45,12 +45,19 @@ table.dataTable th{
   margin-bottom:8px;
 }
 
-/* ALINHAMENTO DIREITA */
 .text-end{
   text-align:right !important;
 }
 
-/* SPINNERS */
+/* FILTROS DESABILITADOS */
+.form-select:disabled{
+  background-color:#adb5bd !important;
+  border-color:#868e96 !important;
+  color:#495057 !important;
+  cursor:not-allowed !important;
+  opacity:1 !important;
+}
+
 .spinner-overlay,
 .spinner-overlay-filtros{
   position:fixed;
@@ -85,7 +92,6 @@ table.dataTable th{
   margin-top:5px;
 }
 
-/* LABELS */
 .row label{
   font-weight:600;
   font-size:.72rem !important;
@@ -94,50 +100,15 @@ table.dataTable th{
   padding-left:2px;
 }
 
-/* CAMPOS */
 .form-select-sm,
 .form-control-sm{
   border-radius:4px !important;
   padding:2px 6px !important;
-  background-color:#fff !important;
+  background-color:#fff;
   border:1px solid #ced4da !important;
   font-size:.7rem !important;
-  transition:all .2s ease;
 }
 
-/* FILTROS DESABILITADOS */
-.form-select-sm:disabled,
-.form-control-sm:disabled{
-
-  background-color:#cfd4da !important;
-  border-color:#adb5bd !important;
-  color:#495057 !important;
-
-  cursor:not-allowed !important;
-
-  opacity:1 !important;
-
-  font-weight:600;
-
-  box-shadow:none !important;
-
-  background-image:
-    linear-gradient(
-      45deg,
-      rgba(0,0,0,.03) 25%,
-      transparent 25%,
-      transparent 50%,
-      rgba(0,0,0,.03) 50%,
-      rgba(0,0,0,.03) 75%,
-      transparent 75%,
-      transparent
-    ) !important;
-
-  background-size:8px 8px;
-
-}
-
-/* TOTALIZADORES */
 .totalizadores{
   font-size:.7rem;
   background:#fff;
@@ -152,7 +123,6 @@ table.dataTable th{
   font-weight:500;
 }
 
-/* TABELA */
 .table-wrapper{
   overflow-x:auto;
 }
@@ -164,7 +134,6 @@ table.dataTable th{
   padding-left:5px;
 }
 
-/* PAGINAÇÃO */
 .dataTables_wrapper .dataTables_paginate{
   margin-top:.5rem;
   display:flex;
@@ -197,13 +166,11 @@ table.dataTable th{
   font-weight:bold !important;
 }
 
-/* BOTÕES */
 .btn-group .btn{
   font-size:.7rem;
   padding:4px 8px;
 }
 
-/* REGISTROS */
 #lengthSelectorContainer{
   margin-top:10px;
   font-size:.75rem;
@@ -270,11 +237,7 @@ table.dataTable th{
         id="inscritoFiltro"
         class="form-select form-select-sm"
         disabled
-      >
-        <option value="">
-          Selecione...
-        </option>
-      </select>
+      ></select>
     </div>
 
     <div class="col-sm-3">
@@ -283,11 +246,7 @@ table.dataTable th{
         id="valorFiltro"
         class="form-select form-select-sm"
         disabled
-      >
-        <option value="">
-          Selecione...
-        </option>
-      </select>
+      ></select>
     </div>
 
   </div>
@@ -471,9 +430,23 @@ function carregarDados(){
       }
 
       dadosOriginais =
-        resultado.data.filter(r=>
-          r["EXERCÍCIO (ANO)"]
-        );
+        resultado.data
+          .filter(r=>
+            r["EXERCÍCIO (ANO)"]
+          )
+          .map(r=>{
+
+            const novo = {...r};
+
+            delete novo["ATUALIZACAO"];
+            delete novo["ATUALIZAÇÃO"];
+            delete novo["Atualizacao"];
+            delete novo["Atualização"];
+            delete novo["E2"];
+
+            return novo;
+
+          });
 
       popularFiltro(
         "anoFiltro",
@@ -535,20 +508,69 @@ function inicializarEventos(){
     limparFiltros
   );
 
+  $("#lengthSelector").on(
+    "change",
+    function(){
+
+      if(tabela){
+
+        tabela
+          .page
+          .len(parseInt(this.value))
+          .draw();
+
+      }
+
+    }
+  );
+
+  $("#exportCsv").on(
+    "click",
+    function(){
+
+      if(tabela){
+
+        tabela.button(".buttons-csv").trigger();
+
+      }
+
+    }
+  );
+
+  $("#exportXls").on(
+    "click",
+    function(){
+
+      if(tabela){
+
+        tabela.button(".buttons-excel").trigger();
+
+      }
+
+    }
+  );
+
+  $("#exportJson").on(
+    "click",
+    exportarJson
+  );
+
+  $("#exportTxt").on(
+    "click",
+    exportarTxt
+  );
+
 }
 
 function limparFiltros(){
 
   ordemFiltros.forEach(f=>{
 
-    const select =
-      $("#"+f+"Filtro");
-
-    select.val("");
+    $("#"+f+"Filtro").val("");
 
     if(f !== "ano"){
 
-      select
+      $("#"+f+"Filtro")
         .prop("disabled",true)
         .html(`
           <option value="">
@@ -594,9 +616,11 @@ function popularFiltro(
   let valores = [
 
     ...new Set(
+
       dados
         .map(r=>r[campo])
         .filter(Boolean)
+
     )
 
   ];
@@ -655,7 +679,9 @@ function popularFiltro(
   });
 
   if(valores.includes(valorAtual)){
+
     select.val(valorAtual);
+
   }
 
   select.prop(
@@ -726,7 +752,9 @@ function obterDadosBase(indiceAtual){
           !valor ||
           valor === "TODOS"
         ){
+
           return true;
+
         }
 
         return (
@@ -766,7 +794,9 @@ function aplicarFiltros(){
           !valor ||
           valor === "TODOS"
         ){
+
           return true;
+
         }
 
         return (
@@ -804,19 +834,33 @@ function renderTabela(dados){
   }
 
   const colunas =
-    Object.keys(dados[0]).map(c=>({
+    Object.keys(dados[0])
 
-      title:c,
+      .filter(c=>
 
-      data:c,
+        ![
+          "ATUALIZACAO",
+          "ATUALIZAÇÃO",
+          "Atualizacao",
+          "Atualização",
+          "E2"
+        ].includes(c)
 
-      className:
-        c === "VALOR" ||
-        c === "EXERCÍCIO (ANO)"
-          ? "text-end"
-          : ""
+      )
 
-    }));
+      .map(c=>({
+
+        title:c,
+
+        data:c,
+
+        className:
+          c === "VALOR" ||
+          c === "EXERCÍCIO (ANO)"
+            ? "text-end"
+            : ""
+
+      }));
 
   if(tabela){
 
@@ -857,25 +901,43 @@ function renderTabela(dados){
     buttons:[
 
       {
+
         extend:"csvHtml5",
-        className:"d-none",
-        filename:()=>
-          gerarNomeArquivo("csv")
+
+        text:"CSV",
+
+        className:"buttons-csv d-none",
+
+        filename:()=>gerarNomeArquivo("csv")
           .replace(".csv","")
+
       },
 
       {
+
         extend:"excelHtml5",
-        className:"d-none",
-        filename:()=>
-          gerarNomeArquivo("xlsx")
+
+        text:"XLSX",
+
+        className:"buttons-excel d-none",
+
+        filename:()=>gerarNomeArquivo("xlsx")
           .replace(".xlsx","")
+
       }
 
     ],
 
     language:{
+
       url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+
+    },
+
+    initComplete:function(){
+
+      tabela.buttons().container().appendTo("body");
+
     }
 
   });
@@ -939,7 +1001,9 @@ function parseMoeda(valor){
 function gerarNomeArquivo(ext){
 
   const partes = [
+
     "divida-ativa"
+
   ];
 
   ordemFiltros.forEach(f=>{
