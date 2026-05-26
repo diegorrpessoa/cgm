@@ -211,35 +211,26 @@ table.dataTable th{
   <div class="row gx-2 gy-2 mb-3">
 
     <div class="col-sm-2">
-      <label>Ano *</label>
+      <label>Exercício (Ano) *</label>
       <select
         id="anoFiltro"
         class="form-select form-select-sm"
       ></select>
     </div>
 
-    <div class="col-sm-2">
-      <label>Mês</label>
+    <div class="col-sm-5">
+      <label>Nome do Inscrito</label>
       <select
-        id="mesFiltro"
+        id="inscritoFiltro"
         class="form-select form-select-sm"
         disabled
       ></select>
     </div>
 
     <div class="col-sm-3">
-      <label>Unidade Gestora</label>
+      <label>Valor</label>
       <select
-        id="unidadeFiltro"
-        class="form-select form-select-sm"
-        disabled
-      ></select>
-    </div>
-
-    <div class="col-sm-3">
-      <label>Favorecido</label>
-      <select
-        id="favorecidoFiltro"
+        id="valorFiltro"
         class="form-select form-select-sm"
         disabled
       ></select>
@@ -253,8 +244,8 @@ table.dataTable th{
     style="display:none;"
   >
 
-    <span id="totalGasto">
-      Total Gasto: R$ 0,00
+    <span id="totalValor">
+      Total da Dívida: R$ 0,00
     </span>
 
   </div>
@@ -352,41 +343,25 @@ let tabela = null;
 
 let dadosOriginais = [];
 
+/* CSV PUBLICADO */
 const urlCSV =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRSU7O5ILvb7beN3GLxKMqjEQa_zXJ5o5BmLZmF_SsW9zbb0fokHPnVJHFxjL3x9ZZYlJgik4l027aA/pub?gid=1659253784&single=true&output=csv";
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FTkebyd02cd95EDPbWnZs7ELPoZnuCXV5_qQ9hlUKy_2qjj0eMYM4O33PNdwRnK4M3pa1yvUtjIN/pub?gid=1659253784&single=true&output=csv";
 
+/* CAMPOS */
 const campos = {
 
-  ano:"ANO",
-  mes:"MÊS",
-  unidade:"UNIDADE GESTORA",
-  favorecido:"FAVORECIDO"
+  ano:"EXERCÍCIO (ANO)",
+  inscrito:"NOME DO INSCRITO",
+  valor:"VALOR"
 
 };
 
+/* ORDEM FILTROS */
 const ordemFiltros = [
 
   "ano",
-  "mes",
-  "unidade",
-  "favorecido"
-
-];
-
-const mesesOrdem = [
-
-  "JANEIRO",
-  "FEVEREIRO",
-  "MARÇO",
-  "ABRIL",
-  "MAIO",
-  "JUNHO",
-  "JULHO",
-  "AGOSTO",
-  "SETEMBRO",
-  "OUTUBRO",
-  "NOVEMBRO",
-  "DEZEMBRO"
+  "inscrito",
+  "valor"
 
 ];
 
@@ -395,6 +370,10 @@ $(document).ready(function(){
   carregarDados();
 
 });
+
+/* =========================
+   CARREGAR DADOS
+========================= */
 
 function carregarDados(){
 
@@ -427,12 +406,14 @@ function carregarDados(){
       const primeiraLinha =
         resultado.data[0];
 
+      /* DATA ATUALIZAÇÃO */
       const dataAtualizacao =
 
         primeiraLinha["ATUALIZACAO"] ||
         primeiraLinha["ATUALIZAÇÃO"] ||
         primeiraLinha["Atualizacao"] ||
         primeiraLinha["Atualização"] ||
+        primeiraLinha["E2"] ||
         "";
 
       if(dataAtualizacao){
@@ -443,9 +424,12 @@ function carregarDados(){
 
       }
 
+      /* BASE */
       dadosOriginais =
         resultado.data
-          .filter(r=>r["ANO"])
+          .filter(r=>
+            r["EXERCÍCIO (ANO)"]
+          )
           .map(r=>{
 
             const novo = {...r};
@@ -485,6 +469,10 @@ function carregarDados(){
   });
 
 }
+
+/* =========================
+   EVENTOS
+========================= */
 
 function inicializarEventos(){
 
@@ -557,6 +545,10 @@ function inicializarEventos(){
 
 }
 
+/* =========================
+   LIMPAR FILTROS
+========================= */
+
 function limparFiltros(){
 
   ordemFiltros.forEach(f=>{
@@ -566,7 +558,12 @@ function limparFiltros(){
     if(f !== "ano"){
 
       $("#"+f+"Filtro")
-        .prop("disabled",true);
+        .prop("disabled",true)
+        .html(`
+          <option value="">
+            Selecione...
+          </option>
+        `);
 
     }
 
@@ -587,6 +584,10 @@ function limparFiltros(){
   }
 
 }
+
+/* =========================
+   POPULAR FILTRO
+========================= */
 
 function popularFiltro(
   id,
@@ -615,19 +616,11 @@ function popularFiltro(
 
   ];
 
-  if(campo === "MÊS"){
+  /* ORDENAÇÃO */
+  if(campo === "VALOR"){
 
-    valores.sort(
-      (a,b)=>
-
-      mesesOrdem.indexOf(
-        a.toUpperCase()
-      ) -
-
-      mesesOrdem.indexOf(
-        b.toUpperCase()
-      )
-
+    valores.sort((a,b)=>
+      parseMoeda(a) - parseMoeda(b)
     );
 
   }else{
@@ -646,7 +639,7 @@ function popularFiltro(
 
   }
 
-  /* ANO */
+  /* FILTRO ANO */
   if(isAno){
 
     select.append(`
@@ -669,9 +662,6 @@ function popularFiltro(
       </option>
     `);
 
-    /* SOMENTE EXIBE TODOS
-       QUANDO EXISTIR MAIS
-       DE UMA OPÇÃO */
     if(valores.length > 1){
 
       select.append(`
@@ -712,6 +702,10 @@ function popularFiltro(
   }
 
 }
+
+/* =========================
+   ATUALIZAR FILTROS
+========================= */
 
 function atualizarFiltros(){
 
@@ -759,6 +753,10 @@ function atualizarFiltros(){
 
 }
 
+/* =========================
+   BASE FILTROS
+========================= */
+
 function obterDadosBase(indiceAtual){
 
   return dadosOriginais.filter(registro=>{
@@ -790,6 +788,10 @@ function obterDadosBase(indiceAtual){
   });
 
 }
+
+/* =========================
+   APLICAR FILTROS
+========================= */
 
 function aplicarFiltros(){
 
@@ -834,6 +836,10 @@ function aplicarFiltros(){
   return dados;
 
 }
+
+/* =========================
+   TABELA
+========================= */
 
 function renderTabela(dados){
 
@@ -936,6 +942,10 @@ function renderTabela(dados){
 
 }
 
+/* =========================
+   RESUMO
+========================= */
+
 function atualizarResumo(dados){
 
   if(!dados.length){
@@ -951,14 +961,14 @@ function atualizarResumo(dados){
   dados.forEach(r=>{
 
     total += parseMoeda(
-      r["TOTAL GASTO (R$)"]
+      r["VALOR"]
     );
 
   });
 
-  $("#totalGasto").text(
+  $("#totalValor").text(
 
-    "Total Gasto: " +
+    "Total da Dívida: " +
 
     total.toLocaleString(
       "pt-BR",
@@ -973,6 +983,10 @@ function atualizarResumo(dados){
   $("#resumoValores").show();
 
 }
+
+/* =========================
+   MOEDA
+========================= */
 
 function parseMoeda(valor){
 
@@ -990,11 +1004,15 @@ function parseMoeda(valor){
 
 }
 
+/* =========================
+   EXPORTAÇÃO
+========================= */
+
 function gerarNomeArquivo(ext){
 
   const partes = [
 
-    "viagens-administrativas"
+    "divida-ativa"
 
   ];
 
@@ -1028,6 +1046,10 @@ function gerarNomeArquivo(ext){
 
 }
 
+/* =========================
+   EXPORTAR JSON
+========================= */
+
 function exportarJson(){
 
   if(!tabela) return;
@@ -1057,6 +1079,10 @@ function exportarJson(){
   );
 
 }
+
+/* =========================
+   EXPORTAR TXT
+========================= */
 
 function exportarTxt(){
 
@@ -1102,6 +1128,10 @@ function exportarTxt(){
   );
 
 }
+
+/* =========================
+   DOWNLOAD
+========================= */
 
 function baixarArquivo(blob,nome){
 
