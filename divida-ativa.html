@@ -1,10 +1,14 @@
+<!-- =========================
+CSS AJUSTADO
+========================= -->
+
 <style>
 
 /* =========================
    FILTRO VALOR
 ========================= */
 
-/* Mantém o texto padrão à esquerda */
+/* Select mantém alinhamento padrão */
 #valorFiltro{
   text-align:left !important;
 }
@@ -14,22 +18,22 @@
   text-align:right !important;
 }
 
-/* Primeira opção "Selecione..." à esquerda */
+/* Primeira opção alinhada à esquerda */
 #valorFiltro option:first-child{
   text-align:left !important;
 }
 
 </style>
 
-<script>
+<!-- =========================
+SUBSTITUIR O $(document).ready
+========================= -->
 
-/* =========================
-   BLOQUEIO INICIAL FILTROS
-========================= */
+<script>
 
 $(document).ready(function(){
 
-  /* Nome do inscrito */
+  /* FILTROS INICIAM DESABILITADOS */
   $("#inscritoFiltro")
     .prop("disabled",true)
     .html(`
@@ -38,7 +42,6 @@ $(document).ready(function(){
       </option>
     `);
 
-  /* Valor */
   $("#valorFiltro")
     .prop("disabled",true)
     .html(`
@@ -51,16 +54,20 @@ $(document).ready(function(){
 
 });
 
-/* =========================
-   ATUALIZAR FILTROS
-========================= */
+</script>
+
+<!-- =========================
+SUBSTITUIR FUNÇÃO atualizarFiltros
+========================= -->
+
+<script>
 
 function atualizarFiltros(){
 
   const ano =
     $("#anoFiltro").val();
 
-  /* Sem ano selecionado */
+  /* SEM ANO */
   if(
     !ano ||
     ano === ""
@@ -86,7 +93,7 @@ function atualizarFiltros(){
 
   }
 
-  /* Ativa filtros após selecionar ano */
+  /* COM ANO */
   $("#inscritoFiltro")
     .prop("disabled",false);
 
@@ -114,9 +121,13 @@ function atualizarFiltros(){
 
 }
 
-/* =========================
-   LIMPAR FILTROS
-========================= */
+</script>
+
+<!-- =========================
+SUBSTITUIR FUNÇÃO limparFiltros
+========================= -->
+
+<script>
 
 function limparFiltros(){
 
@@ -126,7 +137,7 @@ function limparFiltros(){
 
   });
 
-  /* Desativa novamente */
+  /* DESATIVA FILTROS */
   $("#inscritoFiltro")
     .prop("disabled",true)
     .html(`
@@ -156,6 +167,36 @@ function limparFiltros(){
     tabela = null;
 
   }
+
+}
+
+</script>
+
+<!-- =========================
+SUBSTITUIR TRECHO FINAL DA
+FUNÇÃO popularFiltro
+========================= -->
+
+<script>
+
+/* REMOVER ESTE BLOCO ANTIGO:
+
+if(
+  isAno ||
+  $("#anoFiltro").val()
+){
+
+  select.prop("disabled",false);
+
+}
+
+*/
+
+/* E SUBSTITUIR POR: */
+
+if(isAno){
+
+  select.prop("disabled",false);
 
 }
 
