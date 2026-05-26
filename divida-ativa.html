@@ -224,7 +224,11 @@ table.dataTable th{
         id="inscritoFiltro"
         class="form-select form-select-sm"
         disabled
-      ></select>
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
     </div>
 
     <div class="col-sm-3">
@@ -233,7 +237,11 @@ table.dataTable th{
         id="valorFiltro"
         class="form-select form-select-sm"
         disabled
-      ></select>
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
     </div>
 
   </div>
@@ -343,7 +351,6 @@ let tabela = null;
 
 let dadosOriginais = [];
 
-/* CSV PUBLICADO */
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FTkebyd02cd95EDPbWnZs7ELPoZnuCXV5_qQ9hlUKy_2qjj0eMYM4O33PNdwRnK4M3pa1yvUtjIN/pub?gid=1659253784&single=true&output=csv";
 
@@ -356,7 +363,7 @@ const campos = {
 
 };
 
-/* ORDEM FILTROS */
+/* ORDEM */
 const ordemFiltros = [
 
   "ano",
@@ -406,14 +413,12 @@ function carregarDados(){
       const primeiraLinha =
         resultado.data[0];
 
-      /* DATA ATUALIZAÇÃO */
       const dataAtualizacao =
 
         primeiraLinha["ATUALIZACAO"] ||
         primeiraLinha["ATUALIZAÇÃO"] ||
         primeiraLinha["Atualizacao"] ||
         primeiraLinha["Atualização"] ||
-        primeiraLinha["E2"] ||
         "";
 
       if(dataAtualizacao){
@@ -424,7 +429,6 @@ function carregarDados(){
 
       }
 
-      /* BASE */
       dadosOriginais =
         resultado.data
           .filter(r=>
@@ -586,7 +590,7 @@ function limparFiltros(){
 }
 
 /* =========================
-   POPULAR FILTRO
+   POPULAR FILTROS
 ========================= */
 
 function popularFiltro(
@@ -616,7 +620,6 @@ function popularFiltro(
 
   ];
 
-  /* ORDENAÇÃO */
   if(campo === "VALOR"){
 
     valores.sort((a,b)=>
@@ -639,14 +642,15 @@ function popularFiltro(
 
   }
 
-  /* FILTRO ANO */
-  if(isAno){
+  select.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
 
-    select.append(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
+  if(
+    (isAno || valores.length > 1)
+  ){
 
     select.append(`
       <option value="TODOS">
@@ -654,34 +658,14 @@ function popularFiltro(
       </option>
     `);
 
-  }else{
-
-    select.append(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
-
-    if(valores.length > 1){
-
-      select.append(`
-        <option value="TODOS">
-          Todos
-        </option>
-      `);
-
-    }
-
   }
 
   valores.forEach(v=>{
 
     select.append(`
-
       <option value="${v}">
         ${v}
       </option>
-
     `);
 
   });
@@ -692,12 +676,28 @@ function popularFiltro(
 
   }
 
-  if(
-    isAno ||
-    $("#anoFiltro").val()
-  ){
+  /* CONTROLE ATIVAÇÃO */
+  if(isAno){
 
     select.prop("disabled",false);
+
+  }else{
+
+    const anoSelecionado =
+      $("#anoFiltro").val();
+
+    if(
+      anoSelecionado &&
+      anoSelecionado !== ""
+    ){
+
+      select.prop("disabled",false);
+
+    }else{
+
+      select.prop("disabled",true);
+
+    }
 
   }
 
@@ -712,6 +712,7 @@ function atualizarFiltros(){
   const ano =
     $("#anoFiltro").val();
 
+  /* BLOQUEIA FILTROS */
   if(!ano){
 
     ordemFiltros
@@ -732,6 +733,7 @@ function atualizarFiltros(){
 
   }
 
+  /* LIBERA APÓS ANO */
   ordemFiltros.forEach((filtro,index)=>{
 
     if(index === 0) return;
