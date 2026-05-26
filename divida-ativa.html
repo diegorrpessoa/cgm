@@ -50,6 +50,15 @@ table.dataTable th{
   text-align:right !important;
 }
 
+/* SELECTS */
+.select-right{
+  text-align:right !important;
+}
+
+.select-left{
+  text-align:left !important;
+}
+
 .spinner-overlay,
 .spinner-overlay-filtros{
   position:fixed;
@@ -219,7 +228,7 @@ table.dataTable th{
       <label>Exercício (Ano) *</label>
       <select
         id="anoFiltro"
-        class="form-select form-select-sm"
+        class="form-select form-select-sm select-left"
       ></select>
     </div>
 
@@ -236,7 +245,7 @@ table.dataTable th{
       <label>Valor</label>
       <select
         id="valorFiltro"
-        class="form-select form-select-sm"
+        class="form-select form-select-sm select-left"
         disabled
       ></select>
     </div>
@@ -446,6 +455,18 @@ function carregarDados(){
         true
       );
 
+      $("#inscritoFiltro").html(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
+
+      $("#valorFiltro").html(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
+
       inicializarEventos();
 
       $("#spinnerCsv").fadeOut(200);
@@ -477,6 +498,14 @@ function inicializarEventos(){
         $("#spinnerFiltros").show();
 
         setTimeout(()=>{
+
+          atualizarClasseSelect(
+            "#anoFiltro"
+          );
+
+          atualizarClasseSelect(
+            "#valorFiltro"
+          );
 
           atualizarFiltros();
 
@@ -537,20 +566,53 @@ function inicializarEventos(){
 
 }
 
+function atualizarClasseSelect(id){
+
+  const select = $(id);
+
+  if(select.val()){
+
+    select
+      .removeClass("select-left")
+      .addClass("select-right");
+
+  }else{
+
+    select
+      .removeClass("select-right")
+      .addClass("select-left");
+
+  }
+
+}
+
 function limparFiltros(){
 
   ordemFiltros.forEach(f=>{
 
-    $("#"+f+"Filtro").val("");
-
-    if(f !== "ano"){
-
-      $("#"+f+"Filtro")
-        .prop("disabled",true);
-
-    }
+    $("#"+f+"Filtro")
+      .val("");
 
   });
+
+  $("#inscritoFiltro")
+    .prop("disabled",true)
+    .html(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
+
+  $("#valorFiltro")
+    .prop("disabled",true)
+    .html(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
+
+  atualizarClasseSelect("#anoFiltro");
+  atualizarClasseSelect("#valorFiltro");
 
   $("#tabela")
     .hide()
@@ -656,10 +718,11 @@ function popularFiltro(
 
   }
 
-  select.prop(
-    "disabled",
-    !isAno && !$("#anoFiltro").val()
-  );
+  if(isAno){
+
+    select.prop("disabled",false);
+
+  }
 
 }
 
@@ -668,25 +731,38 @@ function atualizarFiltros(){
   const ano =
     $("#anoFiltro").val();
 
-  if(!ano){
+  const filtrosSecundarios = [
+    "inscrito",
+    "valor"
+  ];
 
-    ordemFiltros
-      .slice(1)
-      .forEach(f=>{
+  if(
+    !ano ||
+    ano === "TODOS"
+  ){
 
-        $("#"+f+"Filtro")
-          .prop("disabled",true)
-          .html(`
-            <option value="">
-              Selecione...
-            </option>
-          `);
+    filtrosSecundarios.forEach(f=>{
 
-      });
+      $("#"+f+"Filtro")
+        .prop("disabled",true)
+        .html(`
+          <option value="">
+            Selecione...
+          </option>
+        `);
+
+    });
 
     return;
 
   }
+
+  filtrosSecundarios.forEach(f=>{
+
+    $("#"+f+"Filtro")
+      .prop("disabled",false);
+
+  });
 
   ordemFiltros.forEach((filtro,index)=>{
 
@@ -746,7 +822,10 @@ function aplicarFiltros(){
   const ano =
     $("#anoFiltro").val();
 
-  if(!ano){
+  if(
+    !ano ||
+    ano === "TODOS"
+  ){
 
     atualizarResumo([]);
 
