@@ -50,15 +50,7 @@ table.dataTable th{
   text-align:right !important;
 }
 
-/* SELECTS */
-.select-right{
-  text-align:right !important;
-}
-
-.select-left{
-  text-align:left !important;
-}
-
+/* SPINNERS */
 .spinner-overlay,
 .spinner-overlay-filtros{
   position:fixed;
@@ -93,6 +85,7 @@ table.dataTable th{
   margin-top:5px;
 }
 
+/* LABELS */
 .row label{
   font-weight:600;
   font-size:.72rem !important;
@@ -101,6 +94,7 @@ table.dataTable th{
   padding-left:2px;
 }
 
+/* CAMPOS */
 .form-select-sm,
 .form-control-sm{
   border-radius:4px !important;
@@ -108,8 +102,42 @@ table.dataTable th{
   background-color:#fff !important;
   border:1px solid #ced4da !important;
   font-size:.7rem !important;
+  transition:all .2s ease;
 }
 
+/* FILTROS DESABILITADOS */
+.form-select-sm:disabled,
+.form-control-sm:disabled{
+
+  background-color:#cfd4da !important;
+  border-color:#adb5bd !important;
+  color:#495057 !important;
+
+  cursor:not-allowed !important;
+
+  opacity:1 !important;
+
+  font-weight:600;
+
+  box-shadow:none !important;
+
+  background-image:
+    linear-gradient(
+      45deg,
+      rgba(0,0,0,.03) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(0,0,0,.03) 50%,
+      rgba(0,0,0,.03) 75%,
+      transparent 75%,
+      transparent
+    ) !important;
+
+  background-size:8px 8px;
+
+}
+
+/* TOTALIZADORES */
 .totalizadores{
   font-size:.7rem;
   background:#fff;
@@ -124,6 +152,7 @@ table.dataTable th{
   font-weight:500;
 }
 
+/* TABELA */
 .table-wrapper{
   overflow-x:auto;
 }
@@ -135,6 +164,7 @@ table.dataTable th{
   padding-left:5px;
 }
 
+/* PAGINAÇÃO */
 .dataTables_wrapper .dataTables_paginate{
   margin-top:.5rem;
   display:flex;
@@ -167,11 +197,13 @@ table.dataTable th{
   font-weight:bold !important;
 }
 
+/* BOTÕES */
 .btn-group .btn{
   font-size:.7rem;
   padding:4px 8px;
 }
 
+/* REGISTROS */
 #lengthSelectorContainer{
   margin-top:10px;
   font-size:.75rem;
@@ -228,7 +260,7 @@ table.dataTable th{
       <label>Exercício (Ano) *</label>
       <select
         id="anoFiltro"
-        class="form-select form-select-sm select-left"
+        class="form-select form-select-sm"
       ></select>
     </div>
 
@@ -238,16 +270,24 @@ table.dataTable th{
         id="inscritoFiltro"
         class="form-select form-select-sm"
         disabled
-      ></select>
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
     </div>
 
     <div class="col-sm-3">
       <label>Valor</label>
       <select
         id="valorFiltro"
-        class="form-select form-select-sm select-left"
+        class="form-select form-select-sm"
         disabled
-      ></select>
+      >
+        <option value="">
+          Selecione...
+        </option>
+      </select>
     </div>
 
   </div>
@@ -431,22 +471,9 @@ function carregarDados(){
       }
 
       dadosOriginais =
-        resultado.data
-          .filter(r=>
-            r["EXERCÍCIO (ANO)"]
-          )
-          .map(r=>{
-
-            const novo = {...r};
-
-            delete novo["ATUALIZACAO"];
-            delete novo["ATUALIZAÇÃO"];
-            delete novo["Atualizacao"];
-            delete novo["Atualização"];
-
-            return novo;
-
-          });
+        resultado.data.filter(r=>
+          r["EXERCÍCIO (ANO)"]
+        );
 
       popularFiltro(
         "anoFiltro",
@@ -454,18 +481,6 @@ function carregarDados(){
         dadosOriginais,
         true
       );
-
-      $("#inscritoFiltro").html(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
-
-      $("#valorFiltro").html(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
 
       inicializarEventos();
 
@@ -499,14 +514,6 @@ function inicializarEventos(){
 
         setTimeout(()=>{
 
-          atualizarClasseSelect(
-            "#anoFiltro"
-          );
-
-          atualizarClasseSelect(
-            "#valorFiltro"
-          );
-
           atualizarFiltros();
 
           const dados =
@@ -528,91 +535,30 @@ function inicializarEventos(){
     limparFiltros
   );
 
-  $("#lengthSelector").on(
-    "change",
-    function(){
-
-      if(tabela){
-
-        tabela
-          .page
-          .len(parseInt(this.value))
-          .draw();
-
-      }
-
-    }
-  );
-
-  $("#exportCsv").on(
-    "click",
-    ()=>$(".buttons-csv").click()
-  );
-
-  $("#exportXls").on(
-    "click",
-    ()=>$(".buttons-excel").click()
-  );
-
-  $("#exportJson").on(
-    "click",
-    exportarJson
-  );
-
-  $("#exportTxt").on(
-    "click",
-    exportarTxt
-  );
-
-}
-
-function atualizarClasseSelect(id){
-
-  const select = $(id);
-
-  if(select.val()){
-
-    select
-      .removeClass("select-left")
-      .addClass("select-right");
-
-  }else{
-
-    select
-      .removeClass("select-right")
-      .addClass("select-left");
-
-  }
-
 }
 
 function limparFiltros(){
 
   ordemFiltros.forEach(f=>{
 
-    $("#"+f+"Filtro")
-      .val("");
+    const select =
+      $("#"+f+"Filtro");
+
+    select.val("");
+
+    if(f !== "ano"){
+
+      select
+        .prop("disabled",true)
+        .html(`
+          <option value="">
+            Selecione...
+          </option>
+        `);
+
+    }
 
   });
-
-  $("#inscritoFiltro")
-    .prop("disabled",true)
-    .html(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
-
-  $("#valorFiltro")
-    .prop("disabled",true)
-    .html(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
-
-  atualizarClasseSelect("#anoFiltro");
-  atualizarClasseSelect("#valorFiltro");
 
   $("#tabela")
     .hide()
@@ -648,11 +594,9 @@ function popularFiltro(
   let valores = [
 
     ...new Set(
-
       dados
         .map(r=>r[campo])
         .filter(Boolean)
-
     )
 
   ];
@@ -703,26 +647,21 @@ function popularFiltro(
   valores.forEach(v=>{
 
     select.append(`
-
       <option value="${v}">
         ${v}
       </option>
-
     `);
 
   });
 
   if(valores.includes(valorAtual)){
-
     select.val(valorAtual);
-
   }
 
-  if(isAno){
-
-    select.prop("disabled",false);
-
-  }
+  select.prop(
+    "disabled",
+    !isAno && !$("#anoFiltro").val()
+  );
 
 }
 
@@ -731,38 +670,25 @@ function atualizarFiltros(){
   const ano =
     $("#anoFiltro").val();
 
-  const filtrosSecundarios = [
-    "inscrito",
-    "valor"
-  ];
+  if(!ano){
 
-  if(
-    !ano ||
-    ano === "TODOS"
-  ){
+    ordemFiltros
+      .slice(1)
+      .forEach(f=>{
 
-    filtrosSecundarios.forEach(f=>{
+        $("#"+f+"Filtro")
+          .prop("disabled",true)
+          .html(`
+            <option value="">
+              Selecione...
+            </option>
+          `);
 
-      $("#"+f+"Filtro")
-        .prop("disabled",true)
-        .html(`
-          <option value="">
-            Selecione...
-          </option>
-        `);
-
-    });
+      });
 
     return;
 
   }
-
-  filtrosSecundarios.forEach(f=>{
-
-    $("#"+f+"Filtro")
-      .prop("disabled",false);
-
-  });
 
   ordemFiltros.forEach((filtro,index)=>{
 
@@ -800,9 +726,7 @@ function obterDadosBase(indiceAtual){
           !valor ||
           valor === "TODOS"
         ){
-
           return true;
-
         }
 
         return (
@@ -822,10 +746,7 @@ function aplicarFiltros(){
   const ano =
     $("#anoFiltro").val();
 
-  if(
-    !ano ||
-    ano === "TODOS"
-  ){
+  if(!ano){
 
     atualizarResumo([]);
 
@@ -845,9 +766,7 @@ function aplicarFiltros(){
           !valor ||
           valor === "TODOS"
         ){
-
           return true;
-
         }
 
         return (
@@ -938,33 +857,25 @@ function renderTabela(dados){
     buttons:[
 
       {
-
         extend:"csvHtml5",
-
         className:"d-none",
-
-        filename:()=>gerarNomeArquivo("csv")
+        filename:()=>
+          gerarNomeArquivo("csv")
           .replace(".csv","")
-
       },
 
       {
-
         extend:"excelHtml5",
-
         className:"d-none",
-
-        filename:()=>gerarNomeArquivo("xlsx")
+        filename:()=>
+          gerarNomeArquivo("xlsx")
           .replace(".xlsx","")
-
       }
 
     ],
 
     language:{
-
       url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-
     }
 
   });
@@ -1028,9 +939,7 @@ function parseMoeda(valor){
 function gerarNomeArquivo(ext){
 
   const partes = [
-
     "divida-ativa"
-
   ];
 
   ordemFiltros.forEach(f=>{
