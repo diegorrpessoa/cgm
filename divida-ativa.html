@@ -173,6 +173,24 @@ table.dataTable th{
   padding:2px 4px;
 }
 
+/* =========================
+   ALINHAMENTO VALOR
+========================= */
+
+.coluna-valor,
+.coluna-valor th,
+.coluna-valor td{
+  text-align:right !important;
+}
+
+#valorFiltro{
+  text-align:right !important;
+}
+
+#valorFiltro option{
+  text-align:right !important;
+}
+
 </style>
 </head>
 
@@ -224,11 +242,7 @@ table.dataTable th{
         id="inscritoFiltro"
         class="form-select form-select-sm"
         disabled
-      >
-        <option value="">
-          Selecione...
-        </option>
-      </select>
+      ></select>
     </div>
 
     <div class="col-sm-3">
@@ -237,11 +251,7 @@ table.dataTable th{
         id="valorFiltro"
         class="form-select form-select-sm"
         disabled
-      >
-        <option value="">
-          Selecione...
-        </option>
-      </select>
+      ></select>
     </div>
 
   </div>
@@ -354,7 +364,6 @@ let dadosOriginais = [];
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FTkebyd02cd95EDPbWnZs7ELPoZnuCXV5_qQ9hlUKy_2qjj0eMYM4O33PNdwRnK4M3pa1yvUtjIN/pub?gid=1659253784&single=true&output=csv";
 
-/* CAMPOS */
 const campos = {
 
   ano:"EXERCÍCIO (ANO)",
@@ -363,7 +372,6 @@ const campos = {
 
 };
 
-/* ORDEM */
 const ordemFiltros = [
 
   "ano",
@@ -377,10 +385,6 @@ $(document).ready(function(){
   carregarDados();
 
 });
-
-/* =========================
-   CARREGAR DADOS
-========================= */
 
 function carregarDados(){
 
@@ -419,6 +423,7 @@ function carregarDados(){
         primeiraLinha["ATUALIZAÇÃO"] ||
         primeiraLinha["Atualizacao"] ||
         primeiraLinha["Atualização"] ||
+        primeiraLinha["E2"] ||
         "";
 
       if(dataAtualizacao){
@@ -431,9 +436,7 @@ function carregarDados(){
 
       dadosOriginais =
         resultado.data
-          .filter(r=>
-            r["EXERCÍCIO (ANO)"]
-          )
+          .filter(r=>r["EXERCÍCIO (ANO)"])
           .map(r=>{
 
             const novo = {...r};
@@ -473,10 +476,6 @@ function carregarDados(){
   });
 
 }
-
-/* =========================
-   EVENTOS
-========================= */
 
 function inicializarEventos(){
 
@@ -549,10 +548,6 @@ function inicializarEventos(){
 
 }
 
-/* =========================
-   LIMPAR FILTROS
-========================= */
-
 function limparFiltros(){
 
   ordemFiltros.forEach(f=>{
@@ -589,10 +584,6 @@ function limparFiltros(){
 
 }
 
-/* =========================
-   POPULAR FILTROS
-========================= */
-
 function popularFiltro(
   id,
   campo,
@@ -620,27 +611,17 @@ function popularFiltro(
 
   ];
 
-  if(campo === "VALOR"){
+  valores.sort((a,b)=>
 
-    valores.sort((a,b)=>
-      parseMoeda(a) - parseMoeda(b)
-    );
+    a.toString().localeCompare(
+      b.toString(),
+      "pt-BR",
+      {
+        sensitivity:"base"
+      }
+    )
 
-  }else{
-
-    valores.sort((a,b)=>
-
-      a.localeCompare(
-        b,
-        "pt-BR",
-        {
-          sensitivity:"base"
-        }
-      )
-
-    );
-
-  }
+  );
 
   select.append(`
     <option value="">
@@ -649,7 +630,8 @@ function popularFiltro(
   `);
 
   if(
-    (isAno || valores.length > 1)
+    isAno ||
+    valores.length > 1
   ){
 
     select.append(`
@@ -663,9 +645,11 @@ function popularFiltro(
   valores.forEach(v=>{
 
     select.append(`
+
       <option value="${v}">
         ${v}
       </option>
+
     `);
 
   });
@@ -676,43 +660,22 @@ function popularFiltro(
 
   }
 
-  /* CONTROLE ATIVAÇÃO */
-  if(isAno){
+  if(
+    isAno ||
+    $("#anoFiltro").val()
+  ){
 
     select.prop("disabled",false);
-
-  }else{
-
-    const anoSelecionado =
-      $("#anoFiltro").val();
-
-    if(
-      anoSelecionado &&
-      anoSelecionado !== ""
-    ){
-
-      select.prop("disabled",false);
-
-    }else{
-
-      select.prop("disabled",true);
-
-    }
 
   }
 
 }
-
-/* =========================
-   ATUALIZAR FILTROS
-========================= */
 
 function atualizarFiltros(){
 
   const ano =
     $("#anoFiltro").val();
 
-  /* BLOQUEIA FILTROS */
   if(!ano){
 
     ordemFiltros
@@ -733,7 +696,6 @@ function atualizarFiltros(){
 
   }
 
-  /* LIBERA APÓS ANO */
   ordemFiltros.forEach((filtro,index)=>{
 
     if(index === 0) return;
@@ -754,10 +716,6 @@ function atualizarFiltros(){
   });
 
 }
-
-/* =========================
-   BASE FILTROS
-========================= */
 
 function obterDadosBase(indiceAtual){
 
@@ -790,10 +748,6 @@ function obterDadosBase(indiceAtual){
   });
 
 }
-
-/* =========================
-   APLICAR FILTROS
-========================= */
 
 function aplicarFiltros(){
 
@@ -839,10 +793,6 @@ function aplicarFiltros(){
 
 }
 
-/* =========================
-   TABELA
-========================= */
-
 function renderTabela(dados){
 
   if(!dados.length){
@@ -868,7 +818,12 @@ function renderTabela(dados){
 
       title:c,
 
-      data:c
+      data:c,
+
+      className:
+        c === "VALOR"
+          ? "coluna-valor"
+          : ""
 
     }));
 
@@ -944,10 +899,6 @@ function renderTabela(dados){
 
 }
 
-/* =========================
-   RESUMO
-========================= */
-
 function atualizarResumo(dados){
 
   if(!dados.length){
@@ -986,10 +937,6 @@ function atualizarResumo(dados){
 
 }
 
-/* =========================
-   MOEDA
-========================= */
-
 function parseMoeda(valor){
 
   if(!valor) return 0;
@@ -1005,10 +952,6 @@ function parseMoeda(valor){
   ) || 0;
 
 }
-
-/* =========================
-   EXPORTAÇÃO
-========================= */
 
 function gerarNomeArquivo(ext){
 
@@ -1048,10 +991,6 @@ function gerarNomeArquivo(ext){
 
 }
 
-/* =========================
-   EXPORTAR JSON
-========================= */
-
 function exportarJson(){
 
   if(!tabela) return;
@@ -1081,10 +1020,6 @@ function exportarJson(){
   );
 
 }
-
-/* =========================
-   EXPORTAR TXT
-========================= */
 
 function exportarTxt(){
 
@@ -1130,10 +1065,6 @@ function exportarTxt(){
   );
 
 }
-
-/* =========================
-   DOWNLOAD
-========================= */
 
 function baixarArquivo(blob,nome){
 
