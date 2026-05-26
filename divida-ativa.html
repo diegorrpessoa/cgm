@@ -1,104 +1,692 @@
-<!-- =========================
-CSS AJUSTADO
-========================= -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Painel de Dívida Ativa</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
 
 <style>
 
-/* =========================
-   FILTRO VALOR
-========================= */
-
-/* Select mantém alinhamento padrão */
-#valorFiltro{
-  text-align:left !important;
+body{
+  background-color:#f8f9fa;
 }
 
-/* Valores alinhados à direita */
-#valorFiltro option{
+.dataTables_filter{
+  display:none;
+}
+
+.form-label,
+.form-select-sm,
+.form-control-sm,
+.table th,
+.table td{
+  font-size:.65rem !important;
+}
+
+.xsmall{
+  font-size:.6rem !important;
+}
+
+table.dataTable td,
+table.dataTable th{
+  white-space:nowrap;
+}
+
+#indicadorAtualizacao{
+  font-size:.65rem;
+  color:#6c757d;
+  text-align:right;
+  margin-bottom:8px;
+}
+
+/* ALINHAMENTO DIREITA */
+.text-end{
   text-align:right !important;
 }
 
-/* Primeira opção alinhada à esquerda */
-#valorFiltro option:first-child{
-  text-align:left !important;
+.spinner-overlay,
+.spinner-overlay-filtros{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:60px;
+  z-index:9999;
+}
+
+.spinner-overlay{
+  background-color:rgba(255,255,255,.9);
+}
+
+.spinner-overlay-filtros{
+  background-color:rgba(255,255,255,.5);
+  z-index:9998;
+}
+
+.spinner-border{
+  width:2rem;
+  height:2rem;
+}
+
+.spinner-text{
+  font-size:.9rem;
+  margin-top:5px;
+}
+
+.row label{
+  font-weight:600;
+  font-size:.72rem !important;
+  color:#343a40;
+  margin-bottom:2px;
+  padding-left:2px;
+}
+
+.form-select-sm,
+.form-control-sm{
+  border-radius:4px !important;
+  padding:2px 6px !important;
+  background-color:#fff !important;
+  border:1px solid #ced4da !important;
+  font-size:.7rem !important;
+}
+
+.totalizadores{
+  font-size:.7rem;
+  background:#fff;
+  padding:5px 10px;
+  border:1px solid #dee2e6;
+  border-radius:4px;
+}
+
+.totalizadores span{
+  display:inline-block;
+  margin-right:15px;
+  font-weight:500;
+}
+
+.table-wrapper{
+  overflow-x:auto;
+}
+
+.dataTables_info{
+  font-size:.65rem !important;
+  color:#6c757d !important;
+  margin-top:8px;
+  padding-left:5px;
+}
+
+.dataTables_wrapper .dataTables_paginate{
+  margin-top:.5rem;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:4px;
+  padding:6px 0;
+  font-size:.7rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+  padding:4px 8px !important;
+  margin:0 2px !important;
+  font-size:.65rem !important;
+  border-radius:6px !important;
+  background-color:#e9ecef !important;
+  border:1px solid #dee2e6 !important;
+  color:#212529 !important;
+  transition:background-color .2s ease;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover{
+  background-color:#d0d7df !important;
+  color:#212529 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background-color:#0d6efd !important;
+  color:#fff !important;
+  font-weight:bold !important;
+}
+
+.btn-group .btn{
+  font-size:.7rem;
+  padding:4px 8px;
+}
+
+#lengthSelectorContainer{
+  margin-top:10px;
+  font-size:.75rem;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+}
+
+#lengthSelector{
+  width:70px;
+  font-size:.75rem;
+  padding:2px 4px;
 }
 
 </style>
+</head>
 
-<!-- =========================
-SUBSTITUIR O $(document).ready
-========================= -->
+<body>
+
+<div id="spinnerCsv" class="spinner-overlay">
+
+  <div class="spinner-border text-primary"></div>
+
+  <div class="spinner-text">
+    Carregando base de dados...
+  </div>
+
+</div>
+
+<div
+  id="spinnerFiltros"
+  class="spinner-overlay-filtros"
+  style="display:none;"
+>
+
+  <div class="spinner-border text-secondary"></div>
+
+  <div class="spinner-text">
+    Atualizando filtros...
+  </div>
+
+</div>
+
+<div class="container-fluid mt-3">
+
+  <div id="indicadorAtualizacao">
+    Dados atualizados em...
+  </div>
+
+  <div class="row gx-2 gy-2 mb-3">
+
+    <div class="col-sm-2">
+      <label>Exercício (Ano) *</label>
+      <select
+        id="anoFiltro"
+        class="form-select form-select-sm"
+      ></select>
+    </div>
+
+    <div class="col-sm-4">
+      <label>Nome do Inscrito</label>
+      <select
+        id="inscritoFiltro"
+        class="form-select form-select-sm"
+        disabled
+      ></select>
+    </div>
+
+    <div class="col-sm-3">
+      <label>Valor</label>
+      <select
+        id="valorFiltro"
+        class="form-select form-select-sm"
+        disabled
+      ></select>
+    </div>
+
+  </div>
+
+  <div
+    class="totalizadores mb-2"
+    id="resumoValores"
+    style="display:none;"
+  >
+
+    <span id="totalValor">
+      Total: R$ 0,00
+    </span>
+
+  </div>
+
+  <div class="d-flex justify-content-between mb-2">
+
+    <button
+      id="btnLimpar"
+      class="btn btn-outline-primary btn-sm"
+    >
+      Limpar Filtros
+    </button>
+
+    <div class="btn-group">
+
+      <button
+        id="exportCsv"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        CSV
+      </button>
+
+      <button
+        id="exportXls"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        XLSX
+      </button>
+
+      <button
+        id="exportJson"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        JSON
+      </button>
+
+      <button
+        id="exportTxt"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        TXT
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="table-wrapper">
+
+    <table
+      id="tabela"
+      class="table table-bordered table-striped table-sm xsmall w-100"
+      style="display:none;"
+    ></table>
+
+  </div>
+
+  <div id="lengthSelectorContainer">
+
+    <label for="lengthSelector">
+      Registros por página:
+    </label>
+
+    <select
+      id="lengthSelector"
+      class="form-select form-select-sm d-inline-block"
+    >
+      <option value="10">10</option>
+      <option value="20">20</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
 <script>
 
+let tabela = null;
+
+let dadosOriginais = [];
+
+const urlCSV =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FTkebyd02cd95EDPbWnZs7ELPoZnuCXV5_qQ9hlUKy_2qjj0eMYM4O33PNdwRnK4M3pa1yvUtjIN/pub?gid=1659253784&single=true&output=csv";
+
+const campos = {
+
+  ano:"EXERCÍCIO (ANO)",
+  inscrito:"NOME DO INSCRITO",
+  valor:"VALOR"
+
+};
+
+const ordemFiltros = [
+
+  "ano",
+  "inscrito",
+  "valor"
+
+];
+
 $(document).ready(function(){
-
-  /* FILTROS INICIAM DESABILITADOS */
-  $("#inscritoFiltro")
-    .prop("disabled",true)
-    .html(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
-
-  $("#valorFiltro")
-    .prop("disabled",true)
-    .html(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
 
   carregarDados();
 
 });
 
-</script>
+function carregarDados(){
 
-<!-- =========================
-SUBSTITUIR FUNÇÃO atualizarFiltros
-========================= -->
+  Papa.parse(urlCSV,{
 
-<script>
+    download:true,
+
+    header:true,
+
+    skipEmptyLines:true,
+
+    complete:function(resultado){
+
+      if(
+        !resultado ||
+        !resultado.data ||
+        !resultado.data.length
+      ){
+
+        $("#spinnerCsv").hide();
+
+        alert(
+          "A base de dados retornou vazia."
+        );
+
+        return;
+
+      }
+
+      const primeiraLinha =
+        resultado.data[0];
+
+      const dataAtualizacao =
+
+        primeiraLinha["ATUALIZACAO"] ||
+        primeiraLinha["ATUALIZAÇÃO"] ||
+        primeiraLinha["Atualizacao"] ||
+        primeiraLinha["Atualização"] ||
+        primeiraLinha["E2"] ||
+        "";
+
+      if(dataAtualizacao){
+
+        $("#indicadorAtualizacao").html(
+          `Dados atualizados em: <b>${dataAtualizacao}</b>`
+        );
+
+      }
+
+      dadosOriginais =
+        resultado.data
+          .filter(r=>
+            r["EXERCÍCIO (ANO)"]
+          )
+          .map(r=>{
+
+            const novo = {...r};
+
+            delete novo["ATUALIZACAO"];
+            delete novo["ATUALIZAÇÃO"];
+            delete novo["Atualizacao"];
+            delete novo["Atualização"];
+
+            return novo;
+
+          });
+
+      popularFiltro(
+        "anoFiltro",
+        campos.ano,
+        dadosOriginais,
+        true
+      );
+
+      inicializarEventos();
+
+      $("#spinnerCsv").fadeOut(200);
+
+    },
+
+    error:function(){
+
+      $("#spinnerCsv").hide();
+
+      alert(
+        "Não foi possível carregar a base de dados CSV."
+      );
+
+    }
+
+  });
+
+}
+
+function inicializarEventos(){
+
+  ordemFiltros.forEach(filtro=>{
+
+    $("#"+filtro+"Filtro").on(
+      "change",
+      function(){
+
+        $("#spinnerFiltros").show();
+
+        setTimeout(()=>{
+
+          atualizarFiltros();
+
+          const dados =
+            aplicarFiltros();
+
+          renderTabela(dados);
+
+          $("#spinnerFiltros").hide();
+
+        },50);
+
+      }
+    );
+
+  });
+
+  $("#btnLimpar").on(
+    "click",
+    limparFiltros
+  );
+
+  $("#lengthSelector").on(
+    "change",
+    function(){
+
+      if(tabela){
+
+        tabela
+          .page
+          .len(parseInt(this.value))
+          .draw();
+
+      }
+
+    }
+  );
+
+  $("#exportCsv").on(
+    "click",
+    ()=>$(".buttons-csv").click()
+  );
+
+  $("#exportXls").on(
+    "click",
+    ()=>$(".buttons-excel").click()
+  );
+
+  $("#exportJson").on(
+    "click",
+    exportarJson
+  );
+
+  $("#exportTxt").on(
+    "click",
+    exportarTxt
+  );
+
+}
+
+function limparFiltros(){
+
+  ordemFiltros.forEach(f=>{
+
+    $("#"+f+"Filtro").val("");
+
+    if(f !== "ano"){
+
+      $("#"+f+"Filtro")
+        .prop("disabled",true);
+
+    }
+
+  });
+
+  $("#tabela")
+    .hide()
+    .empty();
+
+  $("#resumoValores").hide();
+
+  if(tabela){
+
+    tabela.destroy();
+
+    tabela = null;
+
+  }
+
+}
+
+function popularFiltro(
+  id,
+  campo,
+  dados,
+  isAno=false
+){
+
+  const select =
+    $("#"+id);
+
+  const valorAtual =
+    select.val();
+
+  select.empty();
+
+  let valores = [
+
+    ...new Set(
+
+      dados
+        .map(r=>r[campo])
+        .filter(Boolean)
+
+    )
+
+  ];
+
+  if(campo === "VALOR"){
+
+    valores.sort(
+      (a,b)=>
+      parseMoeda(a) -
+      parseMoeda(b)
+    );
+
+  }else{
+
+    valores.sort((a,b)=>
+
+      a.toString().localeCompare(
+        b.toString(),
+        "pt-BR",
+        {
+          sensitivity:"base"
+        }
+      )
+
+    );
+
+  }
+
+  select.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
+
+  if(
+    isAno ||
+    valores.length > 1
+  ){
+
+    select.append(`
+      <option value="TODOS">
+        Todos
+      </option>
+    `);
+
+  }
+
+  valores.forEach(v=>{
+
+    select.append(`
+
+      <option value="${v}">
+        ${v}
+      </option>
+
+    `);
+
+  });
+
+  if(valores.includes(valorAtual)){
+
+    select.val(valorAtual);
+
+  }
+
+  select.prop(
+    "disabled",
+    !isAno && !$("#anoFiltro").val()
+  );
+
+}
 
 function atualizarFiltros(){
 
   const ano =
     $("#anoFiltro").val();
 
-  /* SEM ANO */
-  if(
-    !ano ||
-    ano === ""
-  ){
+  if(!ano){
 
-    $("#inscritoFiltro")
-      .prop("disabled",true)
-      .html(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
+    ordemFiltros
+      .slice(1)
+      .forEach(f=>{
 
-    $("#valorFiltro")
-      .prop("disabled",true)
-      .html(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
+        $("#"+f+"Filtro")
+          .prop("disabled",true)
+          .html(`
+            <option value="">
+              Selecione...
+            </option>
+          `);
+
+      });
 
     return;
 
   }
-
-  /* COM ANO */
-  $("#inscritoFiltro")
-    .prop("disabled",false);
-
-  $("#valorFiltro")
-    .prop("disabled",false);
 
   ordemFiltros.forEach((filtro,index)=>{
 
@@ -121,83 +709,375 @@ function atualizarFiltros(){
 
 }
 
-</script>
+function obterDadosBase(indiceAtual){
 
-<!-- =========================
-SUBSTITUIR FUNÇÃO limparFiltros
-========================= -->
+  return dadosOriginais.filter(registro=>{
 
-<script>
+    return ordemFiltros
+      .slice(0,indiceAtual)
+      .every(f=>{
 
-function limparFiltros(){
+        const valor =
+          $("#"+f+"Filtro").val();
 
-  ordemFiltros.forEach(f=>{
+        if(
+          !valor ||
+          valor === "TODOS"
+        ){
 
-    $("#"+f+"Filtro").val("");
+          return true;
+
+        }
+
+        return (
+          registro[
+            campos[f]
+          ] === valor
+        );
+
+      });
 
   });
 
-  /* DESATIVA FILTROS */
-  $("#inscritoFiltro")
-    .prop("disabled",true)
-    .html(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
+}
 
-  $("#valorFiltro")
-    .prop("disabled",true)
-    .html(`
-      <option value="">
-        Selecione...
-      </option>
-    `);
+function aplicarFiltros(){
 
-  $("#tabela")
-    .hide()
-    .empty();
+  const ano =
+    $("#anoFiltro").val();
 
-  $("#resumoValores").hide();
+  if(!ano){
+
+    atualizarResumo([]);
+
+    return [];
+
+  }
+
+  const dados =
+    dadosOriginais.filter(r=>{
+
+      return ordemFiltros.every(f=>{
+
+        const valor =
+          $("#"+f+"Filtro").val();
+
+        if(
+          !valor ||
+          valor === "TODOS"
+        ){
+
+          return true;
+
+        }
+
+        return (
+          r[campos[f]] === valor
+        );
+
+      });
+
+    });
+
+  atualizarResumo(dados);
+
+  return dados;
+
+}
+
+function renderTabela(dados){
+
+  if(!dados.length){
+
+    $("#tabela")
+      .hide()
+      .empty();
+
+    if(tabela){
+
+      tabela.destroy();
+
+      tabela = null;
+
+    }
+
+    return;
+
+  }
+
+  const colunas =
+    Object.keys(dados[0]).map(c=>({
+
+      title:c,
+
+      data:c,
+
+      className:
+        c === "VALOR" ||
+        c === "EXERCÍCIO (ANO)"
+          ? "text-end"
+          : ""
+
+    }));
 
   if(tabela){
 
     tabela.destroy();
 
-    tabela = null;
+    $("#tabela").empty();
 
   }
 
+  $("#tabela").show();
+
+  tabela = $("#tabela").DataTable({
+
+    data:dados,
+
+    columns:colunas,
+
+    destroy:true,
+
+    pageLength:parseInt(
+      $("#lengthSelector").val()
+    ),
+
+    searching:true,
+
+    ordering:true,
+
+    autoWidth:false,
+
+    scrollX:true,
+
+    scrollY:"55vh",
+
+    scrollCollapse:true,
+
+    dom:"Bfrtip",
+
+    buttons:[
+
+      {
+
+        extend:"csvHtml5",
+
+        className:"d-none",
+
+        filename:()=>gerarNomeArquivo("csv")
+          .replace(".csv","")
+
+      },
+
+      {
+
+        extend:"excelHtml5",
+
+        className:"d-none",
+
+        filename:()=>gerarNomeArquivo("xlsx")
+          .replace(".xlsx","")
+
+      }
+
+    ],
+
+    language:{
+
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+
+    }
+
+  });
+
+}
+
+function atualizarResumo(dados){
+
+  if(!dados.length){
+
+    $("#resumoValores").hide();
+
+    return;
+
+  }
+
+  let total = 0;
+
+  dados.forEach(r=>{
+
+    total += parseMoeda(
+      r["VALOR"]
+    );
+
+  });
+
+  $("#totalValor").text(
+
+    "Total: " +
+
+    total.toLocaleString(
+      "pt-BR",
+      {
+        style:"currency",
+        currency:"BRL"
+      }
+    )
+
+  );
+
+  $("#resumoValores").show();
+
+}
+
+function parseMoeda(valor){
+
+  if(!valor) return 0;
+
+  return parseFloat(
+
+    valor
+      .toString()
+      .replace(/[^\d,-]/g,"")
+      .replace(/\./g,"")
+      .replace(",", ".")
+
+  ) || 0;
+
+}
+
+function gerarNomeArquivo(ext){
+
+  const partes = [
+
+    "divida-ativa"
+
+  ];
+
+  ordemFiltros.forEach(f=>{
+
+    const valor =
+      $("#"+f+"Filtro").val();
+
+    if(
+      valor &&
+      valor !== "TODOS"
+    ){
+
+      partes.push(
+
+        valor
+          .toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g,"-")
+          .replace(/[^\w-]/g,"")
+
+      );
+
+    }
+
+  });
+
+  return partes.join("-")+"."+ext;
+
+}
+
+function exportarJson(){
+
+  if(!tabela) return;
+
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  baixarArquivo(
+
+    new Blob(
+      [
+        JSON.stringify(
+          dados,
+          null,
+          2
+        )
+      ],
+      {
+        type:"application/json"
+      }
+    ),
+
+    gerarNomeArquivo("json")
+
+  );
+
+}
+
+function exportarTxt(){
+
+  if(!tabela) return;
+
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  if(!dados.length) return;
+
+  const colunas =
+    Object.keys(dados[0]);
+
+  const txt =
+
+    colunas.join(";") +
+
+    "\n" +
+
+    dados
+      .map(l=>
+
+        colunas
+          .map(c=>l[c])
+          .join(";")
+
+      )
+      .join("\n");
+
+  baixarArquivo(
+
+    new Blob(
+      [txt],
+      {
+        type:"text/plain"
+      }
+    ),
+
+    gerarNomeArquivo("txt")
+
+  );
+
+}
+
+function baixarArquivo(blob,nome){
+
+  const link =
+    document.createElement("a");
+
+  link.href =
+    URL.createObjectURL(blob);
+
+  link.download = nome;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
 }
 
 </script>
 
-<!-- =========================
-SUBSTITUIR TRECHO FINAL DA
-FUNÇÃO popularFiltro
-========================= -->
-
-<script>
-
-/* REMOVER ESTE BLOCO ANTIGO:
-
-if(
-  isAno ||
-  $("#anoFiltro").val()
-){
-
-  select.prop("disabled",false);
-
-}
-
-*/
-
-/* E SUBSTITUIR POR: */
-
-if(isAno){
-
-  select.prop("disabled",false);
-
-}
-
-</script>
+</body>
+</html>
