@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Painel de Emendas - IN 05/2025 - TCE/MG</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+
+<style>
+body { background-color: #f8f9fa; }
+.dataTables_filter { display: none; }
+
+label {
+  font-weight: 600;
+  font-size: 0.72rem !important;
+  color: #343a40;
+  margin-bottom: 2px;
+}
+
+.form-select-sm, table {
+  font-size: 0.7rem !important;
+}
+
+table.dataTable td, table.dataTable th {
+  white-space: nowrap;
+}
+
+/* LINKS */
+.link-plano-trabalho{
+  color:#0d6efd;
+  text-decoration:none;
+  font-weight:500;
+}
+
+.link-plano-trabalho:hover{
+  text-decoration:underline;
+}
+
+/* Paginação */
+.dataTables_wrapper .dataTables_paginate {
+  margin-top: 0.5rem;
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+  padding: 4px 8px !important;
+  font-size: 0.65rem !important;
+  border-radius: 6px !important;
+  background-color: #e9ecef !important;
+  border: 1px solid #dee2e6 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+  background-color: #0d6efd !important;
+  color: #fff !important;
+  font-weight: bold !important;
+}
+
+/* Botões exportação */
+.export-group .btn {
+  font-size: 0.7rem;
+  padding: 4px 8px;
+}
+
+/* Atualização */
+#indicadorAtualizacao {
+  font-size: 0.65rem;
+  color: #6c757d;
+  text-align: right;
+  margin-bottom: 8px;
+}
+
+/* Spinner gov.br */
+.spinner-overlay {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 60px;
+  z-index: 9999;
+  background-color: rgba(255,255,255,0.9);
+}
+
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+.spinner-text {
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* Totalizador */
+.totalizadores {
+  font-size: 0.7rem;
+  background: #fff;
+  padding: 5px 10px;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.totalizadores span {
+  display: inline-block;
+  margin-right: 15px;
+  font-weight: 600;
+}
+
+/* Registros por página externo */
+#lengthSelectorContainer {
+  font-size: 0.7rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+#lengthSelector {
+  width: 80px;
+  font-size: 0.7rem;
+}
+</style>
+</head>
+
+<body>
+
+<!-- SPINNER -->
+<div id="spinnerCsv" class="spinner-overlay">
+  <div class="spinner-border text-primary"></div>
+  <div class="spinner-text">Carregando base de dados...</div>
+</div>
+
+<div class="container-fluid mt-3">
+
+<div id="indicadorAtualizacao">
+  Dados atualizados em...
+</div>
+
+<!-- FILTROS -->
+<div class="row gx-2 gy-2 mb-3">
+
+  <div class="col-sm-2">
+    <label>Ano *</label>
+    <select id="anoFiltro" class="form-select form-select-sm"></select>
+  </div>
+
+  <div class="col-sm-2"><label>Origem</label>
+    <select id="origemFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Tipo</label>
+    <select id="tipoFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Autoria</label>
+    <select id="autoriaFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Número</label>
+    <select id="numeroFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Objeto</label>
+    <select id="objetoFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Recebedor</label>
+    <select id="recebedorFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>CNPJ</label>
+    <select id="cnpjFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Natureza</label>
+    <select id="naturezaFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+  <div class="col-sm-2"><label>Função</label>
+    <select id="funcaoFiltro" class="form-select form-select-sm" disabled></select>
+  </div>
+
+</div>
+
+<!-- TOTALIZADOR -->
+<div class="totalizadores mb-2" id="resumoValores" style="display:none;">
+  <span id="totalPrevisto">Valor previsto: R$ 0,00</span>
+</div>
+
+<!-- BOTÕES -->
+<div class="d-flex justify-content-between mb-2">
+
+  <button id="btnLimpar" class="btn btn-outline-primary btn-sm">
+    Limpar Filtros
+  </button>
+
+  <div class="export-group btn-group">
+    <button id="btnCsv" class="btn btn-outline-secondary btn-sm">CSV</button>
+    <button id="btnXlsx" class="btn btn-outline-secondary btn-sm">XLSX</button>
+    <button id="btnTxt" class="btn btn-outline-secondary btn-sm">TXT</button>
+    <button id="btnJson" class="btn btn-outline-secondary btn-sm">JSON</button>
+  </div>
+
+</div>
+
+<!-- REGISTROS POR PÁGINA -->
+<div id="lengthSelectorContainer">
+  <label>Registros por página:</label>
+  <select id="lengthSelector" class="form-select form-select-sm">
+    <option value="10">10</option>
+    <option value="25">25</option>
+    <option value="50">50</option>
+    <option value="100">100</option>
+  </select>
+</div>
+
+<!-- TABELA -->
+<div class="table-responsive">
+  <table id="tabela" class="table table-bordered table-striped table-sm w-100" style="display:none;"></table>
+</div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+let tabela;
+let dadosOriginais=[];
+
+const urlCSV="https://docs.google.com/spreadsheets/d/e/2PACX-1vTkqC4aoZJcALRrSITEjr57Qk8D7-my9cguXVZLbVLZcP0hA3yFWKph6sOSQl30zDO8Z-XmN5TyLJG3/pub?output=csv";
+
+const campos={
+  ano:"Ano",
+  origem:"Origem dos recursos",
+  tipo:"Tipo de emenda",
+  autoria:"Proponente",
+  numero:"Identificação da Emenda",
+  objeto:"Objeto da Despesa",
+  recebedor:"Órgão ou entidade executora ou beneficiária",
+  cnpj:"CNPJ do Órgão ou entidade executora ou beneficiária",
+  natureza:"Grupo de Natureza de Despesa (GND)",
+  funcao:"Função de Governo Função programática"
+};
+
+const ordem=Object.keys(campos);
+
+/* Nome coluna plano */
+const colunaPlano="Plano de Trabalho";
+
+/* Nome dinâmico exportação */
+function gerarNomeArquivo(ext){
+  let partes=["dados-emendas-pjf"];
+
+  ordem.forEach(f=>{
+    let val=$("#"+f+"Filtro").val();
+
+    if(val && val!=="TODOS"){
+      partes.push(
+        val
+          .toLowerCase()
+          .replace(/\s+/g,"-")
+      );
+    }
+  });
+
+  return partes.join("-")+"."+ext;
+}
+
+/* Parse moeda */
+function parseMoeda(valor){
+
+  if(!valor) return 0;
+
+  return parseFloat(
+    valor.toString()
+      .replace(/[^\d,.-]/g,"")
+      .replace(/\./g,"")
+      .replace(",",".")
+  ) || 0;
+}
+
+/* Verifica URL */
+function isUrl(texto){
+
+  if(!texto) return false;
+
+  return /^https?:\/\/.+/i.test(
+    texto.toString().trim()
+  );
+}
+
+/* Totalizador previsto */
+function atualizarResumoPrevisto(dados){
+
+  if(!dados.length){
+    $("#resumoValores").hide();
+    return;
+  }
+
+  let total=0;
+
+  dados.forEach(r=>{
+    total += parseMoeda(
+      r["Valor alocado/previsto"]
+    );
+  });
+
+  $("#totalPrevisto").text(
+    "Valor previsto: " +
+    total.toLocaleString(
+      "pt-BR",
+      {
+        style:"currency",
+        currency:"BRL"
+      }
+    )
+  );
+
+  $("#resumoValores").show();
+}
+
+/* CSV carregamento */
+Papa.parse(urlCSV,{
+  download:true,
+  header:true,
+
+  complete:r=>{
+
+    dadosOriginais=r.data.filter(
+      d=>d[campos.ano]
+    );
+
+    let linhaAtualizacao=
+      dadosOriginais.find(
+        x=>x["Atualizacao"]
+      );
+
+    if(linhaAtualizacao){
+
+      $("#indicadorAtualizacao").html(
+        `Dados atualizados em: <b>${linhaAtualizacao["Atualizacao"]}</b>`
+      );
+
+    }
+
+    dadosOriginais=dadosOriginais.map(r=>{
+
+      let copia={...r};
+
+      delete copia["Atualizacao"];
+
+      return copia;
+
+    });
+
+    carregarAno();
+
+    $("#spinnerCsv").fadeOut(200);
+
+  }
+});
+
+/* Ano */
+function carregarAno(){
+
+  let s=$("#anoFiltro");
+
+  s.empty();
+
+  s.append(
+    '<option value="">Selecione...</option>'
+  );
+
+  s.append(
+    '<option value="TODOS">Todos</option>'
+  );
+
+  [...new Set(
+    dadosOriginais.map(
+      r=>r[campos.ano]
+    )
+  )]
+  .sort()
+  .forEach(v=>
+
+    s.append(`
+      <option value="${v}">
+        ${v}
+      </option>
+    `)
+
+  );
+}
+
+/* Aplica filtros */
+function aplicarFiltroAtual(){
+
+  let ano=$("#anoFiltro").val();
+
+  if(!ano) return [];
+
+  let base=(ano==="TODOS")
+
+    ? [...dadosOriginais]
+
+    : dadosOriginais.filter(
+        r=>r[campos.ano]===ano
+      );
+
+  ordem.slice(1).forEach(f=>{
+
+    let v=$("#"+f+"Filtro").val();
+
+    if(v){
+
+      base=base.filter(
+        r=>r[campos[f]]===v
+      );
+
+    }
+
+  });
+
+  return base;
+}
+
+/* Ignora filtro */
+function aplicarFiltroIgnorando(
+  filtroIgnorado
+){
+
+  let ano=$("#anoFiltro").val();
+
+  if(!ano) return [];
+
+  let base=(ano==="TODOS")
+
+    ? [...dadosOriginais]
+
+    : dadosOriginais.filter(
+        r=>r[campos.ano]===ano
+      );
+
+  ordem.slice(1).forEach(f=>{
+
+    if(f===filtroIgnorado)
+      return;
+
+    let v=$("#"+f+"Filtro").val();
+
+    if(v){
+
+      base=base.filter(
+        r=>r[campos[f]]===v
+      );
+
+    }
+
+  });
+
+  return base;
+}
+
+/* Encadeamento */
+function atualizarFiltrosEncadeados(){
+
+  ordem.slice(1).forEach(f=>{
+
+    let seletor=$("#"+f+"Filtro");
+
+    let valorAtual=
+      seletor.val();
+
+    let base=
+      aplicarFiltroIgnorando(f);
+
+    let valores=[
+
+      ...new Set(
+
+        base
+          .map(r=>r[campos[f]])
+          .filter(Boolean)
+
+      )
+
+    ].sort();
+
+    seletor.empty();
+
+    seletor.append(
+      '<option value="">Selecione...</option>'
+    );
+
+    valores.forEach(v=>{
+
+      seletor.append(`
+        <option value="${v}">
+          ${v}
+        </option>
+      `);
+
+    });
+
+    seletor.prop(
+      "disabled",
+      valores.length===0
+    );
+
+    if(
+      valores.includes(valorAtual)
+    ){
+
+      seletor.val(valorAtual);
+
+    }else{
+
+      seletor.val("");
+
+    }
+
+  });
+
+}
+
+/* Render tabela */
+function renderTabela(dados){
+
+  if(!dados.length){
+
+    $("#tabela").hide();
+
+    return;
+
+  }
+
+  $("#tabela").show();
+
+  /* COLUNAS COM HIPERLINK */
+  const colunas=Object.keys(
+    dados[0]
+  ).map(c=>({
+
+    title:c,
+
+    data:c,
+
+    render:function(data,type){
+
+      if(
+        c===colunaPlano &&
+        isUrl(data)
+      ){
+
+        if(type==="display"){
+
+          return `
+            <a
+              href="${data}"
+              target="_blank"
+              class="link-plano-trabalho"
+            >
+              Abrir Link
+            </a>
+          `;
+
+        }
+
+      }
+
+      return data ?? "";
+
+    }
+
+  }));
+
+  if(tabela){
+
+    tabela.destroy();
+
+    $("#tabela").empty();
+
+  }
+
+  tabela=$("#tabela").DataTable({
+
+    data:dados,
+
+    columns:colunas,
+
+    scrollX:true,
+
+    scrollY:"55vh",
+
+    scrollCollapse:true,
+
+    paging:true,
+
+    pageLength:10,
+
+    lengthChange:false,
+
+    info:true,
+
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
+
+  });
+
+  $("#lengthSelector")
+    .off("change")
+    .on("change",function(){
+
+      tabela
+        .page
+        .len(this.value)
+        .draw();
+
+    });
+
+}
+
+/* Aplicar tudo */
+function aplicarTudo(){
+
+  let dados=
+    aplicarFiltroAtual();
+
+  atualizarFiltrosEncadeados();
+
+  atualizarResumoPrevisto(
+    dados
+  );
+
+  renderTabela(dados);
+
+}
+
+/* Eventos */
+$("#anoFiltro").on(
+  "change",
+  function(){
+
+    ordem.slice(1).forEach(f=>{
+
+      $("#"+f+"Filtro")
+        .val("")
+        .prop("disabled",false);
+
+    });
+
+    aplicarTudo();
+
+  }
+);
+
+ordem.slice(1).forEach(f=>{
+
+  $("#"+f+"Filtro").on(
+    "change",
+    aplicarTudo
+  );
+
+});
+
+/* Limpar */
+$("#btnLimpar").on(
+  "click",
+  ()=>location.reload()
+);
+
+/* Download */
+function baixarArquivo(blob,nome){
+
+  let link=
+    document.createElement("a");
+
+  link.href=
+    URL.createObjectURL(blob);
+
+  link.download=nome;
+
+  link.click();
+
+}
+
+/* CSV */
+$("#btnCsv").on(
+  "click",
+  ()=>{
+
+    let csv=Papa.unparse(
+
+      tabela
+        .rows({search:"applied"})
+        .data()
+        .toArray(),
+
+      {
+        quotes:true,
+        delimiter:";"
+      }
+
+    );
+
+    baixarArquivo(
+
+      new Blob(
+        ["\ufeff"+csv],
+        {
+          type:"text/csv;charset=utf-8;"
+        }
+      ),
+
+      gerarNomeArquivo("csv")
+
+    );
+
+  }
+);
+
+/* JSON */
+$("#btnJson").on(
+  "click",
+  ()=>{
+
+    let dados=tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray();
+
+    baixarArquivo(
+
+      new Blob(
+        [
+          JSON.stringify(
+            dados,
+            null,
+            2
+          )
+        ],
+        {
+          type:"application/json"
+        }
+      ),
+
+      gerarNomeArquivo("json")
+
+    );
+
+  }
+);
+
+/* TXT */
+$("#btnTxt").on(
+  "click",
+  ()=>{
+
+    let dados=tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray();
+
+    let txt=dados
+      .map(o=>
+        Object.values(o)
+          .join(" | ")
+      )
+      .join("\n");
+
+    baixarArquivo(
+
+      new Blob(
+        [txt],
+        {
+          type:"text/plain"
+        }
+      ),
+
+      gerarNomeArquivo("txt")
+
+    );
+
+  }
+);
+
+/* XLSX */
+$("#btnXlsx").on(
+  "click",
+  ()=>{
+
+    let dados=tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray();
+
+    let ws=
+      XLSX.utils.json_to_sheet(
+        dados
+      );
+
+    let wb=
+      XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      "Emendas"
+    );
+
+    XLSX.writeFile(
+      wb,
+      gerarNomeArquivo("xlsx")
+    );
+
+  }
+);
+</script>
+
+</body>
+</html>
