@@ -27,7 +27,7 @@ table.dataTable td, table.dataTable th {
   white-space: nowrap;
 }
 
-/* LINKS */
+/* Hyperlink */
 .link-plano-trabalho{
   color:#0d6efd;
   text-decoration:none;
@@ -256,9 +256,6 @@ const campos={
 
 const ordem=Object.keys(campos);
 
-/* Nome coluna plano */
-const colunaPlano="Plano de Trabalho";
-
 /* Nome dinâmico exportação */
 function gerarNomeArquivo(ext){
   let partes=["dados-emendas-pjf"];
@@ -289,16 +286,7 @@ function parseMoeda(valor){
       .replace(/\./g,"")
       .replace(",",".")
   ) || 0;
-}
 
-/* Verifica URL */
-function isUrl(texto){
-
-  if(!texto) return false;
-
-  return /^https?:\/\/.+/i.test(
-    texto.toString().trim()
-  );
 }
 
 /* Totalizador previsto */
@@ -312,9 +300,7 @@ function atualizarResumoPrevisto(dados){
   let total=0;
 
   dados.forEach(r=>{
-    total += parseMoeda(
-      r["Valor alocado/previsto"]
-    );
+    total += parseMoeda(r["Valor alocado/previsto"]);
   });
 
   $("#totalPrevisto").text(
@@ -331,8 +317,36 @@ function atualizarResumoPrevisto(dados){
   $("#resumoValores").show();
 }
 
+/* Converte texto + link em hyperlink */
+function converterHyperlink(texto){
+
+  if(!texto) return texto;
+
+  const regex = /(.*?)(https?:\/\/\S+)$/i;
+
+  const match = texto.match(regex);
+
+  if(!match){
+    return texto;
+  }
+
+  const titulo = match[1].trim();
+  const url = match[2].trim();
+
+  return `
+    <a
+      href="${url}"
+      target="_blank"
+      class="link-plano-trabalho"
+    >
+      ${titulo}
+    </a>
+  `;
+}
+
 /* CSV carregamento */
 Papa.parse(urlCSV,{
+
   download:true,
   header:true,
 
@@ -342,7 +356,7 @@ Papa.parse(urlCSV,{
       d=>d[campos.ano]
     );
 
-    let linhaAtualizacao=
+    let linhaAtualizacao =
       dadosOriginais.find(
         x=>x["Atualizacao"]
       );
@@ -370,6 +384,7 @@ Papa.parse(urlCSV,{
     $("#spinnerCsv").fadeOut(200);
 
   }
+
 });
 
 /* Ano */
@@ -379,13 +394,8 @@ function carregarAno(){
 
   s.empty();
 
-  s.append(
-    '<option value="">Selecione...</option>'
-  );
-
-  s.append(
-    '<option value="TODOS">Todos</option>'
-  );
+  s.append('<option value="">Selecione...</option>');
+  s.append('<option value="TODOS">Todos</option>');
 
   [...new Set(
     dadosOriginais.map(
@@ -394,14 +404,11 @@ function carregarAno(){
   )]
   .sort()
   .forEach(v=>
-
-    s.append(`
-      <option value="${v}">
-        ${v}
-      </option>
-    `)
-
+    s.append(
+      `<option value="${v}">${v}</option>`
+    )
   );
+
 }
 
 /* Aplica filtros */
@@ -412,9 +419,7 @@ function aplicarFiltroAtual(){
   if(!ano) return [];
 
   let base=(ano==="TODOS")
-
     ? [...dadosOriginais]
-
     : dadosOriginais.filter(
         r=>r[campos.ano]===ano
       );
@@ -434,29 +439,25 @@ function aplicarFiltroAtual(){
   });
 
   return base;
+
 }
 
-/* Ignora filtro */
-function aplicarFiltroIgnorando(
-  filtroIgnorado
-){
+/* Ignora filtro atual */
+function aplicarFiltroIgnorando(filtroIgnorado){
 
   let ano=$("#anoFiltro").val();
 
   if(!ano) return [];
 
   let base=(ano==="TODOS")
-
     ? [...dadosOriginais]
-
     : dadosOriginais.filter(
         r=>r[campos.ano]===ano
       );
 
   ordem.slice(1).forEach(f=>{
 
-    if(f===filtroIgnorado)
-      return;
+    if(f===filtroIgnorado) return;
 
     let v=$("#"+f+"Filtro").val();
 
@@ -471,6 +472,7 @@ function aplicarFiltroIgnorando(
   });
 
   return base;
+
 }
 
 /* Encadeamento */
@@ -479,24 +481,16 @@ function atualizarFiltrosEncadeados(){
   ordem.slice(1).forEach(f=>{
 
     let seletor=$("#"+f+"Filtro");
-
-    let valorAtual=
-      seletor.val();
+    let valorAtual=seletor.val();
 
     let base=
       aplicarFiltroIgnorando(f);
 
-    let valores=[
-
-      ...new Set(
-
-        base
-          .map(r=>r[campos[f]])
-          .filter(Boolean)
-
-      )
-
-    ].sort();
+    let valores=[...new Set(
+      base
+        .map(r=>r[campos[f]])
+        .filter(Boolean)
+    )].sort();
 
     seletor.empty();
 
@@ -506,11 +500,9 @@ function atualizarFiltrosEncadeados(){
 
     valores.forEach(v=>{
 
-      seletor.append(`
-        <option value="${v}">
-          ${v}
-        </option>
-      `);
+      seletor.append(
+        `<option value="${v}">${v}</option>`
+      );
 
     });
 
@@ -519,16 +511,10 @@ function atualizarFiltrosEncadeados(){
       valores.length===0
     );
 
-    if(
-      valores.includes(valorAtual)
-    ){
-
+    if(valores.includes(valorAtual)){
       seletor.val(valorAtual);
-
     }else{
-
       seletor.val("");
-
     }
 
   });
@@ -548,43 +534,28 @@ function renderTabela(dados){
 
   $("#tabela").show();
 
-  /* COLUNAS COM HIPERLINK */
-  const colunas=Object.keys(
-    dados[0]
-  ).map(c=>({
+  const colunas=
+    Object.keys(dados[0]).map(c=>({
 
-    title:c,
+      title:c,
+      data:c,
 
-    data:c,
+      render:function(data,type,row){
 
-    render:function(data,type){
+        if(
+          c === "Plano de Trabalho" &&
+          type === "display"
+        ){
 
-      if(
-        c===colunaPlano &&
-        isUrl(data)
-      ){
-
-        if(type==="display"){
-
-          return `
-            <a
-              href="${data}"
-              target="_blank"
-              class="link-plano-trabalho"
-            >
-              Abrir Link
-            </a>
-          `;
+          return converterHyperlink(data);
 
         }
 
+        return data;
+
       }
 
-      return data ?? "";
-
-    }
-
-  }));
+    }));
 
   if(tabela){
 
@@ -601,17 +572,13 @@ function renderTabela(dados){
     columns:colunas,
 
     scrollX:true,
-
     scrollY:"55vh",
-
     scrollCollapse:true,
 
     paging:true,
-
     pageLength:10,
 
     lengthChange:false,
-
     info:true,
 
     language:{
@@ -641,38 +608,31 @@ function aplicarTudo(){
 
   atualizarFiltrosEncadeados();
 
-  atualizarResumoPrevisto(
-    dados
-  );
+  atualizarResumoPrevisto(dados);
 
   renderTabela(dados);
 
 }
 
 /* Eventos */
-$("#anoFiltro").on(
-  "change",
-  function(){
+$("#anoFiltro").on("change",function(){
 
-    ordem.slice(1).forEach(f=>{
+  ordem.slice(1).forEach(f=>{
 
-      $("#"+f+"Filtro")
-        .val("")
-        .prop("disabled",false);
+    $("#"+f+"Filtro")
+      .val("")
+      .prop("disabled",false);
 
-    });
+  });
 
-    aplicarTudo();
+  aplicarTudo();
 
-  }
-);
+});
 
 ordem.slice(1).forEach(f=>{
 
-  $("#"+f+"Filtro").on(
-    "change",
-    aplicarTudo
-  );
+  $("#"+f+"Filtro")
+    .on("change",aplicarTudo);
 
 });
 
@@ -685,8 +645,7 @@ $("#btnLimpar").on(
 /* Download */
 function baixarArquivo(blob,nome){
 
-  let link=
-    document.createElement("a");
+  let link=document.createElement("a");
 
   link.href=
     URL.createObjectURL(blob);
@@ -698,136 +657,128 @@ function baixarArquivo(blob,nome){
 }
 
 /* CSV */
-$("#btnCsv").on(
-  "click",
-  ()=>{
+$("#btnCsv").on("click",()=>{
 
-    let csv=Papa.unparse(
+  if(!tabela) return;
 
-      tabela
-        .rows({search:"applied"})
-        .data()
-        .toArray(),
+  let csv=Papa.unparse(
+    tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray(),
+    {
+      quotes:true,
+      delimiter:";"
+    }
+  );
 
+  baixarArquivo(
+
+    new Blob(
+      ["\ufeff"+csv],
       {
-        quotes:true,
-        delimiter:";"
+        type:"text/csv;charset=utf-8;"
       }
+    ),
 
-    );
+    gerarNomeArquivo("csv")
 
-    baixarArquivo(
+  );
 
-      new Blob(
-        ["\ufeff"+csv],
-        {
-          type:"text/csv;charset=utf-8;"
-        }
-      ),
-
-      gerarNomeArquivo("csv")
-
-    );
-
-  }
-);
+});
 
 /* JSON */
-$("#btnJson").on(
-  "click",
-  ()=>{
+$("#btnJson").on("click",()=>{
 
-    let dados=tabela
-      .rows({search:"applied"})
-      .data()
-      .toArray();
+  if(!tabela) return;
 
-    baixarArquivo(
+  let dados=tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
 
-      new Blob(
-        [
-          JSON.stringify(
-            dados,
-            null,
-            2
-          )
-        ],
-        {
-          type:"application/json"
-        }
-      ),
+  baixarArquivo(
 
-      gerarNomeArquivo("json")
+    new Blob(
+      [
+        JSON.stringify(
+          dados,
+          null,
+          2
+        )
+      ],
+      {
+        type:"application/json"
+      }
+    ),
 
-    );
+    gerarNomeArquivo("json")
 
-  }
-);
+  );
+
+});
 
 /* TXT */
-$("#btnTxt").on(
-  "click",
-  ()=>{
+$("#btnTxt").on("click",()=>{
 
-    let dados=tabela
-      .rows({search:"applied"})
-      .data()
-      .toArray();
+  if(!tabela) return;
 
-    let txt=dados
-      .map(o=>
-        Object.values(o)
-          .join(" | ")
-      )
-      .join("\n");
+  let dados=tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
 
-    baixarArquivo(
+  let txt=dados
+    .map(o=>
+      Object
+        .values(o)
+        .join(" | ")
+    )
+    .join("\n");
 
-      new Blob(
-        [txt],
-        {
-          type:"text/plain"
-        }
-      ),
+  baixarArquivo(
 
-      gerarNomeArquivo("txt")
+    new Blob(
+      [txt],
+      {
+        type:"text/plain"
+      }
+    ),
 
-    );
+    gerarNomeArquivo("txt")
 
-  }
-);
+  );
+
+});
 
 /* XLSX */
-$("#btnXlsx").on(
-  "click",
-  ()=>{
+$("#btnXlsx").on("click",()=>{
 
-    let dados=tabela
-      .rows({search:"applied"})
-      .data()
-      .toArray();
+  if(!tabela) return;
 
-    let ws=
-      XLSX.utils.json_to_sheet(
-        dados
-      );
+  let dados=tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
 
-    let wb=
-      XLSX.utils.book_new();
+  let ws=
+    XLSX.utils.json_to_sheet(dados);
 
-    XLSX.utils.book_append_sheet(
-      wb,
-      ws,
-      "Emendas"
-    );
+  let wb=
+    XLSX.utils.book_new();
 
-    XLSX.writeFile(
-      wb,
-      gerarNomeArquivo("xlsx")
-    );
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    "Emendas"
+  );
 
-  }
-);
+  XLSX.writeFile(
+    wb,
+    gerarNomeArquivo("xlsx")
+  );
+
+});
 </script>
 
 </body>
