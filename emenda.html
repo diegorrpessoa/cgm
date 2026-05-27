@@ -27,15 +27,15 @@ table.dataTable td, table.dataTable th {
   white-space: nowrap;
 }
 
-/* Hyperlink */
+/* LINKS */
 .link-plano-trabalho{
-  color:#0d6efd;
-  text-decoration:none;
-  font-weight:500;
+  color:#0d6efd !important;
+  text-decoration:underline !important;
+  font-weight:normal !important;
 }
 
 .link-plano-trabalho:hover{
-  text-decoration:underline;
+  color:#0a58ca !important;
 }
 
 /* Paginação */
@@ -265,9 +265,7 @@ function gerarNomeArquivo(ext){
 
     if(val && val!=="TODOS"){
       partes.push(
-        val
-          .toLowerCase()
-          .replace(/\s+/g,"-")
+        val.toLowerCase().replace(/\s+/g,"-")
       );
     }
   });
@@ -315,23 +313,41 @@ function atualizarResumoPrevisto(dados){
   );
 
   $("#resumoValores").show();
+
 }
 
-/* Converte texto + link em hyperlink */
-function converterHyperlink(texto){
+/* Detecta link e transforma em hiperlink */
+function transformarLinkPlano(valor){
 
-  if(!texto) return texto;
-
-  const regex = /(.*?)(https?:\/\/\S+)$/i;
-
-  const match = texto.match(regex);
-
-  if(!match){
-    return texto;
+  if(!valor || typeof valor !== "string"){
+    return valor;
   }
 
-  const titulo = match[1].trim();
-  const url = match[2].trim();
+  const regex = /(https?:\/\/[^\s]+)/i;
+
+  const match = valor.match(regex);
+
+  if(!match){
+    return valor;
+  }
+
+  const url = match[0];
+
+  const texto = valor
+    .replace(url,"")
+    .trim();
+
+  if(!texto){
+    return `
+      <a
+        href="${url}"
+        target="_blank"
+        class="link-plano-trabalho"
+      >
+        ${url}
+      </a>
+    `;
+  }
 
   return `
     <a
@@ -339,7 +355,7 @@ function converterHyperlink(texto){
       target="_blank"
       class="link-plano-trabalho"
     >
-      ${titulo}
+      ${texto}
     </a>
   `;
 }
@@ -356,10 +372,9 @@ Papa.parse(urlCSV,{
       d=>d[campos.ano]
     );
 
-    let linhaAtualizacao =
-      dadosOriginais.find(
-        x=>x["Atualizacao"]
-      );
+    let linhaAtualizacao=dadosOriginais.find(
+      x=>x["Atualizacao"]
+    );
 
     if(linhaAtualizacao){
 
@@ -419,7 +434,9 @@ function aplicarFiltroAtual(){
   if(!ano) return [];
 
   let base=(ano==="TODOS")
+
     ? [...dadosOriginais]
+
     : dadosOriginais.filter(
         r=>r[campos.ano]===ano
       );
@@ -442,7 +459,7 @@ function aplicarFiltroAtual(){
 
 }
 
-/* Ignora filtro atual */
+/* Ignora filtro */
 function aplicarFiltroIgnorando(filtroIgnorado){
 
   let ano=$("#anoFiltro").val();
@@ -450,7 +467,9 @@ function aplicarFiltroIgnorando(filtroIgnorado){
   if(!ano) return [];
 
   let base=(ano==="TODOS")
+
     ? [...dadosOriginais]
+
     : dadosOriginais.filter(
         r=>r[campos.ano]===ano
       );
@@ -481,15 +500,13 @@ function atualizarFiltrosEncadeados(){
   ordem.slice(1).forEach(f=>{
 
     let seletor=$("#"+f+"Filtro");
+
     let valorAtual=seletor.val();
 
-    let base=
-      aplicarFiltroIgnorando(f);
+    let base=aplicarFiltroIgnorando(f);
 
     let valores=[...new Set(
-      base
-        .map(r=>r[campos[f]])
-        .filter(Boolean)
+      base.map(r=>r[campos[f]]).filter(Boolean)
     )].sort();
 
     seletor.empty();
@@ -512,9 +529,13 @@ function atualizarFiltrosEncadeados(){
     );
 
     if(valores.includes(valorAtual)){
+
       seletor.val(valorAtual);
+
     }else{
+
       seletor.val("");
+
     }
 
   });
@@ -534,28 +555,22 @@ function renderTabela(dados){
 
   $("#tabela").show();
 
-  const colunas=
-    Object.keys(dados[0]).map(c=>({
+  const colunas = Object.keys(dados[0]).map(c=>({
 
-      title:c,
-      data:c,
+    title:c,
+    data:c,
 
-      render:function(data,type,row){
+    render:function(data,type,row){
 
-        if(
-          c === "Plano de Trabalho" &&
-          type === "display"
-        ){
-
-          return converterHyperlink(data);
-
-        }
-
+      if(type !== "display"){
         return data;
-
       }
 
-    }));
+      return transformarLinkPlano(data);
+
+    }
+
+  }));
 
   if(tabela){
 
@@ -591,8 +606,7 @@ function renderTabela(dados){
     .off("change")
     .on("change",function(){
 
-      tabela
-        .page
+      tabela.page
         .len(this.value)
         .draw();
 
@@ -603,8 +617,7 @@ function renderTabela(dados){
 /* Aplicar tudo */
 function aplicarTudo(){
 
-  let dados=
-    aplicarFiltroAtual();
+  let dados=aplicarFiltroAtual();
 
   atualizarFiltrosEncadeados();
 
@@ -631,8 +644,10 @@ $("#anoFiltro").on("change",function(){
 
 ordem.slice(1).forEach(f=>{
 
-  $("#"+f+"Filtro")
-    .on("change",aplicarTudo);
+  $("#"+f+"Filtro").on(
+    "change",
+    aplicarTudo
+  );
 
 });
 
@@ -647,8 +662,7 @@ function baixarArquivo(blob,nome){
 
   let link=document.createElement("a");
 
-  link.href=
-    URL.createObjectURL(blob);
+  link.href=URL.createObjectURL(blob);
 
   link.download=nome;
 
@@ -659,13 +673,8 @@ function baixarArquivo(blob,nome){
 /* CSV */
 $("#btnCsv").on("click",()=>{
 
-  if(!tabela) return;
-
   let csv=Papa.unparse(
-    tabela
-      .rows({search:"applied"})
-      .data()
-      .toArray(),
+    tabela.rows({search:"applied"}).data().toArray(),
     {
       quotes:true,
       delimiter:";"
@@ -690,8 +699,6 @@ $("#btnCsv").on("click",()=>{
 /* JSON */
 $("#btnJson").on("click",()=>{
 
-  if(!tabela) return;
-
   let dados=tabela
     .rows({search:"applied"})
     .data()
@@ -700,13 +707,7 @@ $("#btnJson").on("click",()=>{
   baixarArquivo(
 
     new Blob(
-      [
-        JSON.stringify(
-          dados,
-          null,
-          2
-        )
-      ],
+      [JSON.stringify(dados,null,2)],
       {
         type:"application/json"
       }
@@ -721,19 +722,13 @@ $("#btnJson").on("click",()=>{
 /* TXT */
 $("#btnTxt").on("click",()=>{
 
-  if(!tabela) return;
-
   let dados=tabela
     .rows({search:"applied"})
     .data()
     .toArray();
 
   let txt=dados
-    .map(o=>
-      Object
-        .values(o)
-        .join(" | ")
-    )
+    .map(o=>Object.values(o).join(" | "))
     .join("\n");
 
   baixarArquivo(
@@ -754,18 +749,14 @@ $("#btnTxt").on("click",()=>{
 /* XLSX */
 $("#btnXlsx").on("click",()=>{
 
-  if(!tabela) return;
-
   let dados=tabela
     .rows({search:"applied"})
     .data()
     .toArray();
 
-  let ws=
-    XLSX.utils.json_to_sheet(dados);
+  let ws=XLSX.utils.json_to_sheet(dados);
 
-  let wb=
-    XLSX.utils.book_new();
+  let wb=XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(
     wb,
