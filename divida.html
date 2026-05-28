@@ -212,7 +212,7 @@ table.dataTable th{
 
   </div>
 
-  <!-- TOTALIZADOR -->
+  <!-- TOTAL -->
   <div
     class="totalizadores mb-2"
     id="resumoValores"
@@ -317,8 +317,6 @@ let tabela = null;
 
 let dadosOriginais = [];
 
-let cacheFiltros = {};
-
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/10C3yDnARmQs6Ydh39PK1XGNW3cFylcWLL9rd6_2WyIs/export?format=csv&gid=1659253784";
 
@@ -338,123 +336,11 @@ const ordem = [
 
 ];
 
-/* =========================
-   PARSE MOEDA
-========================= */
+/* CACHE ULTRA RÁPIDO */
 
-function parseMoeda(valor){
+const cacheFiltros = {};
 
-  if(!valor) return 0;
-
-  return parseFloat(
-
-    valor
-      .toString()
-      .replace(/[^\d,-]/g,"")
-      .replace(/\./g,"")
-      .replace(",", ".")
-
-  ) || 0;
-
-}
-
-/* =========================
-   NOME EXPORTAÇÃO
-========================= */
-
-function gerarNomeArquivo(ext){
-
-  let partes = ["divida-ativa"];
-
-  ordem.forEach(f=>{
-
-    let valor = $("#"+f+"Filtro").val();
-
-    if(valor && valor !== "TODOS"){
-
-      partes.push(
-
-        valor
-          .toString()
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[\u0300-\u036f]/g,"")
-          .replace(/\s+/g,"-")
-          .replace(/[^\w-]/g,"")
-
-      );
-
-    }
-
-  });
-
-  return partes.join("-")+"."+ext;
-
-}
-
-/* =========================
-   DOWNLOAD
-========================= */
-
-function baixarArquivo(blob,nome){
-
-  let link = document.createElement("a");
-
-  link.href = URL.createObjectURL(blob);
-
-  link.download = nome;
-
-  document.body.appendChild(link);
-
-  link.click();
-
-  document.body.removeChild(link);
-
-}
-
-/* =========================
-   TOTALIZADOR
-========================= */
-
-function atualizarResumo(dados){
-
-  if(!dados.length){
-
-    $("#resumoValores").hide();
-
-    return;
-
-  }
-
-  let total = 0;
-
-  dados.forEach(r=>{
-
-    total += parseMoeda(r["VALOR"]);
-
-  });
-
-  $("#totalValor").text(
-
-    "Total: " +
-
-    total.toLocaleString(
-      "pt-BR",
-      {
-        style:"currency",
-        currency:"BRL"
-      }
-    )
-
-  );
-
-  $("#resumoValores").show();
-
-}
-
-/* =========================
-   CARREGAR CSV
-========================= */
+/* CARREGAR CSV */
 
 Papa.parse(urlCSV,{
 
@@ -463,6 +349,8 @@ Papa.parse(urlCSV,{
   header:true,
 
   skipEmptyLines:true,
+
+  worker:true,
 
   complete:function(resultado){
 
@@ -474,20 +362,59 @@ Papa.parse(urlCSV,{
 
       $("#spinnerCsv").hide();
 
-      alert("Não foi possível carregar a base de dados.");
+      alert(
+        "Não foi possível carregar a base de dados."
+      );
 
       return;
 
     }
 
-    dadosOriginais = resultado.data.filter(r=>
+    const primeiraLinha =
+      resultado.data[0];
 
-      r["EXERCÍCIO (ANO)"] &&
-      r["NOME DO INSCRITO"]
+    const dataAtualizacao =
 
-    );
+      primeiraLinha["ATUALIZACAO"] ||
+      primeiraLinha["ATUALIZAÇÃO"] ||
+      primeiraLinha["Atualizacao"] ||
+      primeiraLinha["Atualização"] ||
+      primeiraLinha["D"] ||
+      primeiraLinha["D2"] ||
+      "";
 
-    popularFiltroAno();
+    if(dataAtualizacao){
+
+      $("#indicadorAtualizacao").html(
+        `Dados atualizados em: <b>${dataAtualizacao}</b>`
+      );
+
+    }
+
+    dadosOriginais = resultado.data
+
+      .filter(r=>
+
+        r["EXERCÍCIO (ANO)"]
+
+      )
+
+      .map(r=>({
+
+        "NOME DO INSCRITO":
+          r["NOME DO INSCRITO"],
+
+        "EXERCÍCIO (ANO)":
+          r["EXERCÍCIO (ANO)"],
+
+        "VALOR":
+          r["VALOR"]
+
+      }));
+
+    carregarFiltroAno();
+
+    inicializarEventos();
 
     $("#spinnerCsv").fadeOut(200);
 
@@ -497,35 +424,32 @@ Papa.parse(urlCSV,{
 
     $("#spinnerCsv").hide();
 
-    alert("Erro ao carregar CSV.");
+    alert(
+      "Erro ao carregar a base CSV."
+    );
 
   }
 
 });
 
-/* =========================
-   FILTRO ANO
-========================= */
+/* FILTRO ANO */
 
-function popularFiltroAno(){
+function carregarFiltroAno(){
 
-  let select = $("#anoFiltro");
+  const seletor =
+    $("#anoFiltro");
 
-  select.empty();
+  seletor.empty();
 
-  select.append(`
-    <option value="">
-      Selecione...
-    </option>
-  `);
+  seletor.append(
+    '<option value="">Selecione...</option>'
+  );
 
-  select.append(`
-    <option value="TODOS">
-      Todos
-    </option>
-  `);
+  seletor.append(
+    '<option value="TODOS">Todos</option>'
+  );
 
-  let anos = [
+  const anos = [
 
     ...new Set(
 
@@ -539,67 +463,221 @@ function popularFiltroAno(){
 
   anos.forEach(v=>{
 
-    select.append(`
-      <option value="${v}">
-        ${v}
-      </option>
-    `);
+    seletor.append(
+      `<option value="${v}">${v}</option>`
+    );
 
   });
 
 }
 
-/* =========================
-   BASE FILTRADA
-========================= */
+/* EVENTOS */
 
-function obterBaseFiltrada(){
+function inicializarEventos(){
 
-  let ano = $("#anoFiltro").val();
+  $("#anoFiltro").on(
+    "change",
+    atualizarTudo
+  );
 
-  if(!ano) return [];
+  $("#inscritoFiltro").on(
+    "change",
+    atualizarTudo
+  );
 
-  let base = ano === "TODOS"
+  $("#valorFiltro").on(
+    "change",
+    atualizarTudo
+  );
 
-    ? dadosOriginais
+  $("#btnLimpar").on(
+    "click",
+    limparFiltros
+  );
 
-    : dadosOriginais.filter(
-        r=>r[campos.ano] === ano
-      );
+  $("#lengthSelector").on(
+    "change",
+    function(){
 
-  let inscrito = $("#inscritoFiltro").val();
+      if(tabela){
 
-  if(inscrito){
+        tabela.page
+          .len(parseInt(this.value))
+          .draw(false);
 
-    base = base.filter(
-      r=>r[campos.inscrito] === inscrito
-    );
+      }
 
-  }
+    }
+  );
 
-  let valor = $("#valorFiltro").val();
+  $("#btnCsv").on(
+    "click",
+    exportarCsv
+  );
 
-  if(valor){
+  $("#btnJson").on(
+    "click",
+    exportarJson
+  );
 
-    base = base.filter(
-      r=>r[campos.valor] === valor
-    );
+  $("#btnTxt").on(
+    "click",
+    exportarTxt
+  );
 
-  }
-
-  return base;
+  $("#btnXlsx").on(
+    "click",
+    exportarXlsx
+  );
 
 }
 
-/* =========================
-   POPULAR FILTRO
-========================= */
+/* BASE FILTRADA */
 
-function popularFiltro(id,campo,dados){
+function obterBaseFiltrada(){
 
-  let select = $("#"+id);
+  const ano =
+    $("#anoFiltro").val();
 
-  let valorAtual = select.val();
+  const inscrito =
+    $("#inscritoFiltro").val();
+
+  const valor =
+    $("#valorFiltro").val();
+
+  return dadosOriginais.filter(r=>{
+
+    if(
+      ano &&
+      ano !== "TODOS" &&
+      r[campos.ano] !== ano
+    ){
+      return false;
+    }
+
+    if(
+      inscrito &&
+      r[campos.inscrito] !== inscrito
+    ){
+      return false;
+    }
+
+    if(
+      valor &&
+      r[campos.valor] !== valor
+    ){
+      return false;
+    }
+
+    return true;
+
+  });
+
+}
+
+/* FILTROS ENCADEADOS */
+
+function atualizarFiltros(){
+
+  const ano =
+    $("#anoFiltro").val();
+
+  if(!ano){
+
+    $("#inscritoFiltro")
+      .html(
+        '<option value="">Selecione...</option>'
+      )
+      .prop("disabled",true);
+
+    $("#valorFiltro")
+      .html(
+        '<option value="">Selecione...</option>'
+      )
+      .prop("disabled",true);
+
+    return;
+
+  }
+
+  const cacheKey =
+    JSON.stringify({
+
+      ano:
+        $("#anoFiltro").val(),
+
+      inscrito:
+        $("#inscritoFiltro").val()
+
+    });
+
+  let base;
+
+  if(cacheFiltros[cacheKey]){
+
+    base = cacheFiltros[cacheKey];
+
+  }else{
+
+    base = dadosOriginais.filter(r=>{
+
+      if(
+        ano !== "TODOS" &&
+        r[campos.ano] !== ano
+      ){
+        return false;
+      }
+
+      const inscritoAtual =
+        $("#inscritoFiltro").val();
+
+      if(
+        inscritoAtual &&
+        r[campos.inscrito] !== inscritoAtual
+      ){
+        return false;
+      }
+
+      return true;
+
+    });
+
+    cacheFiltros[cacheKey] = base;
+
+  }
+
+  popularFiltro(
+    "inscritoFiltro",
+    campos.inscrito,
+    base,
+    true
+  );
+
+  popularFiltro(
+    "valorFiltro",
+    campos.valor,
+    base,
+    false,
+    true
+  );
+
+}
+
+/* POPULAR FILTRO */
+
+function popularFiltro(
+  id,
+  campo,
+  dados,
+  habilitar=true,
+  ordenarMoeda=false
+){
+
+  const select =
+    $("#"+id);
+
+  const valorAtual =
+    select.val();
 
   let valores = [
 
@@ -613,10 +691,12 @@ function popularFiltro(id,campo,dados){
 
   ];
 
-  if(campo === "VALOR"){
+  if(ordenarMoeda){
 
     valores.sort(
-      (a,b)=>parseMoeda(a)-parseMoeda(b)
+      (a,b)=>
+        parseMoeda(a) -
+        parseMoeda(b)
     );
 
   }else{
@@ -635,11 +715,8 @@ function popularFiltro(id,campo,dados){
 
   }
 
-  let html = `
-    <option value="">
-      Selecione...
-    </option>
-  `;
+  let html =
+    '<option value="">Selecione...</option>';
 
   valores.forEach(v=>{
 
@@ -661,90 +738,64 @@ function popularFiltro(id,campo,dados){
 
   select.prop(
     "disabled",
-    valores.length === 0
+    !habilitar
   );
 
 }
 
-/* =========================
-   ATUALIZA FILTROS
-========================= */
+/* RESUMO */
 
-function atualizarFiltros(){
+function atualizarResumo(dados){
 
-  let ano = $("#anoFiltro").val();
+  if(!dados.length){
 
-  if(!ano){
-
-    $("#inscritoFiltro")
-      .prop("disabled",true)
-      .html(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
-
-    $("#valorFiltro")
-      .prop("disabled",true)
-      .html(`
-        <option value="">
-          Selecione...
-        </option>
-      `);
+    $("#resumoValores").hide();
 
     return;
 
   }
 
-  let baseAno = ano === "TODOS"
+  let total = 0;
 
-    ? dadosOriginais
+  dados.forEach(r=>{
 
-    : dadosOriginais.filter(
-        r=>r[campos.ano] === ano
-      );
+    total += parseMoeda(
+      r["VALOR"]
+    );
 
-  popularFiltro(
-    "inscritoFiltro",
-    campos.inscrito,
-    baseAno
+  });
+
+  $("#totalValor").text(
+
+    "Total: " +
+
+    total.toLocaleString(
+      "pt-BR",
+      {
+        style:"currency",
+        currency:"BRL"
+      }
+    )
+
   );
 
-  let inscrito = $("#inscritoFiltro").val();
-
-  let baseValor = inscrito
-
-    ? baseAno.filter(
-        r=>r[campos.inscrito] === inscrito
-      )
-
-    : baseAno;
-
-  popularFiltro(
-    "valorFiltro",
-    campos.valor,
-    baseValor
-  );
+  $("#resumoValores").show();
 
 }
 
-/* =========================
-   TABELA
-========================= */
+/* TABELA */
 
 function renderTabela(dados){
-
-  if(tabela){
-
-    tabela.destroy();
-
-    $("#tabela").empty();
-
-  }
 
   if(!dados.length){
 
     $("#tabela").hide();
+
+    if(tabela){
+
+      tabela.clear().draw();
+
+    }
 
     return;
 
@@ -752,17 +803,48 @@ function renderTabela(dados){
 
   $("#tabela").show();
 
+  const colunas = [
+
+    {
+      title:"NOME DO INSCRITO",
+      data:"NOME DO INSCRITO"
+    },
+
+    {
+      title:"EXERCÍCIO (ANO)",
+      data:"EXERCÍCIO (ANO)",
+      className:"text-end"
+    },
+
+    {
+      title:"VALOR",
+      data:"VALOR",
+      className:"text-end"
+    }
+
+  ];
+
+  if(tabela){
+
+    tabela.clear();
+
+    tabela.rows.add(dados);
+
+    tabela.draw(false);
+
+    return;
+
+  }
+
   tabela = $("#tabela").DataTable({
 
     data:dados,
 
+    columns:colunas,
+
     deferRender:true,
 
     processing:false,
-
-    pageLength:parseInt(
-      $("#lengthSelector").val()
-    ),
 
     scrollX:true,
 
@@ -770,36 +852,17 @@ function renderTabela(dados){
 
     scrollCollapse:true,
 
-    autoWidth:false,
-
     paging:true,
 
-    searching:true,
+    pageLength:10,
+
+    lengthChange:false,
 
     ordering:true,
 
-    info:true,
+    searching:true,
 
-    columns:[
-
-      {
-        title:"NOME DO INSCRITO",
-        data:"NOME DO INSCRITO"
-      },
-
-      {
-        title:"EXERCÍCIO (ANO)",
-        data:"EXERCÍCIO (ANO)",
-        className:"text-end"
-      },
-
-      {
-        title:"VALOR",
-        data:"VALOR",
-        className:"text-end"
-      }
-
-    ],
+    autoWidth:false,
 
     language:{
       url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
@@ -809,15 +872,14 @@ function renderTabela(dados){
 
 }
 
-/* =========================
-   APLICAÇÃO GERAL
-========================= */
+/* APLICAR */
 
-function aplicarTudo(){
+function atualizarTudo(){
 
   atualizarFiltros();
 
-  let dados = obterBaseFiltrada();
+  const dados =
+    obterBaseFiltrada();
 
   atualizarResumo(dados);
 
@@ -825,96 +887,125 @@ function aplicarTudo(){
 
 }
 
-/* =========================
-   EVENTOS
-========================= */
+/* LIMPAR */
 
-$("#anoFiltro").on("change",function(){
-
-  $("#inscritoFiltro").val("");
-  $("#valorFiltro").val("");
-
-  aplicarTudo();
-
-});
-
-$("#inscritoFiltro").on("change",function(){
-
-  aplicarTudo();
-
-});
-
-$("#valorFiltro").on("change",function(){
-
-  let dados = obterBaseFiltrada();
-
-  atualizarResumo(dados);
-
-  renderTabela(dados);
-
-});
-
-$("#lengthSelector").on("change",function(){
-
-  if(tabela){
-
-    tabela.page
-      .len(parseInt(this.value))
-      .draw();
-
-  }
-
-});
-
-/* =========================
-   LIMPAR
-========================= */
-
-$("#btnLimpar").on("click",()=>{
+function limparFiltros(){
 
   $("#anoFiltro").val("");
 
   $("#inscritoFiltro")
-    .val("")
+    .html(
+      '<option value="">Selecione...</option>'
+    )
     .prop("disabled",true);
 
   $("#valorFiltro")
-    .val("")
+    .html(
+      '<option value="">Selecione...</option>'
+    )
     .prop("disabled",true);
 
-  atualizarResumo([]);
+  $("#resumoValores").hide();
 
   if(tabela){
 
-    tabela.destroy();
-
-    tabela = null;
+    tabela.clear().draw();
 
   }
 
-  $("#tabela")
-    .hide()
-    .empty();
+  $("#tabela").hide();
 
-});
+}
 
-/* =========================
-   EXPORTAR CSV
-========================= */
+/* MOEDA */
 
-$("#btnCsv").on("click",()=>{
+function parseMoeda(valor){
+
+  if(!valor) return 0;
+
+  return parseFloat(
+
+    valor
+      .toString()
+      .replace(/[^\d,-]/g,"")
+      .replace(/\./g,"")
+      .replace(",", ".")
+
+  ) || 0;
+
+}
+
+/* NOME ARQUIVO */
+
+function gerarNomeArquivo(ext){
+
+  const partes = [
+
+    "divida-ativa"
+
+  ];
+
+  ordem.forEach(f=>{
+
+    const valor =
+      $("#"+f+"Filtro").val();
+
+    if(
+      valor &&
+      valor !== "TODOS"
+    ){
+
+      partes.push(
+
+        valor
+          .toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g,"-")
+          .replace(/[^\w-]/g,"")
+
+      );
+
+    }
+
+  });
+
+  return partes.join("-")+"."+ext;
+
+}
+
+/* DOWNLOAD */
+
+function baixarArquivo(blob,nome){
+
+  const link =
+    document.createElement("a");
+
+  link.href =
+    URL.createObjectURL(blob);
+
+  link.download = nome;
+
+  link.click();
+
+}
+
+/* CSV */
+
+function exportarCsv(){
 
   if(!tabela) return;
 
-  let dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  const dados =
+    tabela.rows({search:"applied"})
+      .data()
+      .toArray();
 
-  let csv = Papa.unparse(dados,{
-    quotes:true,
-    delimiter:";"
-  });
+  const csv =
+    Papa.unparse(dados,{
+      delimiter:";"
+    });
 
   baixarArquivo(
 
@@ -929,25 +1020,29 @@ $("#btnCsv").on("click",()=>{
 
   );
 
-});
+}
 
-/* =========================
-   EXPORTAR JSON
-========================= */
+/* JSON */
 
-$("#btnJson").on("click",()=>{
+function exportarJson(){
 
   if(!tabela) return;
 
-  let dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  const dados =
+    tabela.rows({search:"applied"})
+      .data()
+      .toArray();
 
   baixarArquivo(
 
     new Blob(
-      [JSON.stringify(dados,null,2)],
+      [
+        JSON.stringify(
+          dados,
+          null,
+          2
+        )
+      ],
       {
         type:"application/json"
       }
@@ -957,23 +1052,23 @@ $("#btnJson").on("click",()=>{
 
   );
 
-});
+}
 
-/* =========================
-   EXPORTAR TXT
-========================= */
+/* TXT */
 
-$("#btnTxt").on("click",()=>{
+function exportarTxt(){
 
   if(!tabela) return;
 
-  let dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  const dados =
+    tabela.rows({search:"applied"})
+      .data()
+      .toArray();
 
-  let txt = dados
-    .map(o=>Object.values(o).join(" | "))
+  const txt = dados
+    .map(o=>
+      Object.values(o).join(" | ")
+    )
     .join("\n");
 
   baixarArquivo(
@@ -989,29 +1084,29 @@ $("#btnTxt").on("click",()=>{
 
   );
 
-});
+}
 
-/* =========================
-   EXPORTAR XLSX
-========================= */
+/* XLSX */
 
-$("#btnXlsx").on("click",()=>{
+function exportarXlsx(){
 
   if(!tabela) return;
 
-  let dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  const dados =
+    tabela.rows({search:"applied"})
+      .data()
+      .toArray();
 
-  let ws = XLSX.utils.json_to_sheet(dados);
+  const ws =
+    XLSX.utils.json_to_sheet(dados);
 
-  let wb = XLSX.utils.book_new();
+  const wb =
+    XLSX.utils.book_new();
 
   XLSX.utils.book_append_sheet(
     wb,
     ws,
-    "Divida Ativa"
+    "Dívida Ativa"
   );
 
   XLSX.writeFile(
@@ -1019,7 +1114,7 @@ $("#btnXlsx").on("click",()=>{
     gerarNomeArquivo("xlsx")
   );
 
-});
+}
 
 </script>
 
