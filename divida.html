@@ -1,1 +1,1027 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
 
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Painel de Dívida Ativa</title>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
+
+<style>
+
+body{
+  background-color:#f8f9fa;
+}
+
+.dataTables_filter{
+  display:none;
+}
+
+label{
+  font-weight:600;
+  font-size:.72rem !important;
+  color:#343a40;
+  margin-bottom:2px;
+}
+
+.form-select-sm,
+table{
+  font-size:.7rem !important;
+}
+
+table.dataTable td,
+table.dataTable th{
+  white-space:nowrap;
+}
+
+.text-end{
+  text-align:right !important;
+}
+
+/* PAGINAÇÃO */
+
+.dataTables_wrapper .dataTables_paginate{
+  margin-top:.5rem;
+  display:flex;
+  justify-content:center;
+  gap:4px;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button{
+  padding:4px 8px !important;
+  font-size:.65rem !important;
+  border-radius:6px !important;
+  background-color:#e9ecef !important;
+  border:1px solid #dee2e6 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current{
+  background-color:#0d6efd !important;
+  color:#fff !important;
+  font-weight:bold !important;
+}
+
+/* BOTÕES */
+
+.export-group .btn{
+  font-size:.7rem;
+  padding:4px 8px;
+}
+
+/* ATUALIZAÇÃO */
+
+#indicadorAtualizacao{
+  font-size:.65rem;
+  color:#6c757d;
+  text-align:right;
+  margin-bottom:8px;
+}
+
+/* SPINNER */
+
+.spinner-overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  padding-top:60px;
+  z-index:9999;
+  background-color:rgba(255,255,255,.9);
+}
+
+.spinner-border{
+  width:2rem;
+  height:2rem;
+}
+
+.spinner-text{
+  font-size:.9rem;
+  margin-top:5px;
+}
+
+/* TOTALIZADOR */
+
+.totalizadores{
+  font-size:.7rem;
+  background:#fff;
+  padding:5px 10px;
+  border:1px solid #dee2e6;
+  border-radius:4px;
+}
+
+.totalizadores span{
+  display:inline-block;
+  margin-right:15px;
+  font-weight:600;
+}
+
+/* REGISTROS */
+
+#lengthSelectorContainer{
+  font-size:.7rem;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:6px;
+  margin-bottom:6px;
+}
+
+#lengthSelector{
+  width:80px;
+  font-size:.7rem;
+}
+
+/* FILTROS DESABILITADOS */
+
+.form-select:disabled{
+  background-color:#adb5bd !important;
+  border-color:#868e96 !important;
+  color:#495057 !important;
+  cursor:not-allowed !important;
+  opacity:1 !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SPINNER -->
+<div id="spinnerCsv" class="spinner-overlay">
+
+  <div class="spinner-border text-primary"></div>
+
+  <div class="spinner-text">
+    Carregando base de dados...
+  </div>
+
+</div>
+
+<div class="container-fluid mt-3">
+
+  <!-- ATUALIZAÇÃO -->
+  <div id="indicadorAtualizacao">
+    Dados atualizados em...
+  </div>
+
+  <!-- FILTROS -->
+  <div class="row gx-2 gy-2 mb-3">
+
+    <div class="col-sm-2">
+
+      <label>Exercício (Ano) *</label>
+
+      <select
+        id="anoFiltro"
+        class="form-select form-select-sm"
+      ></select>
+
+    </div>
+
+    <div class="col-sm-5">
+
+      <label>Nome do Inscrito</label>
+
+      <select
+        id="inscritoFiltro"
+        class="form-select form-select-sm"
+        disabled
+      ></select>
+
+    </div>
+
+    <div class="col-sm-3">
+
+      <label>Valor</label>
+
+      <select
+        id="valorFiltro"
+        class="form-select form-select-sm"
+        disabled
+      ></select>
+
+    </div>
+
+  </div>
+
+  <!-- TOTALIZADOR -->
+  <div
+    class="totalizadores mb-2"
+    id="resumoValores"
+    style="display:none;"
+  >
+
+    <span id="totalValor">
+      Total: R$ 0,00
+    </span>
+
+  </div>
+
+  <!-- BOTÕES -->
+  <div class="d-flex justify-content-between mb-2">
+
+    <button
+      id="btnLimpar"
+      class="btn btn-outline-primary btn-sm"
+    >
+      Limpar Filtros
+    </button>
+
+    <div class="export-group btn-group">
+
+      <button
+        id="btnCsv"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        CSV
+      </button>
+
+      <button
+        id="btnXlsx"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        XLSX
+      </button>
+
+      <button
+        id="btnTxt"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        TXT
+      </button>
+
+      <button
+        id="btnJson"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        JSON
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- REGISTROS -->
+  <div id="lengthSelectorContainer">
+
+    <label>
+      Registros por página:
+    </label>
+
+    <select
+      id="lengthSelector"
+      class="form-select form-select-sm"
+    >
+
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+
+    </select>
+
+  </div>
+
+  <!-- TABELA -->
+  <div class="table-responsive">
+
+    <table
+      id="tabela"
+      class="table table-bordered table-striped table-sm w-100"
+      style="display:none;"
+    ></table>
+
+  </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<script>
+
+let tabela = null;
+
+let dadosOriginais = [];
+
+let cacheFiltros = {};
+
+const urlCSV =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vQmKQZ6S_5VJ4Cfd5H4nLQ7Q9XzX6g6Qv9v1vU0T2V7m2L4b3x9m8J6s4p/pub?gid=1659253784&single=true&output=csv";
+
+const campos = {
+
+  ano:"EXERCÍCIO (ANO)",
+  inscrito:"NOME DO INSCRITO",
+  valor:"VALOR"
+
+};
+
+const ordem = [
+
+  "ano",
+  "inscrito",
+  "valor"
+
+];
+
+/* =========================
+   PARSE MOEDA
+========================= */
+
+function parseMoeda(valor){
+
+  if(!valor) return 0;
+
+  return parseFloat(
+
+    valor
+      .toString()
+      .replace(/[^\d,-]/g,"")
+      .replace(/\./g,"")
+      .replace(",", ".")
+
+  ) || 0;
+
+}
+
+/* =========================
+   NOME EXPORTAÇÃO
+========================= */
+
+function gerarNomeArquivo(ext){
+
+  let partes = ["divida-ativa"];
+
+  ordem.forEach(f=>{
+
+    let valor = $("#"+f+"Filtro").val();
+
+    if(valor && valor !== "TODOS"){
+
+      partes.push(
+
+        valor
+          .toString()
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g,"-")
+          .replace(/[^\w-]/g,"")
+
+      );
+
+    }
+
+  });
+
+  return partes.join("-")+"."+ext;
+
+}
+
+/* =========================
+   DOWNLOAD
+========================= */
+
+function baixarArquivo(blob,nome){
+
+  let link = document.createElement("a");
+
+  link.href = URL.createObjectURL(blob);
+
+  link.download = nome;
+
+  document.body.appendChild(link);
+
+  link.click();
+
+  document.body.removeChild(link);
+
+}
+
+/* =========================
+   TOTALIZADOR
+========================= */
+
+function atualizarResumo(dados){
+
+  if(!dados.length){
+
+    $("#resumoValores").hide();
+
+    return;
+
+  }
+
+  let total = 0;
+
+  dados.forEach(r=>{
+
+    total += parseMoeda(r["VALOR"]);
+
+  });
+
+  $("#totalValor").text(
+
+    "Total: " +
+
+    total.toLocaleString(
+      "pt-BR",
+      {
+        style:"currency",
+        currency:"BRL"
+      }
+    )
+
+  );
+
+  $("#resumoValores").show();
+
+}
+
+/* =========================
+   CARREGAR CSV
+========================= */
+
+Papa.parse(urlCSV,{
+
+  download:true,
+
+  header:true,
+
+  skipEmptyLines:true,
+
+  complete:function(resultado){
+
+    if(
+      !resultado ||
+      !resultado.data ||
+      !resultado.data.length
+    ){
+
+      $("#spinnerCsv").hide();
+
+      alert("Não foi possível carregar a base de dados.");
+
+      return;
+
+    }
+
+    dadosOriginais = resultado.data.filter(r=>
+
+      r["EXERCÍCIO (ANO)"] &&
+      r["NOME DO INSCRITO"]
+
+    );
+
+    popularFiltroAno();
+
+    $("#spinnerCsv").fadeOut(200);
+
+  },
+
+  error:function(){
+
+    $("#spinnerCsv").hide();
+
+    alert("Erro ao carregar CSV.");
+
+  }
+
+});
+
+/* =========================
+   FILTRO ANO
+========================= */
+
+function popularFiltroAno(){
+
+  let select = $("#anoFiltro");
+
+  select.empty();
+
+  select.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
+
+  select.append(`
+    <option value="TODOS">
+      Todos
+    </option>
+  `);
+
+  let anos = [
+
+    ...new Set(
+
+      dadosOriginais.map(
+        r=>r[campos.ano]
+      )
+
+    )
+
+  ].sort((a,b)=>b-a);
+
+  anos.forEach(v=>{
+
+    select.append(`
+      <option value="${v}">
+        ${v}
+      </option>
+    `);
+
+  });
+
+}
+
+/* =========================
+   BASE FILTRADA
+========================= */
+
+function obterBaseFiltrada(){
+
+  let ano = $("#anoFiltro").val();
+
+  if(!ano) return [];
+
+  let base = ano === "TODOS"
+
+    ? dadosOriginais
+
+    : dadosOriginais.filter(
+        r=>r[campos.ano] === ano
+      );
+
+  let inscrito = $("#inscritoFiltro").val();
+
+  if(inscrito){
+
+    base = base.filter(
+      r=>r[campos.inscrito] === inscrito
+    );
+
+  }
+
+  let valor = $("#valorFiltro").val();
+
+  if(valor){
+
+    base = base.filter(
+      r=>r[campos.valor] === valor
+    );
+
+  }
+
+  return base;
+
+}
+
+/* =========================
+   POPULAR FILTRO
+========================= */
+
+function popularFiltro(id,campo,dados){
+
+  let select = $("#"+id);
+
+  let valorAtual = select.val();
+
+  let valores = [
+
+    ...new Set(
+
+      dados
+        .map(r=>r[campo])
+        .filter(Boolean)
+
+    )
+
+  ];
+
+  if(campo === "VALOR"){
+
+    valores.sort(
+      (a,b)=>parseMoeda(a)-parseMoeda(b)
+    );
+
+  }else{
+
+    valores.sort((a,b)=>
+
+      a.localeCompare(
+        b,
+        "pt-BR",
+        {
+          sensitivity:"base"
+        }
+      )
+
+    );
+
+  }
+
+  let html = `
+    <option value="">
+      Selecione...
+    </option>
+  `;
+
+  valores.forEach(v=>{
+
+    html += `
+      <option value="${v}">
+        ${v}
+      </option>
+    `;
+
+  });
+
+  select.html(html);
+
+  if(valores.includes(valorAtual)){
+
+    select.val(valorAtual);
+
+  }
+
+  select.prop(
+    "disabled",
+    valores.length === 0
+  );
+
+}
+
+/* =========================
+   ATUALIZA FILTROS
+========================= */
+
+function atualizarFiltros(){
+
+  let ano = $("#anoFiltro").val();
+
+  if(!ano){
+
+    $("#inscritoFiltro")
+      .prop("disabled",true)
+      .html(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
+
+    $("#valorFiltro")
+      .prop("disabled",true)
+      .html(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
+
+    return;
+
+  }
+
+  let baseAno = ano === "TODOS"
+
+    ? dadosOriginais
+
+    : dadosOriginais.filter(
+        r=>r[campos.ano] === ano
+      );
+
+  popularFiltro(
+    "inscritoFiltro",
+    campos.inscrito,
+    baseAno
+  );
+
+  let inscrito = $("#inscritoFiltro").val();
+
+  let baseValor = inscrito
+
+    ? baseAno.filter(
+        r=>r[campos.inscrito] === inscrito
+      )
+
+    : baseAno;
+
+  popularFiltro(
+    "valorFiltro",
+    campos.valor,
+    baseValor
+  );
+
+}
+
+/* =========================
+   TABELA
+========================= */
+
+function renderTabela(dados){
+
+  if(tabela){
+
+    tabela.destroy();
+
+    $("#tabela").empty();
+
+  }
+
+  if(!dados.length){
+
+    $("#tabela").hide();
+
+    return;
+
+  }
+
+  $("#tabela").show();
+
+  tabela = $("#tabela").DataTable({
+
+    data:dados,
+
+    deferRender:true,
+
+    processing:false,
+
+    pageLength:parseInt(
+      $("#lengthSelector").val()
+    ),
+
+    scrollX:true,
+
+    scrollY:"55vh",
+
+    scrollCollapse:true,
+
+    autoWidth:false,
+
+    paging:true,
+
+    searching:true,
+
+    ordering:true,
+
+    info:true,
+
+    columns:[
+
+      {
+        title:"NOME DO INSCRITO",
+        data:"NOME DO INSCRITO"
+      },
+
+      {
+        title:"EXERCÍCIO (ANO)",
+        data:"EXERCÍCIO (ANO)",
+        className:"text-end"
+      },
+
+      {
+        title:"VALOR",
+        data:"VALOR",
+        className:"text-end"
+      }
+
+    ],
+
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    }
+
+  });
+
+}
+
+/* =========================
+   APLICAÇÃO GERAL
+========================= */
+
+function aplicarTudo(){
+
+  atualizarFiltros();
+
+  let dados = obterBaseFiltrada();
+
+  atualizarResumo(dados);
+
+  renderTabela(dados);
+
+}
+
+/* =========================
+   EVENTOS
+========================= */
+
+$("#anoFiltro").on("change",function(){
+
+  $("#inscritoFiltro").val("");
+  $("#valorFiltro").val("");
+
+  aplicarTudo();
+
+});
+
+$("#inscritoFiltro").on("change",function(){
+
+  aplicarTudo();
+
+});
+
+$("#valorFiltro").on("change",function(){
+
+  let dados = obterBaseFiltrada();
+
+  atualizarResumo(dados);
+
+  renderTabela(dados);
+
+});
+
+$("#lengthSelector").on("change",function(){
+
+  if(tabela){
+
+    tabela.page
+      .len(parseInt(this.value))
+      .draw();
+
+  }
+
+});
+
+/* =========================
+   LIMPAR
+========================= */
+
+$("#btnLimpar").on("click",()=>{
+
+  $("#anoFiltro").val("");
+
+  $("#inscritoFiltro")
+    .val("")
+    .prop("disabled",true);
+
+  $("#valorFiltro")
+    .val("")
+    .prop("disabled",true);
+
+  atualizarResumo([]);
+
+  if(tabela){
+
+    tabela.destroy();
+
+    tabela = null;
+
+  }
+
+  $("#tabela")
+    .hide()
+    .empty();
+
+});
+
+/* =========================
+   EXPORTAR CSV
+========================= */
+
+$("#btnCsv").on("click",()=>{
+
+  if(!tabela) return;
+
+  let dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  let csv = Papa.unparse(dados,{
+    quotes:true,
+    delimiter:";"
+  });
+
+  baixarArquivo(
+
+    new Blob(
+      ["\ufeff"+csv],
+      {
+        type:"text/csv;charset=utf-8;"
+      }
+    ),
+
+    gerarNomeArquivo("csv")
+
+  );
+
+});
+
+/* =========================
+   EXPORTAR JSON
+========================= */
+
+$("#btnJson").on("click",()=>{
+
+  if(!tabela) return;
+
+  let dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  baixarArquivo(
+
+    new Blob(
+      [JSON.stringify(dados,null,2)],
+      {
+        type:"application/json"
+      }
+    ),
+
+    gerarNomeArquivo("json")
+
+  );
+
+});
+
+/* =========================
+   EXPORTAR TXT
+========================= */
+
+$("#btnTxt").on("click",()=>{
+
+  if(!tabela) return;
+
+  let dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  let txt = dados
+    .map(o=>Object.values(o).join(" | "))
+    .join("\n");
+
+  baixarArquivo(
+
+    new Blob(
+      [txt],
+      {
+        type:"text/plain"
+      }
+    ),
+
+    gerarNomeArquivo("txt")
+
+  );
+
+});
+
+/* =========================
+   EXPORTAR XLSX
+========================= */
+
+$("#btnXlsx").on("click",()=>{
+
+  if(!tabela) return;
+
+  let dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
+
+  let ws = XLSX.utils.json_to_sheet(dados);
+
+  let wb = XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    "Divida Ativa"
+  );
+
+  XLSX.writeFile(
+    wb,
+    gerarNomeArquivo("xlsx")
+  );
+
+});
+
+</script>
+
+</body>
+</html>
