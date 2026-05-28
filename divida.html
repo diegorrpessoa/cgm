@@ -182,6 +182,7 @@ table.dataTable th{
 
   <!-- REGISTROS -->
   <div id="lengthSelectorContainer">
+
     <label>Registros por página:</label>
 
     <select id="lengthSelector" class="form-select form-select-sm">
@@ -192,6 +193,7 @@ table.dataTable th{
       <option value="100">100</option>
 
     </select>
+
   </div>
 
   <!-- TABELA -->
@@ -220,14 +222,15 @@ const urlCSV =
 "https://docs.google.com/spreadsheets/d/10C3yDnARmQs6Ydh39PK1XGNW3cFylcWLL9rd6_2WyIs/export?format=csv&gid=1659253784";
 
 const campos = {
+
   inscrito:"NOME DO INSCRITO",
   ano:"EXERCÍCIO (ANO)",
   valor:"VALOR"
+
 };
 
 let dadosOriginais = [];
 let cacheAno = {};
-let cacheFiltros = {};
 
 const formatadorMoeda = new Intl.NumberFormat(
   "pt-BR",
@@ -237,26 +240,45 @@ const formatadorMoeda = new Intl.NumberFormat(
   }
 );
 
-/* =========================
-   PARSE MOEDA
-========================= */
+/* =========================================
+   LIMPA ASPAS E ESPAÇOS
+========================================= */
+
+function limparValor(valor){
+
+  if(!valor) return "";
+
+  return valor
+    .toString()
+    .replace(/^"+|"+$/g,"")
+    .trim();
+
+}
+
+/* =========================================
+   CONVERTE MOEDA
+========================================= */
 
 function parseMoeda(valor){
 
   if(!valor) return 0;
 
+  valor = limparValor(valor);
+
   return parseFloat(
-    valor.toString()
+
+    valor
       .replace(/[^\d,-]/g,"")
       .replace(/\./g,"")
-      .replace(",",".")
+      .replace(",", ".")
+
   ) || 0;
 
 }
 
-/* =========================
-   CARREGAR CSV
-========================= */
+/* =========================================
+   CARREGA CSV
+========================================= */
 
 Papa.parse(urlCSV,{
 
@@ -272,19 +294,25 @@ Papa.parse(urlCSV,{
       !resultado.data ||
       !resultado.data.length
     ){
+
       alert("Base de dados vazia.");
       return;
+
     }
 
-    const linha2 = resultado.data[0];
+    const primeiraLinha =
+      resultado.data[0] || {};
 
+    /* PEGA COLUNA E */
     const atualizacao =
-      linha2["D"] ||
-      linha2["ATUALIZACAO"] ||
-      linha2["ATUALIZAÇÃO"] ||
-      linha2["Atualizacao"] ||
-      linha2["Atualização"] ||
-      "";
+      limparValor(
+
+        primeiraLinha["E"] ||
+        primeiraLinha["E2"] ||
+        Object.values(primeiraLinha)[4] ||
+        ""
+
+      );
 
     if(atualizacao){
 
@@ -295,17 +323,25 @@ Papa.parse(urlCSV,{
     }
 
     dadosOriginais = resultado.data
+
       .filter(r=>r[campos.ano])
+
       .map(r=>({
 
         "NOME DO INSCRITO":
-          r[campos.inscrito]?.trim() || "",
+          limparValor(
+            r[campos.inscrito]
+          ),
 
         "EXERCÍCIO (ANO)":
-          r[campos.ano]?.trim() || "",
+          limparValor(
+            r[campos.ano]
+          ),
 
         "VALOR":
-          r[campos.valor]?.trim() || ""
+          limparValor(
+            r[campos.valor]
+          )
 
       }));
 
@@ -329,9 +365,9 @@ Papa.parse(urlCSV,{
 
 });
 
-/* =========================
-   CACHE ULTRA RÁPIDO
-========================= */
+/* =========================================
+   CACHE
+========================================= */
 
 function montarCache(){
 
@@ -339,10 +375,13 @@ function montarCache(){
 
   dadosOriginais.forEach(item=>{
 
-    const ano = item["EXERCÍCIO (ANO)"];
+    const ano =
+      item["EXERCÍCIO (ANO)"];
 
     if(!cacheAno[ano]){
+
       cacheAno[ano] = [];
+
     }
 
     cacheAno[ano].push(item);
@@ -351,9 +390,9 @@ function montarCache(){
 
 }
 
-/* =========================
-   FILTRO ANO
-========================= */
+/* =========================================
+   CARREGA ANOS
+========================================= */
 
 function carregarFiltroAno(){
 
@@ -378,13 +417,14 @@ function carregarFiltroAno(){
 
 }
 
-/* =========================
+/* =========================================
    FILTROS ENCADEADOS
-========================= */
+========================================= */
 
 function atualizarFiltros(){
 
-  const ano = $("#anoFiltro").val();
+  const ano =
+    $("#anoFiltro").val();
 
   if(!ano){
 
@@ -413,32 +453,44 @@ function atualizarFiltros(){
   const valorAtual =
     $("#valorFiltro").val();
 
-  const baseInscrito = valorAtual
+  /* INSCRITOS */
+
+  const baseInscritos = valorAtual
+
     ? base.filter(
         x=>x["VALOR"] === valorAtual
       )
+
     : base;
 
   const inscritos = [
+
     ...new Set(
-      baseInscrito.map(
+
+      baseInscritos.map(
         x=>x["NOME DO INSCRITO"]
       )
+
     )
+
   ].sort((a,b)=>
+
     a.localeCompare(
       b,
       "pt-BR",
-      {sensitivity:"base"}
+      {
+        sensitivity:"base"
+      }
     )
+
   );
 
-  let htmlInscrito =
+  let htmlInscritos =
     '<option value="">Selecione...</option>';
 
   inscritos.forEach(v=>{
 
-    htmlInscrito += `
+    htmlInscritos += `
       <option value="${v}">
         ${v}
       </option>
@@ -447,35 +499,48 @@ function atualizarFiltros(){
   });
 
   $("#inscritoFiltro")
-    .html(htmlInscrito)
+    .html(htmlInscritos)
     .prop("disabled",false);
 
   if(inscritos.includes(inscritoAtual)){
+
     $("#inscritoFiltro").val(inscritoAtual);
+
   }
 
-  const baseValor = inscritoAtual
+  /* VALORES */
+
+  const baseValores = inscritoAtual
+
     ? base.filter(
-        x=>x["NOME DO INSCRITO"] === inscritoAtual
+        x=>
+          x["NOME DO INSCRITO"] === inscritoAtual
       )
+
     : base;
 
   const valores = [
+
     ...new Set(
-      baseValor.map(
+
+      baseValores.map(
         x=>x["VALOR"]
       )
+
     )
+
   ].sort((a,b)=>
+
     parseMoeda(a) - parseMoeda(b)
+
   );
 
-  let htmlValor =
+  let htmlValores =
     '<option value="">Selecione...</option>';
 
   valores.forEach(v=>{
 
-    htmlValor += `
+    htmlValores += `
       <option value="${v}">
         ${v}
       </option>
@@ -484,20 +549,22 @@ function atualizarFiltros(){
   });
 
   $("#valorFiltro")
-    .html(htmlValor)
+    .html(htmlValores)
     .prop("disabled",false);
 
   if(valores.includes(valorAtual)){
+
     $("#valorFiltro").val(valorAtual);
+
   }
 
   aplicarFiltros();
 
 }
 
-/* =========================
+/* =========================================
    APLICAR FILTROS
-========================= */
+========================================= */
 
 function aplicarFiltros(){
 
@@ -505,8 +572,10 @@ function aplicarFiltros(){
     $("#anoFiltro").val();
 
   if(!ano){
+
     limparTabela();
     return;
+
   }
 
   const inscrito =
@@ -516,14 +585,18 @@ function aplicarFiltros(){
     $("#valorFiltro").val();
 
   let base =
+
     ano === "TODOS"
+
       ? dadosOriginais
+
       : cacheAno[ano] || [];
 
   if(inscrito){
 
     base = base.filter(
-      x=>x["NOME DO INSCRITO"] === inscrito
+      x=>
+        x["NOME DO INSCRITO"] === inscrito
     );
 
   }
@@ -531,7 +604,8 @@ function aplicarFiltros(){
   if(valor){
 
     base = base.filter(
-      x=>x["VALOR"] === valor
+      x=>
+        x["VALOR"] === valor
     );
 
   }
@@ -542,9 +616,9 @@ function aplicarFiltros(){
 
 }
 
-/* =========================
+/* =========================================
    TOTALIZADOR
-========================= */
+========================================= */
 
 function atualizarResumo(dados){
 
@@ -556,23 +630,29 @@ function atualizarResumo(dados){
   }
 
   const total = dados.reduce(
+
     (acc,item)=>
+
       acc + parseMoeda(item["VALOR"]),
+
     0
+
   );
 
   $("#totalValor").text(
+
     "Total: " +
     formatadorMoeda.format(total)
+
   );
 
   $("#resumoValores").show();
 
 }
 
-/* =========================
+/* =========================================
    TABELA
-========================= */
+========================================= */
 
 function renderTabela(dados){
 
@@ -604,7 +684,10 @@ function renderTabela(dados){
 
   if(tabela){
 
-    tabela.clear().rows.add(dados).draw();
+    tabela.clear();
+    tabela.rows.add(dados);
+    tabela.draw(false);
+
     return;
 
   }
@@ -617,6 +700,7 @@ function renderTabela(dados){
     columns:colunas,
 
     deferRender:true,
+
     processing:false,
 
     scrollX:true,
@@ -625,9 +709,12 @@ function renderTabela(dados){
 
     paging:true,
     pageLength:10,
+
     lengthChange:false,
 
     autoWidth:false,
+
+    order:[[1,"desc"]],
 
     language:{
       url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
@@ -637,9 +724,9 @@ function renderTabela(dados){
 
 }
 
-/* =========================
-   LIMPAR
-========================= */
+/* =========================================
+   LIMPA TABELA
+========================================= */
 
 function limparTabela(){
 
@@ -655,27 +742,36 @@ function limparTabela(){
 
 }
 
-/* =========================
+/* =========================================
    EXPORTAÇÃO
-========================= */
+========================================= */
 
 function gerarNomeArquivo(ext){
 
   const partes = ["divida-ativa"];
 
-  const ano = $("#anoFiltro").val();
-  const inscrito = $("#inscritoFiltro").val();
+  const ano =
+    $("#anoFiltro").val();
 
-  if(ano) partes.push(ano);
+  const inscrito =
+    $("#inscritoFiltro").val();
+
+  if(ano){
+
+    partes.push(ano);
+
+  }
 
   if(inscrito){
 
     partes.push(
+
       inscrito
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g,"")
         .replace(/\s+/g,"-")
         .toLowerCase()
+
     );
 
   }
@@ -704,14 +800,17 @@ $("#btnCsv").on("click",()=>{
 
   if(!tabela) return;
 
-  const dados =
-    tabela.rows({search:"applied"})
-      .data()
-      .toArray();
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
 
-  const csv = Papa.unparse(dados,{
-    delimiter:";"
-  });
+  const csv = Papa.unparse(
+    dados,
+    {
+      delimiter:";"
+    }
+  );
 
   baixarArquivo(
 
@@ -734,15 +833,21 @@ $("#btnJson").on("click",()=>{
 
   if(!tabela) return;
 
-  const dados =
-    tabela.rows({search:"applied"})
-      .data()
-      .toArray();
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
 
   baixarArquivo(
 
     new Blob(
-      [JSON.stringify(dados,null,2)],
+      [
+        JSON.stringify(
+          dados,
+          null,
+          2
+        )
+      ],
       {
         type:"application/json"
       }
@@ -760,15 +865,17 @@ $("#btnTxt").on("click",()=>{
 
   if(!tabela) return;
 
-  const dados =
-    tabela.rows({search:"applied"})
-      .data()
-      .toArray();
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
 
   const txt = dados
+
     .map(
       x=>Object.values(x).join(" | ")
     )
+
     .join("\n");
 
   baixarArquivo(
@@ -792,10 +899,10 @@ $("#btnXlsx").on("click",()=>{
 
   if(!tabela) return;
 
-  const dados =
-    tabela.rows({search:"applied"})
-      .data()
-      .toArray();
+  const dados = tabela
+    .rows({search:"applied"})
+    .data()
+    .toArray();
 
   const ws =
     XLSX.utils.json_to_sheet(dados);
@@ -816,9 +923,9 @@ $("#btnXlsx").on("click",()=>{
 
 });
 
-/* =========================
+/* =========================================
    EVENTOS
-========================= */
+========================================= */
 
 $("#anoFiltro").on(
   "change",
