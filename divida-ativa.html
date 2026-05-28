@@ -9,28 +9,27 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
 
 <style>
 
 body{
-  background-color:#f8f9fa;
+  background:#f8f9fa;
 }
 
 .dataTables_filter{
   display:none;
 }
 
-.form-label,
-.form-select-sm,
-.form-control-sm,
-.table th,
-.table td{
-  font-size:.65rem !important;
+label{
+  font-weight:600;
+  font-size:.72rem !important;
+  color:#343a40;
+  margin-bottom:2px;
 }
 
-.xsmall{
-  font-size:.6rem !important;
+.form-select-sm,
+table{
+  font-size:.70rem !important;
 }
 
 table.dataTable td,
@@ -45,21 +44,21 @@ table.dataTable th{
   margin-bottom:8px;
 }
 
-.text-end{
-  text-align:right !important;
+.totalizadores{
+  font-size:.7rem;
+  background:#fff;
+  padding:5px 10px;
+  border:1px solid #dee2e6;
+  border-radius:4px;
 }
 
-/* FILTROS DESABILITADOS */
-.form-select:disabled{
-  background-color:#adb5bd !important;
-  border-color:#868e96 !important;
-  color:#495057 !important;
-  cursor:not-allowed !important;
-  opacity:1 !important;
+.totalizadores span{
+  display:inline-block;
+  margin-right:15px;
+  font-weight:600;
 }
 
-.spinner-overlay,
-.spinner-overlay-filtros{
+.spinner-overlay{
   position:fixed;
   top:0;
   left:0;
@@ -71,15 +70,7 @@ table.dataTable th{
   justify-content:flex-start;
   padding-top:60px;
   z-index:9999;
-}
-
-.spinner-overlay{
   background-color:rgba(255,255,255,.9);
-}
-
-.spinner-overlay-filtros{
-  background-color:rgba(255,255,255,.5);
-  z-index:9998;
 }
 
 .spinner-border{
@@ -92,98 +83,53 @@ table.dataTable th{
   margin-top:5px;
 }
 
-.row label{
-  font-weight:600;
-  font-size:.72rem !important;
-  color:#343a40;
-  margin-bottom:2px;
-  padding-left:2px;
-}
-
-.form-select-sm,
-.form-control-sm{
-  border-radius:4px !important;
-  padding:2px 6px !important;
-  background-color:#fff;
-  border:1px solid #ced4da !important;
-  font-size:.7rem !important;
-}
-
-.totalizadores{
-  font-size:.7rem;
-  background:#fff;
-  padding:5px 10px;
-  border:1px solid #dee2e6;
-  border-radius:4px;
-}
-
-.totalizadores span{
-  display:inline-block;
-  margin-right:15px;
-  font-weight:500;
-}
-
-.table-wrapper{
-  overflow-x:auto;
-}
-
-.dataTables_info{
-  font-size:.65rem !important;
-  color:#6c757d !important;
-  margin-top:8px;
-  padding-left:5px;
-}
-
 .dataTables_wrapper .dataTables_paginate{
   margin-top:.5rem;
   display:flex;
   justify-content:center;
-  align-items:center;
   gap:4px;
-  padding:6px 0;
-  font-size:.7rem;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button{
   padding:4px 8px !important;
-  margin:0 2px !important;
   font-size:.65rem !important;
   border-radius:6px !important;
   background-color:#e9ecef !important;
   border:1px solid #dee2e6 !important;
-  color:#212529 !important;
-  transition:background-color .2s ease;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover{
-  background-color:#d0d7df !important;
-  color:#212529 !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{
-  background-color:#0d6efd !important;
+  background:#0d6efd !important;
   color:#fff !important;
   font-weight:bold !important;
 }
 
-.btn-group .btn{
-  font-size:.7rem;
+.export-group .btn{
+  font-size:.70rem;
   padding:4px 8px;
 }
 
 #lengthSelectorContainer{
-  margin-top:10px;
-  font-size:.75rem;
+  font-size:.70rem;
   display:flex;
   justify-content:flex-end;
   align-items:center;
-  gap:8px;
+  gap:6px;
+  margin-bottom:6px;
 }
 
 #lengthSelector{
-  width:70px;
-  font-size:.75rem;
-  padding:2px 4px;
+  width:80px;
+  font-size:.70rem;
+}
+
+.form-select:disabled{
+  background:#ced4da !important;
+  cursor:not-allowed;
+}
+
+.text-end{
+  text-align:right !important;
 }
 
 </style>
@@ -201,56 +147,53 @@ table.dataTable th{
 
 </div>
 
-<div
-  id="spinnerFiltros"
-  class="spinner-overlay-filtros"
-  style="display:none;"
->
-
-  <div class="spinner-border text-secondary"></div>
-
-  <div class="spinner-text">
-    Atualizando filtros...
-  </div>
-
-</div>
-
 <div class="container-fluid mt-3">
 
   <div id="indicadorAtualizacao">
     Dados atualizados em...
   </div>
 
+  <!-- FILTROS -->
   <div class="row gx-2 gy-2 mb-3">
 
     <div class="col-sm-2">
-      <label>Exercício (Ano) *</label>
+
+      <label>EXERCÍCIO (ANO) *</label>
+
       <select
         id="anoFiltro"
         class="form-select form-select-sm"
       ></select>
+
     </div>
 
-    <div class="col-sm-4">
-      <label>Nome do Inscrito</label>
+    <div class="col-sm-5">
+
+      <label>NOME DO INSCRITO</label>
+
       <select
         id="inscritoFiltro"
         class="form-select form-select-sm"
         disabled
       ></select>
+
     </div>
 
     <div class="col-sm-3">
-      <label>Valor</label>
+
+      <label>VALOR</label>
+
       <select
         id="valorFiltro"
         class="form-select form-select-sm"
         disabled
       ></select>
+
     </div>
 
   </div>
 
+  <!-- TOTAL -->
   <div
     class="totalizadores mb-2"
     id="resumoValores"
@@ -263,6 +206,7 @@ table.dataTable th{
 
   </div>
 
+  <!-- BOTÕES -->
   <div class="d-flex justify-content-between mb-2">
 
     <button
@@ -272,65 +216,67 @@ table.dataTable th{
       Limpar Filtros
     </button>
 
-    <div class="btn-group">
+    <div class="export-group btn-group">
 
       <button
-        id="exportCsv"
+        id="btnCsv"
         class="btn btn-outline-secondary btn-sm"
       >
         CSV
       </button>
 
       <button
-        id="exportXls"
+        id="btnXlsx"
         class="btn btn-outline-secondary btn-sm"
       >
         XLSX
       </button>
 
       <button
-        id="exportJson"
-        class="btn btn-outline-secondary btn-sm"
-      >
-        JSON
-      </button>
-
-      <button
-        id="exportTxt"
+        id="btnTxt"
         class="btn btn-outline-secondary btn-sm"
       >
         TXT
+      </button>
+
+      <button
+        id="btnJson"
+        class="btn btn-outline-secondary btn-sm"
+      >
+        JSON
       </button>
 
     </div>
 
   </div>
 
-  <div class="table-wrapper">
-
-    <table
-      id="tabela"
-      class="table table-bordered table-striped table-sm xsmall w-100"
-      style="display:none;"
-    ></table>
-
-  </div>
-
+  <!-- REGISTROS -->
   <div id="lengthSelectorContainer">
 
-    <label for="lengthSelector">
-      Registros por página:
-    </label>
+    <label>Registros por página:</label>
 
     <select
       id="lengthSelector"
-      class="form-select form-select-sm d-inline-block"
+      class="form-select form-select-sm"
     >
+
       <option value="10">10</option>
-      <option value="20">20</option>
+      <option value="25">25</option>
       <option value="50">50</option>
       <option value="100">100</option>
+
     </select>
+
+  </div>
+
+  <!-- TABELA -->
+  <div class="table-responsive">
+
+    <table
+      id="tabela"
+      class="table table-bordered table-striped table-sm w-100"
+      style="display:none;"
+    ></table>
 
   </div>
 
@@ -338,17 +284,11 @@ table.dataTable th{
 
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
 
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-
-<script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
 <script>
 
@@ -356,8 +296,10 @@ let tabela = null;
 
 let dadosOriginais = [];
 
+let cacheFiltros = {};
+
 const urlCSV =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FTkebyd02cd95EDPbWnZs7ELPoZnuCXV5_qQ9hlUKy_2qjj0eMYM4O33PNdwRnK4M3pa1yvUtjIN/pub?gid=1659253784&single=true&output=csv";
+"https://docs.google.com/spreadsheets/d/10C3yDnARmQs6Ydh39PK1XGNW3cFylcWLL9rd6_2WyIs/export?format=csv&gid=1659253784";
 
 const campos = {
 
@@ -367,7 +309,7 @@ const campos = {
 
 };
 
-const ordemFiltros = [
+const ordem = [
 
   "ano",
   "inscrito",
@@ -377,83 +319,60 @@ const ordemFiltros = [
 
 $(document).ready(function(){
 
-  carregarDados();
+  carregarCSV();
 
 });
 
-function carregarDados(){
+function carregarCSV(){
 
   Papa.parse(urlCSV,{
 
     download:true,
-
     header:true,
-
     skipEmptyLines:true,
 
     complete:function(resultado){
 
-      if(
-        !resultado ||
-        !resultado.data ||
-        !resultado.data.length
-      ){
+      const linhas = resultado.data || [];
 
-        $("#spinnerCsv").hide();
+      if(!linhas.length){
 
-        alert(
-          "A base de dados retornou vazia."
-        );
+        alert("Base de dados vazia.");
 
         return;
 
       }
 
-      const primeiraLinha =
-        resultado.data[0];
+      const linha2 = linhas[0];
 
-      const dataAtualizacao =
-
-        primeiraLinha["ATUALIZACAO"] ||
-        primeiraLinha["ATUALIZAÇÃO"] ||
-        primeiraLinha["Atualizacao"] ||
-        primeiraLinha["Atualização"] ||
-        primeiraLinha["E2"] ||
+      const atualizacao =
+        linha2["D"] ||
+        linha2["Atualizacao"] ||
+        linha2["ATUALIZACAO"] ||
         "";
 
-      if(dataAtualizacao){
-
-        $("#indicadorAtualizacao").html(
-          `Dados atualizados em: <b>${dataAtualizacao}</b>`
-        );
-
-      }
-
-      dadosOriginais =
-        resultado.data
-          .filter(r=>
-            r["EXERCÍCIO (ANO)"]
-          )
-          .map(r=>{
-
-            const novo = {...r};
-
-            delete novo["ATUALIZACAO"];
-            delete novo["ATUALIZAÇÃO"];
-            delete novo["Atualizacao"];
-            delete novo["Atualização"];
-            delete novo["E2"];
-
-            return novo;
-
-          });
-
-      popularFiltro(
-        "anoFiltro",
-        campos.ano,
-        dadosOriginais,
-        true
+      $("#indicadorAtualizacao").html(
+        `Dados atualizados em: <b>${atualizacao}</b>`
       );
+
+      dadosOriginais = linhas
+        .filter(r => r[campos.ano])
+        .map(r => ({
+
+          "NOME DO INSCRITO":
+            limparTexto(r["NOME DO INSCRITO"]),
+
+          "EXERCÍCIO (ANO)":
+            limparTexto(r["EXERCÍCIO (ANO)"]),
+
+          "VALOR":
+            formatarValorOriginal(r["VALOR"])
+
+        }));
+
+      prepararCache();
+
+      carregarFiltroAno();
 
       inicializarEventos();
 
@@ -466,7 +385,7 @@ function carregarDados(){
       $("#spinnerCsv").hide();
 
       alert(
-        "Não foi possível carregar a base de dados CSV."
+        "Não foi possível carregar a base de dados."
       );
 
     }
@@ -475,33 +394,120 @@ function carregarDados(){
 
 }
 
-function inicializarEventos(){
+function limparTexto(valor){
 
-  ordemFiltros.forEach(filtro=>{
+  if(!valor) return "";
 
-    $("#"+filtro+"Filtro").on(
-      "change",
-      function(){
+  return valor
+    .toString()
+    .replace(/^"+|"+$/g,"")
+    .trim();
 
-        $("#spinnerFiltros").show();
+}
 
-        setTimeout(()=>{
+function formatarValorOriginal(valor){
 
-          atualizarFiltros();
+  if(!valor) return "";
 
-          const dados =
-            aplicarFiltros();
+  let texto = valor
+    .toString()
+    .replace(/^"+|"+$/g,"")
+    .trim();
 
-          renderTabela(dados);
+  texto = texto.replace(/\s+/g," ");
 
-          $("#spinnerFiltros").hide();
+  return texto;
 
-        },50);
+}
 
-      }
-    );
+function prepararCache(){
+
+  cacheFiltros = {};
+
+  dadosOriginais.forEach(registro=>{
+
+    const ano =
+      registro[campos.ano];
+
+    if(!cacheFiltros[ano]){
+
+      cacheFiltros[ano] = {
+
+        inscritos:new Set(),
+        valores:new Set()
+
+      };
+
+    }
+
+    cacheFiltros[ano]
+      .inscritos
+      .add(registro[campos.inscrito]);
+
+    cacheFiltros[ano]
+      .valores
+      .add(registro[campos.valor]);
 
   });
+
+}
+
+function carregarFiltroAno(){
+
+  const select =
+    $("#anoFiltro");
+
+  select.empty();
+
+  select.append(`
+    <option value="">
+      Selecione...
+    </option>
+  `);
+
+  select.append(`
+    <option value="TODOS">
+      Todos
+    </option>
+  `);
+
+  [...new Set(
+
+    dadosOriginais.map(
+      r=>r[campos.ano]
+    )
+
+  )]
+  .sort((a,b)=>b.localeCompare(a))
+
+  .forEach(ano=>{
+
+    select.append(`
+      <option value="${ano}">
+        ${ano}
+      </option>
+    `);
+
+  });
+
+}
+
+function inicializarEventos(){
+
+  $("#anoFiltro").on(
+    "change",
+    atualizarFiltrosEncadeados
+  );
+
+  $("#inscritoFiltro").on(
+    "change",
+    atualizarValorPorInscrito
+  );
+
+  $("#valorFiltro").on(
+    "change",
+    aplicarTudo
+  );
 
   $("#btnLimpar").on(
     "click",
@@ -514,140 +520,154 @@ function inicializarEventos(){
 
       if(tabela){
 
-        tabela
-          .page
+        tabela.page
           .len(parseInt(this.value))
-          .draw();
+          .draw(false);
 
       }
 
     }
   );
 
-  $("#exportCsv").on(
+  $("#btnCsv").on(
     "click",
-    function(){
-
-      if(tabela){
-
-        tabela.button(".buttons-csv").trigger();
-
-      }
-
-    }
+    exportarCSV
   );
 
-  $("#exportXls").on(
+  $("#btnJson").on(
     "click",
-    function(){
-
-      if(tabela){
-
-        tabela.button(".buttons-excel").trigger();
-
-      }
-
-    }
+    exportarJSON
   );
 
-  $("#exportJson").on(
+  $("#btnTxt").on(
     "click",
-    exportarJson
+    exportarTXT
   );
 
-  $("#exportTxt").on(
+  $("#btnXlsx").on(
     "click",
-    exportarTxt
+    exportarXLSX
   );
 
 }
 
-function limparFiltros(){
+function atualizarFiltrosEncadeados(){
 
-  ordemFiltros.forEach(f=>{
+  const ano =
+    $("#anoFiltro").val();
 
-    $("#"+f+"Filtro").val("");
+  resetarTabela();
 
-    if(f !== "ano"){
+  if(!ano){
 
-      $("#"+f+"Filtro")
-        .prop("disabled",true)
-        .html(`
-          <option value="">
-            Selecione...
-          </option>
-        `);
+    $("#inscritoFiltro")
+      .prop("disabled",true)
+      .html(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
 
-    }
+    $("#valorFiltro")
+      .prop("disabled",true)
+      .html(`
+        <option value="">
+          Selecione...
+        </option>
+      `);
 
-  });
-
-  $("#tabela")
-    .hide()
-    .empty();
-
-  $("#resumoValores").hide();
-
-  if(tabela){
-
-    tabela.destroy();
-
-    tabela = null;
+    return;
 
   }
 
+  const base =
+
+    ano === "TODOS"
+      ? dadosOriginais
+      : dadosOriginais.filter(
+          r=>r[campos.ano] === ano
+        );
+
+  popularFiltro(
+    "#inscritoFiltro",
+    [...new Set(
+      base.map(
+        r=>r[campos.inscrito]
+      )
+    )]
+    .sort((a,b)=>
+      a.localeCompare(
+        b,
+        "pt-BR"
+      )
+    )
+  );
+
+  popularFiltro(
+    "#valorFiltro",
+    [...new Set(
+      base.map(
+        r=>r[campos.valor]
+      )
+    )]
+  );
+
+  $("#inscritoFiltro")
+    .prop("disabled",false);
+
+  $("#valorFiltro")
+    .prop("disabled",false);
+
+  aplicarTudo();
+
 }
 
-function popularFiltro(
-  id,
-  campo,
-  dados,
-  isAno=false
-){
+function atualizarValorPorInscrito(){
 
-  const select =
-    $("#"+id);
+  const ano =
+    $("#anoFiltro").val();
+
+  const inscrito =
+    $("#inscritoFiltro").val();
+
+  let base =
+
+    ano === "TODOS"
+      ? dadosOriginais
+      : dadosOriginais.filter(
+          r=>r[campos.ano] === ano
+        );
+
+  if(inscrito){
+
+    base = base.filter(
+      r=>
+        r[campos.inscrito] === inscrito
+    );
+
+  }
+
+  popularFiltro(
+    "#valorFiltro",
+    [...new Set(
+      base.map(
+        r=>r[campos.valor]
+      )
+    )]
+  );
+
+  aplicarTudo();
+
+}
+
+function popularFiltro(seletor,valores){
+
+  const select = $(seletor);
 
   const valorAtual =
     select.val();
 
   select.empty();
-
-  let valores = [
-
-    ...new Set(
-
-      dados
-        .map(r=>r[campo])
-        .filter(Boolean)
-
-    )
-
-  ];
-
-  if(campo === "VALOR"){
-
-    valores.sort(
-      (a,b)=>
-      parseMoeda(a) -
-      parseMoeda(b)
-    );
-
-  }else{
-
-    valores.sort((a,b)=>
-
-      a.toString().localeCompare(
-        b.toString(),
-        "pt-BR",
-        {
-          sensitivity:"base"
-        }
-      )
-
-    );
-
-  }
 
   select.append(`
     <option value="">
@@ -655,24 +675,17 @@ function popularFiltro(
     </option>
   `);
 
-  if(
-    isAno ||
-    valores.length > 1
-  ){
+  select.append(`
+    <option value="TODOS">
+      Todos
+    </option>
+  `);
+
+  valores.forEach(valor=>{
 
     select.append(`
-      <option value="TODOS">
-        Todos
-      </option>
-    `);
-
-  }
-
-  valores.forEach(v=>{
-
-    select.append(`
-      <option value="${v}">
-        ${v}
+      <option value="${valor}">
+        ${valor}
       </option>
     `);
 
@@ -684,88 +697,16 @@ function popularFiltro(
 
   }
 
-  select.prop(
-    "disabled",
-    !isAno && !$("#anoFiltro").val()
-  );
-
 }
 
-function atualizarFiltros(){
+function aplicarTudo(){
 
-  const ano =
-    $("#anoFiltro").val();
+  const dados =
+    aplicarFiltros();
 
-  if(!ano){
+  atualizarResumo(dados);
 
-    ordemFiltros
-      .slice(1)
-      .forEach(f=>{
-
-        $("#"+f+"Filtro")
-          .prop("disabled",true)
-          .html(`
-            <option value="">
-              Selecione...
-            </option>
-          `);
-
-      });
-
-    return;
-
-  }
-
-  ordemFiltros.forEach((filtro,index)=>{
-
-    if(index === 0) return;
-
-    const dadosBase =
-      obterDadosBase(index);
-
-    popularFiltro(
-
-      filtro+"Filtro",
-
-      campos[filtro],
-
-      dadosBase
-
-    );
-
-  });
-
-}
-
-function obterDadosBase(indiceAtual){
-
-  return dadosOriginais.filter(registro=>{
-
-    return ordemFiltros
-      .slice(0,indiceAtual)
-      .every(f=>{
-
-        const valor =
-          $("#"+f+"Filtro").val();
-
-        if(
-          !valor ||
-          valor === "TODOS"
-        ){
-
-          return true;
-
-        }
-
-        return (
-          registro[
-            campos[f]
-          ] === valor
-        );
-
-      });
-
-  });
+  renderTabela(dados);
 
 }
 
@@ -774,99 +715,59 @@ function aplicarFiltros(){
   const ano =
     $("#anoFiltro").val();
 
-  if(!ano){
+  const inscrito =
+    $("#inscritoFiltro").val();
 
-    atualizarResumo([]);
+  const valor =
+    $("#valorFiltro").val();
 
-    return [];
+  return dadosOriginais.filter(r=>{
 
-  }
+    if(
+      ano &&
+      ano !== "TODOS" &&
+      r[campos.ano] !== ano
+    ){
+      return false;
+    }
 
-  const dados =
-    dadosOriginais.filter(r=>{
+    if(
+      inscrito &&
+      inscrito !== "TODOS" &&
+      r[campos.inscrito] !== inscrito
+    ){
+      return false;
+    }
 
-      return ordemFiltros.every(f=>{
+    if(
+      valor &&
+      valor !== "TODOS" &&
+      r[campos.valor] !== valor
+    ){
+      return false;
+    }
 
-        const valor =
-          $("#"+f+"Filtro").val();
+    return true;
 
-        if(
-          !valor ||
-          valor === "TODOS"
-        ){
-
-          return true;
-
-        }
-
-        return (
-          r[campos[f]] === valor
-        );
-
-      });
-
-    });
-
-  atualizarResumo(dados);
-
-  return dados;
+  });
 
 }
 
 function renderTabela(dados){
 
-  if(!dados.length){
+  if(tabela){
 
-    $("#tabela")
-      .hide()
-      .empty();
+    tabela.clear().destroy();
 
-    if(tabela){
-
-      tabela.destroy();
-
-      tabela = null;
-
-    }
-
-    return;
+    $("#tabela").empty();
 
   }
 
-  const colunas =
-    Object.keys(dados[0])
+  if(!dados.length){
 
-      .filter(c=>
+    $("#tabela").hide();
 
-        ![
-          "ATUALIZACAO",
-          "ATUALIZAÇÃO",
-          "Atualizacao",
-          "Atualização",
-          "E2"
-        ].includes(c)
-
-      )
-
-      .map(c=>({
-
-        title:c,
-
-        data:c,
-
-        className:
-          c === "VALOR" ||
-          c === "EXERCÍCIO (ANO)"
-            ? "text-end"
-            : ""
-
-      }));
-
-  if(tabela){
-
-    tabela.destroy();
-
-    $("#tabela").empty();
+    return;
 
   }
 
@@ -876,19 +777,13 @@ function renderTabela(dados){
 
     data:dados,
 
-    columns:colunas,
+    deferRender:true,
 
-    destroy:true,
+    processing:false,
 
     pageLength:parseInt(
       $("#lengthSelector").val()
     ),
-
-    searching:true,
-
-    ordering:true,
-
-    autoWidth:false,
 
     scrollX:true,
 
@@ -896,49 +791,38 @@ function renderTabela(dados){
 
     scrollCollapse:true,
 
-    dom:"Bfrtip",
+    searching:true,
 
-    buttons:[
+    ordering:true,
+
+    autoWidth:false,
+
+    lengthChange:false,
+
+    language:{
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+    },
+
+    columns:[
 
       {
-
-        extend:"csvHtml5",
-
-        text:"CSV",
-
-        className:"buttons-csv d-none",
-
-        filename:()=>gerarNomeArquivo("csv")
-          .replace(".csv","")
-
+        title:"NOME DO INSCRITO",
+        data:"NOME DO INSCRITO"
       },
 
       {
+        title:"EXERCÍCIO (ANO)",
+        data:"EXERCÍCIO (ANO)",
+        className:"text-end"
+      },
 
-        extend:"excelHtml5",
-
-        text:"XLSX",
-
-        className:"buttons-excel d-none",
-
-        filename:()=>gerarNomeArquivo("xlsx")
-          .replace(".xlsx","")
-
+      {
+        title:"VALOR",
+        data:"VALOR",
+        className:"text-end"
       }
 
-    ],
-
-    language:{
-
-      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-
-    },
-
-    initComplete:function(){
-
-      tabela.buttons().container().appendTo("body");
-
-    }
+    ]
 
   });
 
@@ -958,7 +842,7 @@ function atualizarResumo(dados){
 
   dados.forEach(r=>{
 
-    total += parseMoeda(
+    total += converterMoedaNumero(
       r["VALOR"]
     );
 
@@ -982,7 +866,7 @@ function atualizarResumo(dados){
 
 }
 
-function parseMoeda(valor){
+function converterMoedaNumero(valor){
 
   if(!valor) return 0;
 
@@ -990,7 +874,7 @@ function parseMoeda(valor){
 
     valor
       .toString()
-      .replace(/[^\d,-]/g,"")
+      .replace(/[^\d,.-]/g,"")
       .replace(/\./g,"")
       .replace(",", ".")
 
@@ -998,15 +882,53 @@ function parseMoeda(valor){
 
 }
 
+function resetarTabela(){
+
+  $("#resumoValores").hide();
+
+  if(tabela){
+
+    tabela.clear().destroy();
+
+    tabela = null;
+
+  }
+
+  $("#tabela")
+    .hide()
+    .empty();
+
+}
+
+function limparFiltros(){
+
+  $("#anoFiltro").val("");
+
+  $("#inscritoFiltro")
+    .prop("disabled",true)
+    .html(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
+
+  $("#valorFiltro")
+    .prop("disabled",true)
+    .html(`
+      <option value="">
+        Selecione...
+      </option>
+    `);
+
+  resetarTabela();
+
+}
+
 function gerarNomeArquivo(ext){
 
-  const partes = [
+  const partes = ["divida-ativa"];
 
-    "divida-ativa"
-
-  ];
-
-  ordemFiltros.forEach(f=>{
+  ordem.forEach(f=>{
 
     const valor =
       $("#"+f+"Filtro").val();
@@ -1020,11 +942,11 @@ function gerarNomeArquivo(ext){
 
         valor
           .toString()
-          .toLowerCase()
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g,"")
+          .replace(/[^\w\s-]/g,"")
           .replace(/\s+/g,"-")
-          .replace(/[^\w-]/g,"")
+          .toLowerCase()
 
       );
 
@@ -1036,14 +958,61 @@ function gerarNomeArquivo(ext){
 
 }
 
-function exportarJson(){
+function baixarArquivo(blob,nome){
+
+  const link =
+    document.createElement("a");
+
+  link.href =
+    URL.createObjectURL(blob);
+
+  link.download = nome;
+
+  link.click();
+
+}
+
+function exportarCSV(){
 
   if(!tabela) return;
 
-  const dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  const dados =
+    tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray();
+
+  const csv = Papa.unparse(dados,{
+
+    quotes:true,
+    delimiter:";"
+
+  });
+
+  baixarArquivo(
+
+    new Blob(
+      ["\ufeff"+csv],
+      {
+        type:"text/csv;charset=utf-8;"
+      }
+    ),
+
+    gerarNomeArquivo("csv")
+
+  );
+
+}
+
+function exportarJSON(){
+
+  if(!tabela) return;
+
+  const dados =
+    tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray();
 
   baixarArquivo(
 
@@ -1066,35 +1035,24 @@ function exportarJson(){
 
 }
 
-function exportarTxt(){
+function exportarTXT(){
 
   if(!tabela) return;
 
-  const dados = tabela
-    .rows({search:"applied"})
-    .data()
-    .toArray();
+  const dados =
+    tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray();
 
-  if(!dados.length) return;
+  const txt = dados
+    .map(o=>
 
-  const colunas =
-    Object.keys(dados[0]);
+      Object.values(o)
+        .join(" | ")
 
-  const txt =
-
-    colunas.join(";") +
-
-    "\n" +
-
-    dados
-      .map(l=>
-
-        colunas
-          .map(c=>l[c])
-          .join(";")
-
-      )
-      .join("\n");
+    )
+    .join("\n");
 
   baixarArquivo(
 
@@ -1111,21 +1069,32 @@ function exportarTxt(){
 
 }
 
-function baixarArquivo(blob,nome){
+function exportarXLSX(){
 
-  const link =
-    document.createElement("a");
+  if(!tabela) return;
 
-  link.href =
-    URL.createObjectURL(blob);
+  const dados =
+    tabela
+      .rows({search:"applied"})
+      .data()
+      .toArray();
 
-  link.download = nome;
+  const ws =
+    XLSX.utils.json_to_sheet(dados);
 
-  document.body.appendChild(link);
+  const wb =
+    XLSX.utils.book_new();
 
-  link.click();
+  XLSX.utils.book_append_sheet(
+    wb,
+    ws,
+    "Divida Ativa"
+  );
 
-  document.body.removeChild(link);
+  XLSX.writeFile(
+    wb,
+    gerarNomeArquivo("xlsx")
+  );
 
 }
 
