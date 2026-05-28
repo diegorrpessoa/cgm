@@ -49,7 +49,6 @@ table.dataTable th{
   text-align:right !important;
 }
 
-/* FILTROS DESABILITADOS */
 .form-select:disabled{
   background-color:#adb5bd !important;
   border-color:#868e96 !important;
@@ -58,7 +57,8 @@ table.dataTable th{
   opacity:1 !important;
 }
 
-.spinner-overlay{
+.spinner-overlay,
+.spinner-overlay-filtros{
   position:fixed;
   top:0;
   left:0;
@@ -70,7 +70,15 @@ table.dataTable th{
   justify-content:flex-start;
   padding-top:60px;
   z-index:9999;
+}
+
+.spinner-overlay{
   background-color:rgba(255,255,255,.9);
+}
+
+.spinner-overlay-filtros{
+  background-color:rgba(255,255,255,.35);
+  z-index:9998;
 }
 
 .spinner-border{
@@ -143,12 +151,6 @@ table.dataTable th{
   background-color:#e9ecef !important;
   border:1px solid #dee2e6 !important;
   color:#212529 !important;
-  transition:background-color .2s ease;
-}
-
-.dataTables_wrapper .dataTables_paginate .paginate_button:hover{
-  background-color:#d0d7df !important;
-  color:#212529 !important;
 }
 
 .dataTables_wrapper .dataTables_paginate .paginate_button.current{
@@ -188,6 +190,20 @@ table.dataTable th{
 
   <div class="spinner-text">
     Carregando base de dados...
+  </div>
+
+</div>
+
+<div
+  id="spinnerFiltros"
+  class="spinner-overlay-filtros"
+  style="display:none;"
+>
+
+  <div class="spinner-border text-secondary"></div>
+
+  <div class="spinner-text">
+    Atualizando filtros...
   </div>
 
 </div>
@@ -333,6 +349,8 @@ let tabela = null;
 
 let dadosOriginais = [];
 
+let cacheFiltros = {};
+
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FTkebyd02cd95EDPbWnZs7ELPoZnuCXV5_qQ9hlUKy_2qjj0eMYM4O33PNdwRnK4M3pa1yvUtjIN/pub?gid=1659253784&single=true&output=csv";
 
@@ -375,14 +393,13 @@ function carregarDados(){
       if(
         !resultado ||
         !resultado.data ||
-        !Array.isArray(resultado.data) ||
         !resultado.data.length
       ){
 
         $("#spinnerCsv").hide();
 
         alert(
-          "Não foi possível carregar a base de dados."
+          "A base de dados retornou vazia."
         );
 
         return;
@@ -390,7 +407,7 @@ function carregarDados(){
       }
 
       const primeiraLinha =
-        resultado.data[0] || {};
+        resultado.data[0];
 
       const dataAtualizacao =
 
@@ -412,7 +429,6 @@ function carregarDados(){
       dadosOriginais =
         resultado.data
           .filter(r=>
-            r &&
             r["EXERCÍCIO (ANO)"]
           )
           .map(r=>{
@@ -424,6 +440,9 @@ function carregarDados(){
             delete novo["Atualizacao"];
             delete novo["Atualização"];
             delete novo["E2"];
+
+            novo.__valorNumerico =
+              parseMoeda(novo["VALOR"]);
 
             return novo;
 
@@ -438,13 +457,11 @@ function carregarDados(){
 
       inicializarEventos();
 
-      $("#spinnerCsv").fadeOut(200);
+      $("#spinnerCsv").fadeOut(150);
 
     },
 
-    error:function(error){
-
-      console.error(error);
+    error:function(){
 
       $("#spinnerCsv").hide();
 
@@ -464,16 +481,7 @@ function inicializarEventos(){
 
     $("#"+filtro+"Filtro").on(
       "change",
-      function(){
-
-        atualizarFiltros();
-
-        const dados =
-          aplicarFiltros();
-
-        renderTabela(dados);
-
-      }
+      aplicarTudo
     );
 
   });
@@ -501,28 +509,12 @@ function inicializarEventos(){
 
   $("#exportCsv").on(
     "click",
-    function(){
-
-      if(tabela){
-
-        tabela.button(".buttons-csv").trigger();
-
-      }
-
-    }
+    ()=>tabela?.button(".buttons-csv").trigger()
   );
 
   $("#exportXls").on(
     "click",
-    function(){
-
-      if(tabela){
-
-        tabela.button(".buttons-excel").trigger();
-
-      }
-
-    }
+    ()=>tabela?.button(".buttons-excel").trigger()
   );
 
   $("#exportJson").on(
@@ -534,6 +526,27 @@ function inicializarEventos(){
     "click",
     exportarTxt
   );
+
+}
+
+function aplicarTudo(){
+
+  $("#spinnerFiltros").show();
+
+  requestAnimationFrame(()=>{
+
+    atualizarFiltros();
+
+    const dados =
+      aplicarFiltros();
+
+    atualizarResumo(dados);
+
+    renderTabela(dados);
+
+    $("#spinnerFiltros").hide();
+
+  });
 
 }
 
@@ -557,9 +570,6 @@ function limparFiltros(){
 
   });
 
-  $("#tabela")
-    .hide();
-
   $("#resumoValores").hide();
 
   if(tabela){
@@ -567,6 +577,8 @@ function limparFiltros(){
     tabela.clear().draw();
 
   }
+
+  $("#tabela").hide();
 
 }
 
@@ -589,11 +601,7 @@ function popularFiltro(
 
       dados
         .map(r=>r[campo])
-        .filter(v=>
-          v !== undefined &&
-          v !== null &&
-          v !== ""
-        )
+        .filter(Boolean)
 
     )
 
@@ -603,20 +611,19 @@ function popularFiltro(
 
     valores.sort(
       (a,b)=>
-        parseMoeda(a) -
-        parseMoeda(b)
+      parseMoeda(a) -
+      parseMoeda(b)
     );
 
   }else{
 
     valores.sort((a,b)=>
 
-      a.toString().localeCompare(
-        b.toString(),
+      a.localeCompare(
+        b,
         "pt-BR",
         {
-          sensitivity:"base",
-          numeric:true
+          sensitivity:"base"
         }
       )
 
@@ -748,14 +755,16 @@ function obterDadosBase(indiceAtual){
 
 function aplicarFiltros(){
 
-  const ano =
-    $("#anoFiltro").val();
+  const chave =
+    ordemFiltros
+      .map(f=>
+        $("#"+f+"Filtro").val() || ""
+      )
+      .join("|");
 
-  if(!ano){
+  if(cacheFiltros[chave]){
 
-    atualizarResumo([]);
-
-    return [];
+    return cacheFiltros[chave];
 
   }
 
@@ -784,7 +793,7 @@ function aplicarFiltros(){
 
     });
 
-  atualizarResumo(dados);
+  cacheFiltros[chave] = dados;
 
   return dados;
 
@@ -806,19 +815,13 @@ function renderTabela(dados){
 
   }
 
-  $("#tabela").show();
-
   const colunas =
     Object.keys(dados[0])
 
       .filter(c=>
 
         ![
-          "ATUALIZACAO",
-          "ATUALIZAÇÃO",
-          "Atualizacao",
-          "Atualização",
-          "E2"
+          "__valorNumerico"
         ].includes(c)
 
       )
@@ -837,7 +840,77 @@ function renderTabela(dados){
 
       }));
 
-  if(tabela){
+  if(!tabela){
+
+    $("#tabela").show();
+
+    tabela = $("#tabela").DataTable({
+
+      data:dados,
+
+      columns:colunas,
+
+      pageLength:parseInt(
+        $("#lengthSelector").val()
+      ),
+
+      searching:true,
+
+      ordering:true,
+
+      autoWidth:false,
+
+      deferRender:true,
+
+      scrollX:true,
+
+      scrollY:"55vh",
+
+      scrollCollapse:true,
+
+      scroller:true,
+
+      dom:"Bfrtip",
+
+      buttons:[
+
+        {
+
+          extend:"csvHtml5",
+
+          text:"CSV",
+
+          className:"buttons-csv d-none",
+
+          filename:()=>gerarNomeArquivo("csv")
+            .replace(".csv","")
+
+        },
+
+        {
+
+          extend:"excelHtml5",
+
+          text:"XLSX",
+
+          className:"buttons-excel d-none",
+
+          filename:()=>gerarNomeArquivo("xlsx")
+            .replace(".xlsx","")
+
+        }
+
+      ],
+
+      language:{
+
+        url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+
+      }
+
+    });
+
+  }else{
 
     tabela.clear();
 
@@ -845,75 +918,7 @@ function renderTabela(dados){
 
     tabela.draw(false);
 
-    return;
-
   }
-
-  tabela = $("#tabela").DataTable({
-
-    data:dados,
-
-    columns:colunas,
-
-    deferRender:true,
-
-    processing:false,
-
-    pageLength:parseInt(
-      $("#lengthSelector").val()
-    ),
-
-    searching:true,
-
-    ordering:true,
-
-    autoWidth:false,
-
-    scrollX:true,
-
-    scrollY:"55vh",
-
-    scrollCollapse:true,
-
-    dom:"Bfrtip",
-
-    buttons:[
-
-      {
-
-        extend:"csvHtml5",
-
-        text:"CSV",
-
-        className:"buttons-csv d-none",
-
-        filename:()=>gerarNomeArquivo("csv")
-          .replace(".csv","")
-
-      },
-
-      {
-
-        extend:"excelHtml5",
-
-        text:"XLSX",
-
-        className:"buttons-excel d-none",
-
-        filename:()=>gerarNomeArquivo("xlsx")
-          .replace(".xlsx","")
-
-      }
-
-    ],
-
-    language:{
-
-      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-
-    }
-
-  });
 
 }
 
@@ -931,9 +936,7 @@ function atualizarResumo(dados){
 
   dados.forEach(r=>{
 
-    total += parseMoeda(
-      r["VALOR"]
-    );
+    total += r.__valorNumerico || 0;
 
   });
 
@@ -1051,7 +1054,8 @@ function exportarTxt(){
   if(!dados.length) return;
 
   const colunas =
-    Object.keys(dados[0]);
+    Object.keys(dados[0])
+      .filter(c=>c !== "__valorNumerico");
 
   const txt =
 
@@ -1099,8 +1103,6 @@ function baixarArquivo(blob,nome){
   link.click();
 
   document.body.removeChild(link);
-
-  URL.revokeObjectURL(link.href);
 
 }
 
