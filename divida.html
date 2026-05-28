@@ -7,10 +7,6 @@
 
 <title>Painel de Dívida Ativa</title>
 
-<link rel="preconnect" href="https://cdn.jsdelivr.net"/>
-<link rel="preconnect" href="https://code.jquery.com"/>
-<link rel="preconnect" href="https://cdnjs.cloudflare.com"/>
-
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"/>
 <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.bootstrap5.min.css"/>
@@ -62,8 +58,7 @@ table.dataTable th{
   opacity:1 !important;
 }
 
-.spinner-overlay,
-.spinner-overlay-filtros{
+.spinner-overlay{
   position:fixed;
   top:0;
   left:0;
@@ -75,15 +70,7 @@ table.dataTable th{
   justify-content:flex-start;
   padding-top:60px;
   z-index:9999;
-}
-
-.spinner-overlay{
   background-color:rgba(255,255,255,.9);
-}
-
-.spinner-overlay-filtros{
-  background-color:rgba(255,255,255,.5);
-  z-index:9998;
 }
 
 .spinner-border{
@@ -201,20 +188,6 @@ table.dataTable th{
 
   <div class="spinner-text">
     Carregando base de dados...
-  </div>
-
-</div>
-
-<div
-  id="spinnerFiltros"
-  class="spinner-overlay-filtros"
-  style="display:none;"
->
-
-  <div class="spinner-border text-secondary"></div>
-
-  <div class="spinner-text">
-    Atualizando filtros...
   </div>
 
 </div>
@@ -359,9 +332,6 @@ table.dataTable th{
 let tabela = null;
 
 let dadosOriginais = [];
-let dadosFiltrados = [];
-
-const cacheFiltros = {};
 
 const urlCSV =
 "https://docs.google.com/spreadsheets/d/e/2PACX-1vS6FTkebyd02cd95EDPbWnZs7ELPoZnuCXV5_qQ9hlUKy_2qjj0eMYM4O33PNdwRnK4M3pa1yvUtjIN/pub?gid=1659253784&single=true&output=csv";
@@ -396,8 +366,6 @@ function carregarDados(){
 
     header:true,
 
-    worker:true,
-
     skipEmptyLines:true,
 
     fastMode:true,
@@ -407,13 +375,14 @@ function carregarDados(){
       if(
         !resultado ||
         !resultado.data ||
+        !Array.isArray(resultado.data) ||
         !resultado.data.length
       ){
 
         $("#spinnerCsv").hide();
 
         alert(
-          "A base de dados retornou vazia."
+          "Não foi possível carregar a base de dados."
         );
 
         return;
@@ -421,7 +390,7 @@ function carregarDados(){
       }
 
       const primeiraLinha =
-        resultado.data[0];
+        resultado.data[0] || {};
 
       const dataAtualizacao =
 
@@ -443,6 +412,7 @@ function carregarDados(){
       dadosOriginais =
         resultado.data
           .filter(r=>
+            r &&
             r["EXERCÍCIO (ANO)"]
           )
           .map(r=>{
@@ -459,15 +429,22 @@ function carregarDados(){
 
           });
 
-      popularFiltroAno();
+      popularFiltro(
+        "anoFiltro",
+        campos.ano,
+        dadosOriginais,
+        true
+      );
 
       inicializarEventos();
 
-      $("#spinnerCsv").fadeOut(150);
+      $("#spinnerCsv").fadeOut(200);
 
     },
 
-    error:function(){
+    error:function(error){
+
+      console.error(error);
 
       $("#spinnerCsv").hide();
 
@@ -483,20 +460,23 @@ function carregarDados(){
 
 function inicializarEventos(){
 
-  $("#anoFiltro").on(
-    "change",
-    aplicarTudo
-  );
+  ordemFiltros.forEach(filtro=>{
 
-  $("#inscritoFiltro").on(
-    "change",
-    aplicarTudo
-  );
+    $("#"+filtro+"Filtro").on(
+      "change",
+      function(){
 
-  $("#valorFiltro").on(
-    "change",
-    aplicarTudo
-  );
+        atualizarFiltros();
+
+        const dados =
+          aplicarFiltros();
+
+        renderTabela(dados);
+
+      }
+    );
+
+  });
 
   $("#btnLimpar").on(
     "click",
@@ -557,33 +537,113 @@ function inicializarEventos(){
 
 }
 
-function popularFiltroAno(){
+function limparFiltros(){
 
-  const select = $("#anoFiltro");
+  ordemFiltros.forEach(f=>{
 
-  const anos = [
+    $("#"+f+"Filtro").val("");
+
+    if(f !== "ano"){
+
+      $("#"+f+"Filtro")
+        .prop("disabled",true)
+        .html(`
+          <option value="">
+            Selecione...
+          </option>
+        `);
+
+    }
+
+  });
+
+  $("#tabela")
+    .hide();
+
+  $("#resumoValores").hide();
+
+  if(tabela){
+
+    tabela.clear().draw();
+
+  }
+
+}
+
+function popularFiltro(
+  id,
+  campo,
+  dados,
+  isAno=false
+){
+
+  const select =
+    $("#"+id);
+
+  const valorAtual =
+    select.val();
+
+  let valores = [
 
     ...new Set(
 
-      dadosOriginais.map(
-        r=>r[campos.ano]
-      )
+      dados
+        .map(r=>r[campo])
+        .filter(v=>
+          v !== undefined &&
+          v !== null &&
+          v !== ""
+        )
 
     )
 
-  ].sort();
+  ];
+
+  if(campo === "VALOR"){
+
+    valores.sort(
+      (a,b)=>
+        parseMoeda(a) -
+        parseMoeda(b)
+    );
+
+  }else{
+
+    valores.sort((a,b)=>
+
+      a.toString().localeCompare(
+        b.toString(),
+        "pt-BR",
+        {
+          sensitivity:"base",
+          numeric:true
+        }
+      )
+
+    );
+
+  }
 
   let html = `
     <option value="">
       Selecione...
     </option>
-
-    <option value="TODOS">
-      Todos
-    </option>
   `;
 
-  anos.forEach(v=>{
+  if(
+    isAno ||
+    valores.length > 1
+  ){
+
+    html += `
+      <option value="TODOS">
+        Todos
+      </option>
+    `;
+
+  }
+
+  valores.forEach(v=>{
 
     html += `
       <option value="${v}">
@@ -595,26 +655,16 @@ function popularFiltroAno(){
 
   select.html(html);
 
-}
+  if(valores.includes(valorAtual)){
 
-function aplicarTudo(){
+    select.val(valorAtual);
 
-  window.requestAnimationFrame(()=>{
+  }
 
-    atualizarFiltros();
-
-    dadosFiltrados =
-      aplicarFiltros();
-
-    atualizarResumo(
-      dadosFiltrados
-    );
-
-    renderTabela(
-      dadosFiltrados
-    );
-
-  });
+  select.prop(
+    "disabled",
+    !isAno && !$("#anoFiltro").val()
+  );
 
 }
 
@@ -643,155 +693,56 @@ function atualizarFiltros(){
 
   }
 
-  const baseAno =
+  ordemFiltros.forEach((filtro,index)=>{
 
-    ano === "TODOS"
+    if(index === 0) return;
 
-      ? dadosOriginais
+    const dadosBase =
+      obterDadosBase(index);
 
-      : dadosOriginais.filter(
+    popularFiltro(
 
-          r=>
-            r[campos.ano] === ano
+      filtro+"Filtro",
 
-        );
+      campos[filtro],
 
-  atualizarSelectRapido(
-    "inscritoFiltro",
-    "inscrito",
-    baseAno
-  );
+      dadosBase
 
-  const inscrito =
-    $("#inscritoFiltro").val();
+    );
 
-  const baseValor =
-
-    !inscrito ||
-    inscrito === "TODOS"
-
-      ? baseAno
-
-      : baseAno.filter(
-          r=>
-            r[campos.inscrito] === inscrito
-        );
-
-  atualizarSelectRapido(
-    "valorFiltro",
-    "valor",
-    baseValor
-  );
+  });
 
 }
 
-function atualizarSelectRapido(
-  id,
-  chaveCampo,
-  dados
-){
+function obterDadosBase(indiceAtual){
 
-  const select =
-    $("#"+id);
+  return dadosOriginais.filter(registro=>{
 
-  const valorAtual =
-    select.val();
+    return ordemFiltros
+      .slice(0,indiceAtual)
+      .every(f=>{
 
-  const campo =
-    campos[chaveCampo];
+        const valor =
+          $("#"+f+"Filtro").val();
 
-  const cacheKey =
-    chaveCampo +
-    "_" +
-    dados.length;
+        if(
+          !valor ||
+          valor === "TODOS"
+        ){
 
-  if(cacheFiltros[cacheKey]){
+          return true;
 
-    select.html(
-      cacheFiltros[cacheKey]
-    );
+        }
 
-  }else{
+        return (
+          registro[
+            campos[f]
+          ] === valor
+        );
 
-    let valores = [
+      });
 
-      ...new Set(
-
-        dados
-          .map(r=>r[campo])
-          .filter(Boolean)
-
-      )
-
-    ];
-
-    if(chaveCampo === "valor"){
-
-      valores.sort(
-        (a,b)=>
-          parseMoeda(a) -
-          parseMoeda(b)
-      );
-
-    }else{
-
-      valores.sort((a,b)=>
-
-        a.localeCompare(
-          b,
-          "pt-BR",
-          {
-            sensitivity:"base"
-          }
-        )
-
-      );
-
-    }
-
-    let html = `
-      <option value="">
-        Selecione...
-      </option>
-    `;
-
-    if(valores.length > 1){
-
-      html += `
-        <option value="TODOS">
-          Todos
-        </option>
-      `;
-
-    }
-
-    valores.forEach(v=>{
-
-      html += `
-        <option value="${v}">
-          ${v}
-        </option>
-      `;
-
-    });
-
-    cacheFiltros[cacheKey] =
-      html;
-
-    select.html(html);
-
-  }
-
-  select.prop(
-    "disabled",
-    false
-  );
-
-  if(valorAtual){
-
-    select.val(valorAtual);
-
-  }
+  });
 
 }
 
@@ -802,44 +753,40 @@ function aplicarFiltros(){
 
   if(!ano){
 
+    atualizarResumo([]);
+
     return [];
 
   }
 
-  const inscrito =
-    $("#inscritoFiltro").val();
+  const dados =
+    dadosOriginais.filter(r=>{
 
-  const valor =
-    $("#valorFiltro").val();
+      return ordemFiltros.every(f=>{
 
-  return dadosOriginais.filter(r=>{
+        const valor =
+          $("#"+f+"Filtro").val();
 
-    if(
-      ano !== "TODOS" &&
-      r[campos.ano] !== ano
-    ){
-      return false;
-    }
+        if(
+          !valor ||
+          valor === "TODOS"
+        ){
 
-    if(
-      inscrito &&
-      inscrito !== "TODOS" &&
-      r[campos.inscrito] !== inscrito
-    ){
-      return false;
-    }
+          return true;
 
-    if(
-      valor &&
-      valor !== "TODOS" &&
-      r[campos.valor] !== valor
-    ){
-      return false;
-    }
+        }
 
-    return true;
+        return (
+          r[campos[f]] === valor
+        );
 
-  });
+      });
+
+    });
+
+  atualizarResumo(dados);
+
+  return dados;
 
 }
 
@@ -847,8 +794,7 @@ function renderTabela(dados){
 
   if(!dados.length){
 
-    $("#tabela")
-      .hide();
+    $("#tabela").hide();
 
     if(tabela){
 
@@ -860,8 +806,23 @@ function renderTabela(dados){
 
   }
 
+  $("#tabela").show();
+
   const colunas =
     Object.keys(dados[0])
+
+      .filter(c=>
+
+        ![
+          "ATUALIZACAO",
+          "ATUALIZAÇÃO",
+          "Atualizacao",
+          "Atualização",
+          "E2"
+        ].includes(c)
+
+      )
+
       .map(c=>({
 
         title:c,
@@ -876,81 +837,7 @@ function renderTabela(dados){
 
       }));
 
-  if(!tabela){
-
-    tabela = $("#tabela").DataTable({
-
-      data:dados,
-
-      columns:colunas,
-
-      deferRender:true,
-
-      processing:false,
-
-      retrieve:true,
-
-      pageLength:parseInt(
-        $("#lengthSelector").val()
-      ),
-
-      searching:true,
-
-      ordering:true,
-
-      autoWidth:false,
-
-      scrollX:true,
-
-      scrollY:"55vh",
-
-      scrollCollapse:true,
-
-      paging:true,
-
-      info:true,
-
-      dom:"Bfrtip",
-
-      buttons:[
-
-        {
-
-          extend:"csvHtml5",
-
-          text:"CSV",
-
-          className:"buttons-csv d-none",
-
-          filename:()=>gerarNomeArquivo("csv")
-            .replace(".csv","")
-
-        },
-
-        {
-
-          extend:"excelHtml5",
-
-          text:"XLSX",
-
-          className:"buttons-excel d-none",
-
-          filename:()=>gerarNomeArquivo("xlsx")
-            .replace(".xlsx","")
-
-        }
-
-      ],
-
-      language:{
-
-        url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
-
-      }
-
-    });
-
-  }else{
+  if(tabela){
 
     tabela.clear();
 
@@ -958,9 +845,75 @@ function renderTabela(dados){
 
     tabela.draw(false);
 
+    return;
+
   }
 
-  $("#tabela").show();
+  tabela = $("#tabela").DataTable({
+
+    data:dados,
+
+    columns:colunas,
+
+    deferRender:true,
+
+    processing:false,
+
+    pageLength:parseInt(
+      $("#lengthSelector").val()
+    ),
+
+    searching:true,
+
+    ordering:true,
+
+    autoWidth:false,
+
+    scrollX:true,
+
+    scrollY:"55vh",
+
+    scrollCollapse:true,
+
+    dom:"Bfrtip",
+
+    buttons:[
+
+      {
+
+        extend:"csvHtml5",
+
+        text:"CSV",
+
+        className:"buttons-csv d-none",
+
+        filename:()=>gerarNomeArquivo("csv")
+          .replace(".csv","")
+
+      },
+
+      {
+
+        extend:"excelHtml5",
+
+        text:"XLSX",
+
+        className:"buttons-excel d-none",
+
+        filename:()=>gerarNomeArquivo("xlsx")
+          .replace(".xlsx","")
+
+      }
+
+    ],
+
+    language:{
+
+      url:"https://cdn.datatables.net/plug-ins/1.13.4/i18n/pt-BR.json"
+
+    }
+
+  });
 
 }
 
@@ -976,13 +929,13 @@ function atualizarResumo(dados){
 
   let total = 0;
 
-  for(let i=0;i<dados.length;i++){
+  dados.forEach(r=>{
 
     total += parseMoeda(
-      dados[i]["VALOR"]
+      r["VALOR"]
     );
 
-  }
+  });
 
   $("#totalValor").text(
 
@@ -1147,13 +1100,7 @@ function baixarArquivo(blob,nome){
 
   document.body.removeChild(link);
 
-  setTimeout(()=>{
-
-    URL.revokeObjectURL(
-      link.href
-    );
-
-  },100);
+  URL.revokeObjectURL(link.href);
 
 }
 
